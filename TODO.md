@@ -3,20 +3,6 @@
 Open items tracked from development so far — not a roadmap, just things
 that are known and deliberately not done yet.
 
-## Operational (not code)
-
-- [ ] **Production server**: the live `weewx.conf` on weerstationlangezwaag.nl
-  has the same `lightning_strikes`/`avg_distance` sensor-map mismatch found
-  during WSL testing (should be `lightning_strike_count`/`lightning_distance`
-  — those are the actual `wview_extended` schema column names). Local fix is
-  in `reference/weewx-conf/weewx.conf-5.5.0.dist`'s notes; the real server's
-  config still needs the same two-line edit by hand.
-- [ ] Optional: a passwordless-sudo rule scoped to
-  `systemctl restart weewx.service` on the WSL test box, so iterating on
-  `bin/user/vane_extras.py` doesn't need a manual restart each time.
-- [ ] Optional: a Windows Task Scheduler entry to start the WSL distro at
-  login, so the test station survives a reboot without manual intervention.
-
 ## Deferred by design (see `docs/DASHBOARD_EXPANSION_PLAN.md`)
 
 These were explicitly scoped out, not forgotten:
