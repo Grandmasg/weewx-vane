@@ -14,6 +14,8 @@ Telemetrie en Almanak staan er allemaal, inclusief windroos, windvector-radar,
 regenkalender, records-teaser en meertaligheid (NL/EN). Zie
 `docs/DASHBOARD_EXPANSION_PLAN.md` voor de status per onderdeel.
 
+![Vane dashboard, donker thema](docs/images/dashboard.png)
+
 ## Installeren
 
 Zie **[INSTALL.md](INSTALL.md)** voor de volledige installatie-/update-instructies
