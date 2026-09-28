@@ -1,0 +1,191 @@
+#encoding UTF-8
+#errorCatcher Echo
+#* TODO: this is the bare v1 — the sun-arc/moon SVG/day-length-through-the-
+   year chart from the design mockup are still to follow during the visual
+   polish round, see MOCKUP_REVIEW.md. *#
+<!DOCTYPE html>
+<html lang="$lang" data-theme="">
+<head>
+<script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$gettext('Almanac') &mdash; $station.location</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/vane.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+</head>
+<body>
+<div class="vane-shell">
+
+  <nav class="vane-sidebar">
+    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      <span>$gettext('Dashboard')</span>
+    </a>
+    <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+      <span>$gettext('Graphs')</span>
+    </a>
+    <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
+      <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+      <span>$gettext('Archive')</span>
+    </a>
+    <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
+      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <span>$gettext('Telemetry')</span>
+    </a>
+    <button class="nav-btn active" title="$gettext('Almanac')" aria-current="page">
+      <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      <span>$gettext('Almanac')</span>
+    </button>
+  </nav>
+
+  <div class="vane-main">
+    <div class="vane-content">
+      <div class="vane-container">
+
+        <header class="vane-header">
+          <div>
+            <h1>$gettext('Almanac')</h1>
+            <span class="subtitle">$station.location</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            #for $lcode, $lsubdir in $Vane.Languages.items()
+            #if $lcode != $lang
+            #set $lseg = $lsubdir + '/' if $lsubdir else ''
+            <a class="pill" href="${Vane.root_href}${lseg}almanac.html" title="$gettext('Switch language')">$lcode.upper()</a>
+            #end if
+            #end for
+            <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
+              <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+            </button>
+          </div>
+        </header>
+
+        #set $sun_now = $current.dateTime.raw
+        #set $sun_has_data = $almanac.sun.rise.raw is not None and $almanac.sun.set.raw is not None
+        #set $sun_is_up = $sun_has_data and $sun_now >= $almanac.sun.rise.raw and $sun_now <= $almanac.sun.set.raw
+
+        <div class="row-wrap">
+          <section class="card" style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><span class="tile-dot" style="background:var(--accent-wind)"></span>$gettext('Sun')</span>
+              <span style="font-size:12.5px;color:var(--text-muted)">
+                #if $sun_is_up
+                $gettext('Sun above the horizon')
+                #else
+                $gettext('Sun below the horizon')
+                #end if
+              </span>
+            </div>
+
+            #if $vane_sun_arc.has_data
+            <div style="display:flex;justify-content:center;font-size:12.5px;color:var(--text-muted)">
+              $almanac.sun.transit.format("%H:%M") &middot; $vane_sun_arc.peak_altitude&deg;
+            </div>
+            <svg viewBox="0 0 $vane_sun_arc.width $vane_sun_arc.height" style="width:100%;height:auto;display:block;overflow:visible">
+              <line x1="0" y1="$vane_sun_arc.baseline_y" x2="$vane_sun_arc.width" y2="$vane_sun_arc.baseline_y" stroke="var(--border)" stroke-width="1"></line>
+              <path d="$vane_sun_arc.path_d" fill="none" stroke="var(--accent-wind)" stroke-width="3" stroke-linecap="round"></path>
+              #if $vane_sun_arc.dot
+              <line x1="$vane_sun_arc.dot.x" y1="$vane_sun_arc.dot.y" x2="$vane_sun_arc.dot.x" y2="$vane_sun_arc.baseline_y" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3,3"></line>
+              <circle cx="$vane_sun_arc.dot.x" cy="$vane_sun_arc.dot.y" r="5.5" fill="var(--accent-wind)" stroke="var(--bg)" stroke-width="2"></circle>
+              #end if
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-top:-8px">
+              <span>$almanac.sun.rise.format("%H:%M")</span>
+              <span>$almanac.sun.set.format("%H:%M")</span>
+            </div>
+            #else
+            <div class="empty-state">$gettext('Not enough data yet for this view')</div>
+            #end if
+
+            <div class="hero-meta" style="margin-top:4px">
+              <div><div class="k">$gettext('Twilight')</div><div class="v">$almanac(horizon=-6).sun(use_center=1).rise.format("%H:%M")</div></div>
+              <div><div class="k">$gettext('Sunrise')</div><div class="v">$almanac.sun.rise.format("%H:%M")</div></div>
+              <div><div class="k">$gettext('Solar noon')</div><div class="v">$almanac.sun.transit.format("%H:%M")</div></div>
+              <div><div class="k">$gettext('Sunset')</div><div class="v">$almanac.sun.set.format("%H:%M")</div></div>
+              <div><div class="k">$gettext('Twilight')</div><div class="v">$almanac(horizon=-6).sun(use_center=1).set.format("%H:%M")</div></div>
+            </div>
+          </section>
+
+          #set $moon_icon = $vane_moon_icon($almanac.moon_index)
+          <section class="card" style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext('Moon')</span>
+            <div class="hero-value" style="align-items:center;gap:12px">
+              <img src="static/img/icons/${moon_icon}.svg" width="40" height="40" alt="">
+              <span class="num" style="font-size:28px">$almanac.moon_fullness</span>
+              <span class="unit">% $gettext('illuminated') &middot; $almanac.moon_phase</span>
+            </div>
+            <div class="hero-meta">
+              <div><div class="k">$gettext('Moonrise')</div><div class="v">$almanac.moon.rise.format("%H:%M")</div></div>
+              <div><div class="k">$gettext('Moonset')</div><div class="v">$almanac.moon.set.format("%H:%M")</div></div>
+            </div>
+            #set $phase_events = [($gettext('Full moon'), $almanac.next_full_moon), ($gettext('Last quarter'), $almanac.next_last_quarter_moon), ($gettext('New moon'), $almanac.next_new_moon), ($gettext('First quarter'), $almanac.next_first_quarter_moon)]
+            #set $phase_events = sorted($phase_events, key=lambda p: p[1].raw)
+            <div style="display:flex;flex-direction:column;border-top:1px solid var(--border);padding-top:8px;margin-top:auto">
+              #for $label, $vh in $phase_events
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0">
+                <span>$label</span>
+                <span style="color:var(--text-muted)">$vh.format($Vane.DateFormats.archive_day + " &middot; %H:%M")</span>
+              </div>
+              #end for
+            </div>
+          </section>
+        </div>
+
+        <section class="card">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 20px;align-items:baseline;margin-bottom:10px">
+            <span class="uppercase-label">$gettext('Day length through the year')</span>
+            <span style="font-size:12.5px;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:4px 16px">
+              <span>$gettext('Today') <strong style="color:var(--text)">$vane_day_length_year.today_h$gettext('h_short') $vane_day_length_year.today_m</strong>m
+                ($vane_day_length_year.delta_sign${vane_day_length_year.delta_m}m ${vane_day_length_year.delta_s}s)</span>
+              <span>$gettext('Longest') <strong style="color:var(--text)">$vane_day_length_year.max_h$gettext('h_short') $vane_day_length_year.max_m</strong>m &middot; $vane_day_length_year.max_date_str</span>
+              <span>$gettext('Shortest') <strong style="color:var(--text)">$vane_day_length_year.min_h$gettext('h_short') $vane_day_length_year.min_m</strong>m &middot; $vane_day_length_year.min_date_str</span>
+            </span>
+          </div>
+          <div style="position:relative;width:100%;height:180px">
+            <svg viewBox="0 0 $vane_day_length_year.width $vane_day_length_year.height" preserveAspectRatio="none" style="width:100%;height:180px;display:block;overflow:visible">
+              <path d="$vane_day_length_year.area_d" fill="var(--accent-wind)" opacity="0.15"></path>
+              <path d="$vane_day_length_year.path_d" fill="none" stroke="var(--accent-wind)" stroke-width="2"></path>
+              <line x1="$vane_day_length_year.today_x" y1="0" x2="$vane_day_length_year.today_x" y2="$vane_day_length_year.height" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3,3"></line>
+            </svg>
+            #*
+              Plain HTML dot, not SVG — the SVG above uses
+              preserveAspectRatio="none" (fixed height, stretched width),
+              which scales x/y non-uniformly and turns an SVG <circle>
+              into a visible ellipse. A real HTML element positioned by
+              percentage and sized in px stays round regardless.
+            *#
+            <div style="position:absolute;left:$vane_day_length_year.today_x_pct%;top:$vane_day_length_year.today_y_pct%;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:var(--accent-wind)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
+            <span>$gettext('Jan')</span><span>$gettext('Feb')</span><span>$gettext('Mar')</span><span>$gettext('Apr')</span>
+            <span>$gettext('May')</span><span>$gettext('Jun')</span><span>$gettext('Jul')</span><span>$gettext('Aug')</span>
+            <span>$gettext('Sep')</span><span>$gettext('Oct')</span><span>$gettext('Nov')</span><span>$gettext('Dec')</span>
+          </div>
+          #if $vane_season_events.past_label
+          <div style="margin-top:10px;font-size:12.5px;color:var(--text-muted)">
+            $gettext($vane_season_events.past_label) <strong style="color:var(--text)">$vane_season_events.past_date_str $vane_season_events.past_time_str</strong>
+            #if $vane_season_events.future_label
+            &middot; $gettext($vane_season_events.future_label) <strong style="color:var(--text)">$vane_season_events.future_date_str $vane_season_events.future_time_str</strong> &middot; $gettext('in {n} days').format(n=$vane_season_events.future_days)
+            #end if
+          </div>
+          #end if
+        </section>
+
+        #include "footer.inc"
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="static/js/theme-toggle.js"></script>
+</body>
+</html>

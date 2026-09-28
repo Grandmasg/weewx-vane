@@ -1,0 +1,17 @@
+#errorCatcher Echo
+#encoding UTF-8
+{
+  "period": "day",
+  "generated": $current.dateTime.raw,
+  "temp": $day.outTemp.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "dewpoint": $day.dewpoint.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "barometer": $day.barometer.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "windSpeed": $day.windSpeed.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "windGust": $day.windGust.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "rain": $day.rain.series(aggregate_type='sum', aggregate_interval=1800, time_series='start').json(order_by='column'),
+  "humidity": $day.outHumidity.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "uv": $day.UV.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "radiation": $day.radiation.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "cloudbase": $day.cloudbase.series(aggregate_type=None, time_series='start').json(order_by='column'),
+  "et": $day.ET.series(aggregate_type='sum', aggregate_interval=1800, time_series='start').json(order_by='column')
+}

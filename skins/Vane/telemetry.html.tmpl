@@ -1,0 +1,249 @@
+#encoding UTF-8
+#errorCatcher Echo
+#* Services/uploads status, system-log tail and power-voltage all come
+   from skin.conf [Vane][[Telemetry]] log_command/power_voltage_command
+   — fully optional, host/OS-specific commands the installer configures
+   themselves (see that section's comment and THEME_PLAN.md "Personal
+   integrations are a separate plugin"). Sections simply don't render
+   when nothing is configured, no error either way. *#
+<!DOCTYPE html>
+<html lang="$lang" data-theme="">
+<head>
+<script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$gettext('Telemetry') &mdash; $station.location</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/vane.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+</head>
+<body>
+<div class="vane-shell">
+
+  <nav class="vane-sidebar">
+    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      <span>$gettext('Dashboard')</span>
+    </a>
+    <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+      <span>$gettext('Graphs')</span>
+    </a>
+    <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
+      <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+      <span>$gettext('Archive')</span>
+    </a>
+    <button class="nav-btn active" title="$gettext('Telemetry')" aria-current="page">
+      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <span>$gettext('Telemetry')</span>
+    </button>
+    <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
+      <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      <span>$gettext('Almanac')</span>
+    </a>
+  </nav>
+
+  <div class="vane-main">
+    <div class="vane-content">
+      <div class="vane-container">
+
+        <header class="vane-header">
+          <div>
+            <h1>$gettext('Telemetry overview')</h1>
+            <span class="subtitle">$station.location</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="pill"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Operational')</span>
+            #for $lcode, $lsubdir in $Vane.Languages.items()
+            #if $lcode != $lang
+            #set $lseg = $lsubdir + '/' if $lsubdir else ''
+            <a class="pill" href="${Vane.root_href}${lseg}telemetry.html" title="$gettext('Switch language')">$lcode.upper()</a>
+            #end if
+            #end for
+            <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
+              <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="tiles-grid" style="flex:none;width:100%">
+
+          #if $day.txBatteryStatus.has_data
+          <div class="tile">
+            <span class="tile-label"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Battery')</span>
+            <div class="tile-value"><span class="num">#if $current.txBatteryStatus.raw#$gettext('Low')#else#$gettext('OK')#end if#</span></div>
+          </div>
+          #end if
+
+          #if $day.consBatteryVoltage.has_data
+          <div class="tile">
+            <span class="tile-label"><span class="tile-dot" style="background:var(--accent-primary)"></span>$gettext('Console battery')</span>
+            <div class="tile-value"><span class="num">$current.consBatteryVoltage.format(add_label=False, format_string="%.2f")</span><span class="unit">V</span></div>
+          </div>
+          #end if
+
+          #if $day.rxCheckPercent.has_data
+          <div class="tile">
+            <span class="tile-label"><span class="tile-dot" style="background:var(--accent-primary)"></span>$gettext('Reception')</span>
+            <div class="tile-value"><span class="num">$current.rxCheckPercent.format(add_label=False, format_string="%.0f")</span><span class="unit">%</span></div>
+          </div>
+          #end if
+
+          #if $vane_power_voltage is not None
+          <div class="tile">
+            <span class="tile-label"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Power')</span>
+            <div class="tile-value"><span class="num">$round($vane_power_voltage, 2)</span><span class="unit">V</span></div>
+          </div>
+          #end if
+
+          #if $vane_storage is not None
+          <div class="tile">
+            <span class="tile-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext('Storage')</span>
+            <div class="tile-value"><span class="num">$round($vane_storage.db_size_mb, 0)</span><span class="unit">MB</span></div>
+            #if $vane_storage.disk_used_pct is not None
+            <span class="tile-sub">weewx.sdb &middot; $round($vane_storage.disk_used_pct, 0)% $gettext('of') ${round($vane_storage.disk_total_gb, 0)}GB</span>
+            #end if
+          </div>
+          #end if
+
+        </div>
+
+        #if $day.rxCheckPercent.has_data or $day.consBatteryVoltage.has_data
+        <div class="row-wrap">
+          #if $day.rxCheckPercent.has_data
+          #set $rx_vals = [$r.rxCheckPercent.raw for $r in $span(hour_delta=24).records if $r.rxCheckPercent.raw is not None]
+          #set $rx_spark = $vane_sparkline_path($rx_vals)
+          #if $rx_spark[0]
+          <section class="card" style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span class="uppercase-label">$gettext('Reception') &middot; $gettext('24 hours ago')</span>
+              <span style="font-size:11px;color:var(--text-muted)">$gettext('Min') $round($min($rx_vals),0) &middot; $gettext('Max') $round($max($rx_vals),0)</span>
+            </div>
+            <svg viewBox="0 0 300 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block">
+              <path d="$rx_spark[1]" fill="var(--accent-primary)" opacity="0.18"></path>
+              <path d="$rx_spark[0]" style="fill:none;stroke:var(--accent-primary);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
+              <span>$gettext('24 hours ago')</span>
+              <span>$gettext('now') &middot; $current.rxCheckPercent.format(add_label=False, format_string="%.0f")%</span>
+            </div>
+          </section>
+          #end if
+          #end if
+
+          #if $day.consBatteryVoltage.has_data
+          #set $batt_vals = [$r.consBatteryVoltage.raw for $r in $span(day_delta=7).records if $r.consBatteryVoltage.raw is not None]
+          #set $batt_spark = $vane_sparkline_path($batt_vals)
+          #if $batt_spark[0]
+          <section class="card" style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span class="uppercase-label">$gettext('Console battery') &middot; 7 $gettext('days')</span>
+              <span style="font-size:11px;color:var(--text-muted)">$gettext('Min') $round($min($batt_vals),2) &middot; $gettext('Max') $round($max($batt_vals),2)</span>
+            </div>
+            <svg viewBox="0 0 300 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block">
+              <path d="$batt_spark[1]" fill="var(--accent-storm)" opacity="0.18"></path>
+              <path d="$batt_spark[0]" style="fill:none;stroke:var(--accent-storm);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
+              <span>7 $gettext('days') $gettext('ago')</span>
+              <span>$gettext('now') &middot; ${current.consBatteryVoltage.format(add_label=False, format_string="%.2f")}V</span>
+            </div>
+          </section>
+          #end if
+          #end if
+        </div>
+        #end if
+
+        <div class="row-wrap">
+          <section class="card" style="flex:1 1 320px;min-width:0">
+            <span class="uppercase-label">$gettext('Services & uploads')</span>
+            <div style="display:flex;flex-direction:column;margin-top:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <div>
+                  <div style="font-weight:600;font-size:13.5px">weewxd</div>
+                  <div style="font-size:11.5px;color:var(--text-muted)">$gettext('Active') &middot; $current.dateTime.format("%H:%M:%S")</div>
+                </div>
+                <span class="pill" style="color:var(--status-live);border-color:var(--status-live)">OK</span>
+              </div>
+              #if $vane_record_count is not None
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <div>
+                  <div style="font-weight:600;font-size:13.5px">$gettext('Database')</div>
+                  <div style="font-size:11.5px;color:var(--text-muted)">$vane_record_count $gettext('records')</div>
+                </div>
+                <span class="pill" style="color:var(--status-live);border-color:var(--status-live)">OK</span>
+              </div>
+              #end if
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;#if not $vane_telemetry_services.services#border-bottom:none;#else#border-bottom:1px solid var(--border);#end if#">
+                <div>
+                  <div style="font-weight:600;font-size:13.5px">$gettext('Report generator')</div>
+                  <div style="font-size:11.5px;color:var(--text-muted)">$current.dateTime.format("%H:%M:%S")</div>
+                </div>
+                <span class="pill" style="color:var(--status-live);border-color:var(--status-live)">OK</span>
+              </div>
+              #for $i, $svc in enumerate($vane_telemetry_services.services)
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;#if not $i + 1 == len($vane_telemetry_services.services)#border-bottom:1px solid var(--border);#end if#">
+                <div>
+                  <div style="font-weight:600;font-size:13.5px">$svc.name</div>
+                  #if $svc.ok
+                  <div style="font-size:11.5px;color:var(--text-muted)">$gettext('Published')</div>
+                  #else
+                  <div style="font-size:11.5px;color:var(--text-muted)">$svc.detail</div>
+                  #end if
+                </div>
+                #if $svc.ok
+                <span class="pill" style="color:var(--status-live);border-color:var(--status-live)">OK</span>
+                #else
+                <span class="pill" style="color:var(--accent-wind);border-color:var(--accent-wind)">$gettext('Error')</span>
+                #end if
+              </div>
+              #end for
+            </div>
+          </section>
+
+          #if $vane_telemetry_services.has_data
+          <section class="card" style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span class="uppercase-label">$gettext('System log')</span>
+            </div>
+            <pre style="margin:10px 0 0;padding:10px;background:var(--surface-2);border-radius:10px;font-family:var(--font-mono);font-size:11px;line-height:1.6;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word">#slurp
+#for $line in $vane_telemetry_services.log_lines
+$line
+#end for
+</pre>
+          </section>
+          #end if
+        </div>
+
+        #if $vane_extra_sensors
+        <section class="card">
+          <span class="uppercase-label">$gettext('Extra sensors')</span>
+          <div class="tiles-grid" style="margin-top:12px">
+            #for $group in $vane_extra_sensors
+            #for $item in $group.items
+            <div class="tile">
+              <span class="tile-label">$item.label</span>
+              <div class="tile-value"><span class="num">$item.value</span></div>
+            </div>
+            #end for
+            #end for
+          </div>
+        </section>
+        #end if
+
+        #include "footer.inc"
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="static/js/theme-toggle.js"></script>
+</body>
+</html>
