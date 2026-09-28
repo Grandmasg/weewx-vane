@@ -21,6 +21,12 @@ import zipfile
 ROOT = pathlib.Path(__file__).parent
 DIST = ROOT / "dist"
 
+# Not needed by WeeWX at install time (weectl only looks at install.py's own
+# files=[...] list), but included anyway so a downloaded zip carries its own
+# license/attribution instead of only being visible in the git repo — MIT
+# (Meteocons/uPlot/MQTT.js) requires the notice to travel with the copy.
+EXTRA_FILES = ["LICENSE", "THIRD-PARTY-LICENSES.md"]
+
 
 def _extract_installer_info():
     tree = ast.parse((ROOT / "install.py").read_text(encoding="utf-8"))
@@ -47,7 +53,7 @@ def main():
         raise SystemExit("Could not parse version/files out of install.py — "
                           "did its structure change?")
 
-    missing = [f for f in files if not (ROOT / f).exists()]
+    missing = [f for f in files + EXTRA_FILES if not (ROOT / f).exists()]
     if missing:
         raise SystemExit(
             "install.py declares files that don't exist on disk:\n  " +
@@ -62,8 +68,11 @@ def main():
         zf.write(ROOT / "install.py", f"{top}/install.py")
         for f in files:
             zf.write(ROOT / f, f"{top}/{f}")
+        for f in EXTRA_FILES:
+            zf.write(ROOT / f, f"{top}/{f}")
 
-    print("Built %s (%d files, version %s)" % (zip_path, len(files) + 1, version))
+    print("Built %s (%d files, version %s)" % (
+        zip_path, len(files) + 1 + len(EXTRA_FILES), version))
 
 
 if __name__ == "__main__":
