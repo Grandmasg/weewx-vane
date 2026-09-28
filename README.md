@@ -78,4 +78,7 @@ volledige afweging en gekozen richting.
 
 ## Licentie
 
-[MIT](LICENSE) — zelfde als de meeste referentie-skins hierboven.
+[MIT](LICENSE) — zelfde als de meeste referentie-skins hierboven. Vane
+gebruikt daarnaast een klein aantal MIT/OFL-gelicenseerde derdenbibliotheken
+(Meteocons-weericonen, uPlot, MQTT.js, Geist-lettertype) — zie
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) voor de details.
