@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Vane — chart benchmark: eigen SVG vs uPlot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="./vendor/uPlot.min.css">
+<style>
+  :root{
+    --bg:#020617;--surface:rgba(15,23,42,.62);--surface-2:rgba(148,163,184,.07);
+    --border:rgba(148,163,184,.14);--text:#f1f5f9;--text-muted:#94a3b8;
+    --accent-primary:#2f8bff;--accent-wind:#fb923c;--status-live:#4ade80;--grid:rgba(148,163,184,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+    font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--text-muted);font-size:13px;margin:0 0 20px}
+  .wrap{max-width:1200px;margin:0 auto;padding:28px 24px 60px}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px;
+    padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--border)}
+  .controls span.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-right:4px}
+  button{all:unset;cursor:pointer;padding:7px 13px;border-radius:8px;font-size:13px;font-weight:500;
+    border:1px solid var(--border);color:var(--text);background:var(--surface-2)}
+  button:hover{background:rgba(148,163,184,.16)}
+  button.active{background:var(--accent-primary);color:#fff;border-color:transparent}
+  button.primary{background:var(--accent-primary);color:#fff;border-color:transparent}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  section.chart{padding:18px 20px;border-radius:16px;background:var(--surface);border:1px solid var(--border)}
+  section.chart h2{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+  .timing{font-family:'Geist Mono',ui-monospace,monospace;font-size:13px;margin:4px 0 14px;display:flex;gap:18px;flex-wrap:wrap}
+  .timing b{color:var(--text);font-weight:600}
+  .timing .ms{color:var(--accent-primary)}
+  .svg-host{position:relative;height:260px}
+  .svg-host svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .uplot-host{min-height:260px}
+  .uplot-host .u-legend{font-size:11px;color:var(--text-muted)}
+  .tooltip{position:absolute;top:8px;padding:6px 9px;border-radius:8px;background:var(--bg);
+    border:1px solid var(--border);font-size:12px;pointer-events:none;white-space:nowrap;display:none;
+    font-variant-numeric:tabular-nums}
+  table.results{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px;font-variant-numeric:tabular-nums}
+  table.results th,table.results td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right}
+  table.results th:first-child,table.results td:first-child{text-align:left}
+  table.results th{color:var(--text-muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .winner{color:var(--status-live);font-weight:600}
+  footer{margin-top:24px;font-size:12px;color:var(--text-muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vane — grafiek-benchmark</h1>
+  <p class="sub">Zelfde synthetische tijdreeks, twee implementaties: de library-loze SVG-aanpak (zoals het designmockup al doet) tegenover uPlot. Doel: bepalen vanaf welke datasetgrootte uPlot als fallback nodig is voor de "Alles"-periode.</p>
+
+  <div class="controls">
+    <span class="lbl">Aantal punten</span>
+    <button data-n="100">100 (dag)</button>
+    <button data-n="2000">2.000 (maand)</button>
+    <button data-n="10000">10.000 (jaar)</button>
+    <button data-n="50000">50.000 (alles, ~jaren)</button>
+    <button data-n="150000">150.000 (extreem)</button>
+    <button id="benchAll" class="primary" style="margin-left:auto">Benchmark alle groottes</button>
+  </div>
+
+  <div class="grid">
+    <section class="chart">
+      <h2>Eigen SVG (huidige aanpak)</h2>
+      <div class="timing"><span>Bouw+render: <b class="ms" id="svgMs">–</b> ms</span><span>Punten: <b id="svgN">–</b></span></div>
+      <div class="svg-host" id="svgHost">
+        <svg viewBox="0 0 1000 260" preserveAspectRatio="none"></svg>
+        <div class="tooltip" id="svgTip"></div>
+      </div>
+    </section>
+    <section class="chart">
+      <h2>uPlot (canvas, fallback-kandidaat)</h2>
+      <div class="timing"><span>Bouw+render: <b class="ms" id="uplotMs">–</b> ms</span><span>Punten: <b id="uplotN">–</b></span></div>
+      <div class="uplot-host" id="uplotHost"></div>
+    </section>
+  </div>
+
+  <table class="results" id="resultsTable" style="display:none">
+    <thead><tr><th>Punten</th><th>Eigen SVG (ms)</th><th>uPlot (ms)</th><th>Snelst</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <footer>Tip: gebruik ook de browser devtools Performance-tab voor scrub/hover-frametijden, dit meet alleen initiële build+paint. Draai op hetzelfde apparaat waar het uiteindelijk bekeken wordt (bv. ook eens op een oudere telefoon/Raspberry Pi-scherm testen).</footer>
+</div>
+
+<script src="./vendor/uPlot.iife.min.js"></script>
+<script>
+function genData(n) {
+  const out = new Array(n);
+  let drift = 0;
+  for (let i = 0; i < n; i++) {
+    drift += (Math.random() - 0.5) * 0.15;
+    const daily = 14 + 7 * Math.sin((i % 288) / 288 * Math.PI * 2 - Math.PI / 2);
+    out[i] = daily + drift + (Math.random() - 0.5) * 0.6;
+  }
+  return out;
+}
+
+function afterPaint(cb) {
+  requestAnimationFrame(() => requestAnimationFrame(cb));
+}
+
+// ---- eigen SVG-aanpak ----
+let svgHoverHandler = null;
+function renderSVG(vals, onDone) {
+  const t0 = performance.now();
+  const svg = document.querySelector('#svgHost svg');
+  const tip = document.getElementById('svgTip');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  svgHoverHandler && svg.removeEventListener('mousemove', svgHoverHandler);
+
+  const n = vals.length;
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < n; i++) { const v = vals[i]; if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (hi - lo < 1e-6) hi = lo + 1;
+  const W = 1000, H = 260;
+  const x = i => i / (n - 1) * W;
+  const y = v => H - (v - lo) / (hi - lo) * H;
+
+  let line = 'M', area;
+  for (let i = 0; i < n; i++) line += (i ? ' L' : '') + x(i).toFixed(2) + ',' + y(vals[i]).toFixed(2);
+  area = line + ` L${W},${H} L0,${H} Z`;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const areaEl = document.createElementNS(ns, 'path');
+  areaEl.setAttribute('d', area);
+  areaEl.setAttribute('fill', 'var(--accent-primary)');
+  areaEl.setAttribute('opacity', '0.14');
+  svg.appendChild(areaEl);
+
+  const lineEl = document.createElementNS(ns, 'path');
+  lineEl.setAttribute('d', line);
+  lineEl.setAttribute('fill', 'none');
+  lineEl.setAttribute('stroke', 'var(--accent-primary)');
+  lineEl.setAttribute('stroke-width', '2');
+  lineEl.setAttribute('vector-effect', 'non-scaling-stroke');
+  svg.appendChild(lineEl);
+
+  const cursor = document.createElementNS(ns, 'line');
+  cursor.setAttribute('y1', '0'); cursor.setAttribute('y2', String(H));
+  cursor.setAttribute('stroke', 'var(--text-muted)'); cursor.setAttribute('stroke-width', '1');
+  cursor.style.display = 'none';
+  svg.appendChild(cursor);
+
+  svgHoverHandler = e => {
+    const b = svg.getBoundingClientRect();
+    const fr = Math.max(0, Math.min(1, (e.clientX - b.left) / b.width));
+    const i = Math.round(fr * (n - 1));
+    cursor.setAttribute('x1', x(i).toFixed(2)); cursor.setAttribute('x2', x(i).toFixed(2));
+    cursor.style.display = 'block';
+    tip.style.display = 'block';
+    tip.style.left = Math.min(b.width - 90, Math.max(0, fr * b.width + 8)) + 'px';
+    tip.textContent = vals[i].toFixed(1) + ' °C  ·  punt ' + i;
+  };
+  svg.addEventListener('mousemove', svgHoverHandler);
+  svg.addEventListener('mouseleave', () => { cursor.style.display = 'none'; tip.style.display = 'none'; });
+
+  const buildMs = performance.now() - t0;
+  afterPaint(() => onDone(performance.now() - t0, buildMs));
+}
+
+// ---- uPlot ----
+let uplotInstance = null;
+function renderUPlot(vals, onDone) {
+  const t0 = performance.now();
+  if (uplotInstance) { try { uplotInstance.destroy(); } catch (e) {} uplotInstance = null; }
+  const host = document.getElementById('uplotHost');
+  host.innerHTML = '';
+  const n = vals.length;
+  const xs = new Array(n); for (let i = 0; i < n; i++) xs[i] = i;
+
+  try {
+    if (typeof uPlot !== 'function') throw new Error('uPlot library niet geladen (check ./vendor/uPlot.iife.min.js)');
+    const width = host.clientWidth || host.getBoundingClientRect().width || 560;
+    uplotInstance = new uPlot({
+      width,
+      height: 260,
+      scales: { x: { time: false } },
+      axes: [
+        { stroke: '#94a3b8', grid: { stroke: 'rgba(148,163,184,.12)' } },
+        { stroke: '#94a3b8', grid: { stroke: 'rgba(148,163,184,.12)' } }
+      ],
+      series: [
+        {},
+        { label: 'temp', stroke: '#2f8bff', width: 2, fill: 'rgba(47,139,255,.14)', points: { show: false } }
+      ]
+    }, [xs, vals], host);
+  } catch (err) {
+    console.error('[uPlot] init faalde:', err);
+    host.innerHTML = '<div style="padding:16px;color:#fb923c;font-size:13px">uPlot-fout: ' + (err && err.message ? err.message : err) + '<br><span style="color:var(--text-muted)">Zie console voor details.</span></div>';
+    const buildMs = performance.now() - t0;
+    afterPaint(() => onDone(NaN, buildMs));
+    return;
+  }
+
+  const buildMs = performance.now() - t0;
+  afterPaint(() => onDone(performance.now() - t0, buildMs));
+}
+
+function renderBoth(n, cb) {
+  const vals = genData(n);
+  let done = 0, results = {};
+  renderSVG(vals, (paintMs, buildMs) => {
+    document.getElementById('svgMs').textContent = paintMs.toFixed(1);
+    document.getElementById('svgN').textContent = n.toLocaleString('nl-NL');
+    results.svg = paintMs;
+    if (++done === 2 && cb) cb(results);
+  });
+  renderUPlot(vals, (paintMs, buildMs) => {
+    document.getElementById('uplotMs').textContent = paintMs.toFixed(1);
+    document.getElementById('uplotN').textContent = n.toLocaleString('nl-NL');
+    results.uplot = paintMs;
+    if (++done === 2 && cb) cb(results);
+  });
+}
+
+document.querySelectorAll('.controls button[data-n]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.controls button[data-n]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBoth(parseInt(btn.dataset.n, 10));
+  });
+});
+
+document.getElementById('benchAll').addEventListener('click', () => {
+  const sizes = [100, 500, 2000, 10000, 50000, 150000];
+  const table = document.getElementById('resultsTable');
+  const tbody = table.querySelector('tbody');
+  tbody.innerHTML = '';
+  table.style.display = '';
+  let idx = 0;
+  function next() {
+    if (idx >= sizes.length) return;
+    const n = sizes[idx++];
+    renderBoth(n, (r) => {
+      const tr = document.createElement('tr');
+      const winner = Number.isNaN(r.uplot) ? 'eigen SVG (uPlot faalde)' : (r.svg < r.uplot ? 'eigen SVG' : 'uPlot');
+      tr.innerHTML = `<td>${n.toLocaleString('nl-NL')}</td><td>${r.svg.toFixed(1)}</td><td>${r.uplot.toFixed(1)}</td><td class="winner">${winner}</td>`;
+      tbody.appendChild(tr);
+      setTimeout(next, 120);
+    });
+  }
+  next();
+});
+
+// eerste render
+document.querySelector('.controls button[data-n="2000"]').classList.add('active');
+renderBoth(2000);
+</script>
+</body>
+</html>

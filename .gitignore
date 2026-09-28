@@ -1,0 +1,28 @@
+# Actief weewx.conf bevat wachtwoorden/API-keys (station-uploads, MQTT, etc.)
+# — nooit committen, ook niet per ongeluk via een broad "git add".
+reference/weewx-conf/weewx.conf
+
+# NeoWX Material is referentiemateriaal van Neoground (derde partij), hier
+# alleen lokaal ter inspiratie/vergelijking. Eigen licentie — niet redistribueren
+# als onderdeel van dit (mogelijk publieke) project.
+reference/neowx-material/
+
+# Editor/OS ruis
+.DS_Store
+Thumbs.db
+
+# Python bytecode-cache
+__pycache__/
+*.pyc
+
+# Build-output van build.py (de installeerbare zip) — reproduceerbaar uit
+# de broncode, hoort niet in git, zie build.py
+dist/
+
+# Gegenereerde testoutput van de WSL-weewx-testinstallatie (zie
+# THEME_PLAN.md "Dev/test-workflow") — bevat live stationsdata, verandert
+# continu, geen broncode
+design/wsl-test-output/
+
+# Lokale Claude Code-status (sessiedata, geen projectbroncode)
+.claude/

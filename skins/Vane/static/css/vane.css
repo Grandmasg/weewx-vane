@@ -1,0 +1,754 @@
+/* ===========================================================================
+   Vane — design tokens & base styles
+   Source: docs/DESIGN_PLAN.md — color system, typography, focus indicator.
+   =========================================================================== */
+
+:root {
+  /* Tells the browser to render its OWN chrome (date/month pickers,
+     scrollbars, checkboxes, etc.) in dark mode — without this, native
+     controls like the Graphs page's month picker stay light-themed
+     regardless of Vane's own colors, since that popup isn't ordinary
+     CSS-stylable content. Kept in sync with --bg/--text below via the
+     same data-theme/prefers-color-scheme rules. */
+  color-scheme: dark;
+
+  /* Base (dark-first, see DESIGN_PLAN.md) */
+  --bg: #020617;
+  --surface: rgba(15, 23, 42, .62);
+  --surface-2: rgba(148, 163, 184, .07);
+  --border: rgba(148, 163, 184, .14);
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --grid: rgba(148, 163, 184, .12);
+
+  /* Accent per data source — --accent-primary is configurable via
+     skin.conf (accent_color), the rest stays fixed (see DESIGN_PLAN.md). */
+  --accent-primary: #2f8bff;
+  --accent-wind: #fb923c;
+  --accent-storm: #7c5cff;
+  --status-live: #4ade80;
+
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --radius-card: 20px;
+  --radius-tile: 16px;
+  --radius-pill: 999px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f8fafc;
+    --surface: rgba(255, 255, 255, .72);
+    --surface-2: rgba(15, 23, 42, .045);
+    --border: rgba(15, 23, 42, .09);
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --status-live: #16a34a;
+    --grid: rgba(15, 23, 42, .08);
+  }
+}
+
+/* data-theme always wins over the system preference, in either direction */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f8fafc;
+  --surface: rgba(255, 255, 255, .72);
+  --surface-2: rgba(15, 23, 42, .045);
+  --border: rgba(15, 23, 42, .09);
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --status-live: #16a34a;
+  --grid: rgba(15, 23, 42, .08);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------------------
+   Custom scrollbars — the OS-default scrollbar (often a stark light-grey
+   bar) clashes with the dark theme, especially inside the NOAA modal.
+   scrollbar-color covers Firefox; the ::-webkit-scrollbar rules cover
+   Chrome/Edge/Safari. Applied globally so any scrollable element (page,
+   modal, sortable table) matches, not just a single spot.
+   --------------------------------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  /* Fallback (no color-mix support): flat, slightly-transparent muted
+     tone; browsers with color-mix() get a softer variant of the same
+     color instead of a hardcoded rgba. */
+  background: rgba(148, 163, 184, .35);
+  background: color-mix(in oklch, var(--text-muted) 40%, transparent);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, .6);
+  background: color-mix(in oklch, var(--text-muted) 70%, transparent);
+  background-clip: padding-box;
+}
+
+body {
+  /* Fallback for browsers without color-mix(): flat background, no
+     gradient — degrades gracefully instead of breaking. */
+  background: var(--bg);
+  background: radial-gradient(1100px 520px at 0% -10%, color-mix(in oklch, var(--accent-primary) 13%, transparent), transparent 65%), var(--bg);
+  transition: background-color .3s;
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+   Accessibility: focus indicator (WCAG 2.2 SC 2.4.13) — see DESIGN_PLAN.md.
+   Never outline:none without a replacement.
+   --------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------------------
+   Layout
+   --------------------------------------------------------------------------- */
+
+.vane-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.vane-sidebar {
+  flex: none;
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 0;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.vane-sidebar .logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+
+.nav-btn {
+  all: unset;
+  cursor: pointer;
+  width: 64px;
+  padding: 10px 0 8px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+}
+.nav-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-btn span {
+  font-size: 10px;
+  font-weight: 500;
+}
+.period-btn {
+  color: var(--text-muted);
+}
+.period-btn.active {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.nav-btn.active {
+  /* Fallback: flat surface tint if color-mix() is unavailable. */
+  background: var(--surface-2);
+  background: color-mix(in oklch, var(--accent-primary) 16%, transparent);
+  color: var(--accent-primary);
+}
+
+.vane-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* No explicit height: 100% here — percentage heights on a flex item
+     don't reliably resolve against a parent sized via min-height (as
+     .vane-shell is) across browsers, leaving a stray gap at the bottom.
+     Flexbox's own default cross-axis stretch (align-items: normal, which
+     computes to stretch) already fills .vane-shell's actual rendered
+     height correctly without going through percentage resolution. */
+}
+
+.vane-content {
+  flex: 1;
+  overflow: auto;
+}
+
+.vane-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 3vw, 32px) 40px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Pushes the shared footer (footer.inc) to the bottom of the viewport on
+   short-content pages (e.g. Almanac) instead of it floating right under
+   the last card — but on a page with enough content to fill/overflow the
+   viewport, this does nothing and the footer just follows normally. */
+.vane-footer-sticky {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+   Top bar
+   --------------------------------------------------------------------------- */
+.vane-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+}
+
+.vane-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+.vane-header .subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-live);
+  position: relative;
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--status-live);
+  animation: vane-pulse 1.8s ease-out infinite;
+}
+@keyframes vane-pulse {
+  0% { transform: scale(1); opacity: .6; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after { animation: none; }
+}
+
+.icon-btn {
+  all: unset;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------------------
+   Cards & tiles
+   --------------------------------------------------------------------------- */
+.card {
+  padding: 22px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+}
+
+.tile-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tile-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.tile-icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+
+.tile-value {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.tile-value .num {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+.tile-value .unit {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tile-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.tile-bar {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.tile-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.tile-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-spark {
+  width: 100%;
+  height: 28px;
+  display: block;
+  overflow: visible;
+  margin-top: auto;
+}
+
+.tiles-grid {
+  flex: 1.45 1 420px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.hero-card {
+  flex: 1 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hero-value {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.hero-value .num {
+  font-size: clamp(64px, 8vw, 88px);
+  line-height: .9;
+  font-weight: 600;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+.hero-value .unit {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 12px;
+}
+.hero-meta .k {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.hero-meta .v {
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.uppercase-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.archive-table tbody tr:nth-child(even) {
+  background: var(--surface-2);
+}
+.archive-table .range-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  min-width: 90px;
+}
+.archive-table .range-bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  /* background is set inline per row — color = absolute temperature scale
+     (vane_temp_color), not month-relative */
+}
+
+/* ---------------------------------------------------------------------------
+   Windrose (Archive page) — sector wedges are pre-computed SVG paths from
+   vane_extras.py (trig doesn't belong in Cheetah), this is just the static
+   ring/label chrome around them.
+   --------------------------------------------------------------------------- */
+.windrose-svg {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  display: block;
+  margin: 4px auto;
+}
+.windrose-ring {
+  fill: none;
+  stroke: var(--border);
+}
+.windrose-label,
+.windrose-label-value {
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  /* Halo behind the glyphs (stroke painted under the fill) so labels
+     stay legible where a wedge/polygon passes directly behind them,
+     instead of just hoping text-muted has enough contrast. */
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.windrose-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text);
+}
+.windrose-label-value {
+  font-size: 9px;
+  fill: var(--text-muted);
+}
+.windrose-svg path[data-tooltip] {
+  cursor: default;
+  stroke: var(--bg);
+  stroke-width: 1;
+  transition: opacity .12s;
+}
+.windrose-svg path[data-tooltip]:hover {
+  opacity: 1 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Wind vector radar (Dashboard) — avg speed vs avg gust per 8 main compass
+   points, overlaid as two polygons (points pre-computed in vane_extras.py,
+   same "no chart-library" approach as the windrose above).
+   --------------------------------------------------------------------------- */
+.windvector-polygon {
+  fill-opacity: 0.18;
+  stroke-width: 2;
+}
+.windvector-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.windvector-legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.windvector-marker {
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  cursor: default;
+  transition: r .12s;
+}
+.windvector-marker:hover {
+  r: 6;
+}
+
+/* ---------------------------------------------------------------------------
+   Shared hover tooltip for the windrose/wind-vector SVG charts — a single
+   floating element (static/js/chart-tooltip.js) positioned near the
+   cursor, since native SVG <title> tooltips are slow/unstyled and easy
+   to mistake for "hover does nothing".
+   --------------------------------------------------------------------------- */
+.vane-chart-tooltip {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(2, 6, 23, .35);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity .1s, transform .1s;
+  white-space: nowrap;
+}
+.vane-chart-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------------------------------------------------------------------------
+   Rain calendar heatmap (Archive page) — grid-column-start is set inline
+   only on the month's first day cell (vane_weekday()), CSS auto-flow
+   handles the rest of the weeks on its own.
+   --------------------------------------------------------------------------- */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 10px;
+}
+.cal-head {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 2px;
+}
+.cal-cell {
+  aspect-ratio: 1;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+/* Marks "today" independent of the rain-intensity fill color, so a
+   colored (rained) cell that happens to be today isn't ambiguous with a
+   plain "selected" look — the ring says "today", the fill says "rain". */
+.cal-cell.is-today {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+.vane-modal {
+  /* The browser's own default (dialog:not([open]) { display: none }) is
+     what actually hides this outside of showModal() — this rule must
+     only take over layout for the open state, or it overrides that
+     default and the dialog renders as permanent inline content at the
+     bottom of the page instead of a hidden overlay. */
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg);
+  color: var(--text);
+  padding: 0;
+  /* Wide enough for a full NOAA fixed-width line at the modal's 12px
+     monospace font, so the horizontal scrollbar only shows up on
+     genuinely narrow (mobile) viewports instead of every time. */
+  width: min(840px, 95vw);
+  max-height: 80vh;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, .45);
+}
+.vane-modal[open] {
+  display: flex;
+}
+.vane-modal::backdrop {
+  background: rgba(2, 6, 23, .6);
+  backdrop-filter: blur(2px);
+}
+.vane-modal header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.vane-modal header button {
+  all: unset;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.vane-modal header button:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.vane-modal pre {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 18px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+footer.vane-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+footer.vane-footer-wide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  padding: 20px 22px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+footer.vane-footer-wide .footer-col {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+footer.vane-footer-wide .footer-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+footer.vane-footer-wide .footer-lines a {
+  color: var(--text-muted);
+}
+footer.vane-footer-wide .footer-lines a:hover {
+  color: var(--accent-primary);
+}

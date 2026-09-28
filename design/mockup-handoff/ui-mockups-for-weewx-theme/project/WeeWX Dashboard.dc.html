@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#020617}
+*{box-sizing:border-box}
+a{color:var(--accent-primary,#2f8bff);text-decoration:none}
+a:hover{text-decoration:underline}
+[data-wx]{--bg:#020617;--surface:rgba(15,23,42,.62);--surface-2:rgba(148,163,184,.07);--border:rgba(148,163,184,.14);--text:#f1f5f9;--text-muted:#94a3b8;--accent-primary:#2f8bff;--accent-wind:#fb923c;--accent-storm:#7c5cff;--status-live:#4ade80;--grid:rgba(148,163,184,.12)}
+[data-wx][data-theme="light"]{--bg:#f8fafc;--surface:rgba(255,255,255,.72);--surface-2:rgba(15,23,42,.045);--border:rgba(15,23,42,.09);--text:#0f172a;--text-muted:#64748b;--status-live:#16a34a;--grid:rgba(15,23,42,.08)}
+@keyframes wxpulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.6);opacity:0}}
+</style>
+</helmet>
+<div data-wx="" data-theme="{{ theme }}" ref="{{ rootRef }}" style="height:100%;min-height:100%;display:flex;font-family:'Geist',system-ui,sans-serif;color:var(--text);background:radial-gradient(1100px 520px at 0% -10%, color-mix(in oklch, var(--accent-primary) 13%, transparent), transparent 65%), var(--bg);-webkit-font-smoothing:antialiased;transition:background-color .3s">
+
+  <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
+    <nav style="flex:none;width:84px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0;border-right:1px solid var(--border);background:var(--surface)">
+      <div style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;margin-bottom:18px;border:1px dashed var(--text-muted);color:var(--text-muted);font-size:10px;font-weight:600;letter-spacing:.08em">LOGO</div>
+      <button onClick="{{ go.dashboard }}" title="Dashboard" style="all:unset;cursor:pointer;width:64px;padding:10px 0 8px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:5px;background:{{ nav.dashboard.bg }};color:{{ nav.dashboard.fg }}">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+        <span style="font-size:10px;font-weight:500">Dashboard</span>
+      </button>
+      <button onClick="{{ go.grafieken }}" title="Grafieken" style="all:unset;cursor:pointer;width:64px;padding:10px 0 8px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:5px;background:{{ nav.grafieken.bg }};color:{{ nav.grafieken.fg }}">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+        <span style="font-size:10px;font-weight:500">Grafieken</span>
+      </button>
+      <button onClick="{{ go.archief }}" title="Archief" style="all:unset;cursor:pointer;width:64px;padding:10px 0 8px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:5px;background:{{ nav.archief.bg }};color:{{ nav.archief.fg }}">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+        <span style="font-size:10px;font-weight:500">Archief</span>
+      </button>
+      <button onClick="{{ go.telemetrie }}" title="Telemetrie" style="all:unset;cursor:pointer;width:64px;padding:10px 0 8px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:5px;background:{{ nav.telemetrie.bg }};color:{{ nav.telemetrie.fg }}">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        <span style="font-size:10px;font-weight:500">Telemetrie</span>
+      </button>
+      <button onClick="{{ go.almanak }}" title="Almanak" style="all:unset;cursor:pointer;width:64px;padding:10px 0 8px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:5px;background:{{ nav.almanak.bg }};color:{{ nav.almanak.fg }}">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        <span style="font-size:10px;font-weight:500">Almanak</span>
+      </button>
+    </nav>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;height:100%">
+    <div style="flex:1;overflow:auto">
+      <div style="max-width:1240px;margin:0 auto;padding:24px clamp(16px,3vw,32px) 40px;display:flex;flex-direction:column;gap:18px">
+
+        <header style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px">
+          <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+            <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-.02em">Weerstation Grandmasg</h1>
+            <span style="font-size:13px;color:var(--text-muted)">Noord-Holland · 52,37° N 4,90° E · 12 m</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:9px;height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--border);background:var(--surface);font-size:12.5px;font-weight:500">
+              {{ liveDot }}
+              <span style="color:var(--status-live)">Live</span>
+              <span style="color:var(--text-muted);font-variant-numeric:tabular-nums">{{ nowShort }}</span>
+            </div>
+            <div style="display:flex;height:34px;padding:3px;border-radius:999px;border:1px solid var(--border);background:var(--surface)">
+              <sc-for list="{{ langs }}" as="l" hint-placeholder-count="2">
+                <button onClick="{{ l.onClick }}" style="all:unset;cursor:pointer;padding:0 11px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.06em;background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button>
+              </sc-for>
+            </div>
+            <button onClick="{{ toggleTheme }}" title="Thema wisselen" style="all:unset;cursor:pointer;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+              <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}">
+                <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+              </sc-if>
+              <sc-if value="{{ isLight }}" hint-placeholder-val="{{ false }}">
+                <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+              </sc-if>
+            </button>
+          </div>
+        </header>
+
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <section style="flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:18px;padding:22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Huidige conditie</span>
+                  <span style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted);white-space:nowrap">
+                    <svg viewBox="0 0 24 24" width="20" height="20" style="fill:none;stroke:var(--accent-primary);stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>
+                    Half bewolkt
+                  </span>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:6px">
+                  <span style="font-size:clamp(64px,8vw,88px);line-height:.9;font-weight:600;letter-spacing:-.045em;font-variant-numeric:tabular-nums">{{ cur.temp }}</span>
+                  <span style="font-size:24px;font-weight:500;color:var(--text-muted);margin-top:6px">{{ cur.tU }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:12px">
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Gevoel</span><span style="font-size:15px;font-weight:500;font-variant-numeric:tabular-nums">{{ cur.feels }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Max</span><span style="font-size:15px;font-weight:500;font-variant-numeric:tabular-nums">{{ cur.max }} <span style="color:var(--text-muted);font-weight:400">14:10</span></span></div>
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Min</span><span style="font-size:15px;font-weight:500;font-variant-numeric:tabular-nums">{{ cur.min }} <span style="color:var(--text-muted);font-weight:400">06:40</span></span></div>
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Dauwpunt</span><span style="font-size:15px;font-weight:500;font-variant-numeric:tabular-nums">{{ cur.dew }}</span></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:auto">
+                  <svg viewBox="0 0 300 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block;overflow:visible">
+                    <defs><linearGradient id="{{ spark.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent-primary);stop-opacity:.32"></stop><stop offset="1" style="stop-color:var(--accent-primary);stop-opacity:0"></stop></linearGradient></defs>
+                    <path d="{{ spark.area }}" fill="{{ spark.fill }}"></path>
+                    <path d="{{ spark.line }}" style="fill:none;stroke:var(--accent-primary);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
+                  </svg>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums"><span>24 uur geleden</span><span>Bijgewerkt {{ nowLong }}</span></div>
+                </div>
+              </section>
+
+              <div style="flex:1.45 1 420px;min-width:0;display:grid;grid-template-columns:repeat({{ tileCols }},minmax(0,1fr));gap:12px">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-wind)"></span>Wind</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="transform:rotate(45deg);fill:var(--accent-wind);stroke:none"><path d="M12 2 19 21 12 17 5 21Z"></path></svg></div>
+                  <div style="display:flex;align-items:baseline;gap:5px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums">{{ cur.wind }}</span><span style="font-size:13px;color:var(--text-muted)">{{ cur.wU }}</span></div>
+                  <span style="font-size:12.5px;color:var(--text-muted)">ZW · stoten {{ cur.gust }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-primary)"></span>Vocht</span>
+                  <div style="display:flex;align-items:baseline;gap:5px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums">78</span><span style="font-size:13px;color:var(--text-muted)">%</span></div>
+                  <div style="height:4px;border-radius:4px;background:var(--surface-2);overflow:hidden"><div style="width:78%;height:100%;border-radius:4px;background:var(--accent-primary)"></div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-primary)"></span>Luchtdruk</span>
+                  <div style="display:flex;align-items:baseline;gap:5px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums">{{ cur.press }}</span><span style="font-size:13px;color:var(--text-muted)">{{ cur.pU }}</span></div>
+                  <span style="font-size:12.5px;color:var(--text-muted)">↓ {{ cur.pTrend }} in 3 uur · dalend</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-storm)"></span>Neerslag</span>
+                  <div style="display:flex;align-items:baseline;gap:5px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums">{{ cur.rain }}</span><span style="font-size:13px;color:var(--text-muted)">{{ cur.rU }} vandaag</span></div>
+                  <span style="font-size:12.5px;color:var(--text-muted)">Intensiteit {{ cur.rate }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-wind)"></span>UV-index</span>
+                  <div style="display:flex;align-items:baseline;gap:7px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums">3</span><span style="font-size:13px;color:var(--text-muted)">matig</span></div>
+                  <div style="display:grid;grid-template-columns:repeat(11,1fr);gap:3px">
+                    <sc-for list="{{ uvSegs }}" as="s" hint-placeholder-count="11"><div style="height:4px;border-radius:2px;background:{{ s.bg }}"></div></sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-wind)"></span>Zon</span>
+                  <div style="display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums"><span style="font-size:22px;font-weight:600;letter-spacing:-.02em">07:28</span><span style="font-size:13px;color:var(--text-muted)">→</span><span style="font-size:22px;font-weight:600;letter-spacing:-.02em">19:24</span></div>
+                  <div style="position:relative;height:4px;border-radius:4px;background:var(--surface-2)"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ sun.pct }}%;border-radius:4px;background:var(--accent-wind);opacity:.55"></div><div style="position:absolute;top:50%;left:{{ sun.pct }}%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--accent-wind)"></div></div>
+                  <span style="font-size:12.5px;color:var(--text-muted)">11u 56m daglicht</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <section style="flex:2.2 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px;padding:20px 22px 18px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                    <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Temperatuur</span>
+                    <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><span style="width:14px;height:2px;border-radius:2px;background:var(--accent-primary)"></span>Buiten</span>
+                    <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><span style="width:14px;height:0;border-top:2px dashed var(--text-muted)"></span>Dauwpunt</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)">
+                      <sc-for list="{{ periods }}" as="p" hint-placeholder-count="5">
+                        <button onClick="{{ p.onClick }}" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500;background:{{ p.bg }};color:{{ p.fg }};box-shadow:{{ p.shadow }}">{{ p.label }}</button>
+                      </sc-for>
+                    </div>
+                    <button onClick="{{ exportCsv }}" title="Exporteer CSV" style="all:unset;cursor:pointer;height:30px;padding:0 10px;border-radius:8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-muted)" style-hover="color:var(--text)">
+                      <svg viewBox="0 0 24 24" width="13" height="13" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>CSV</button>
+                    <button title="Exporteer PNG" style="all:unset;cursor:pointer;height:30px;padding:0 10px;border-radius:8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-muted)" style-hover="color:var(--text)">
+                      <svg viewBox="0 0 24 24" width="13" height="13" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>PNG</button>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:10px">
+                  <div style="position:relative;width:34px;flex:none;height:220px;font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums">
+                    <sc-for list="{{ chart.yTicks }}" as="t" hint-placeholder-count="5"><span style="position:absolute;right:0;top:{{ t.top }}%;transform:translateY(-50%)">{{ t.label }}</span></sc-for>
+                  </div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+                    <div onMouseMove="{{ onChartMove }}" onMouseLeave="{{ onChartLeave }}" style="position:relative;height:220px;cursor:crosshair">
+                      <svg viewBox="0 0 1000 220" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+                        <sc-for list="{{ chart.yTicks }}" as="t" hint-placeholder-count="5"><line x1="0" x2="1000" y1="{{ t.y }}" y2="{{ t.y }}" style="stroke:var(--grid);stroke-width:1;vector-effect:non-scaling-stroke"></line></sc-for>
+                        <path d="{{ chart.dew }}" style="fill:none;stroke:var(--text-muted);stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;opacity:.8"></path>
+                        <path d="{{ chart.area }}" fill="{{ spark.fill }}"></path>
+                        <path d="{{ chart.temp }}" style="fill:none;stroke:var(--accent-primary);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
+                      </svg>
+                      <sc-if value="{{ hover.on }}" hint-placeholder-val="{{ false }}">
+                        <div style="position:absolute;top:0;bottom:0;left:{{ hover.x }}%;width:1px;background:var(--text-muted);opacity:.45;pointer-events:none"></div>
+                        <div style="position:absolute;left:{{ hover.x }}%;top:{{ hover.ty }}%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--accent-primary);box-shadow:0 0 0 3px var(--bg);pointer-events:none"></div>
+                        <div style="position:absolute;top:6px;left:{{ hover.x }}%;transform:translateX({{ hover.shift }});margin:0 10px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--border);font-size:12px;white-space:nowrap;pointer-events:none;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums;box-shadow:0 8px 24px rgba(2,6,23,.25)">
+                          <span style="color:var(--text-muted)">{{ hover.label }}</span>
+                          <span><span style="color:var(--accent-primary)">●</span> {{ hover.t }}</span>
+                          <span style="color:var(--text-muted)">○ {{ hover.d }} dauwpunt</span>
+                        </div>
+                      </sc-if>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
+                      <sc-for list="{{ chart.xTicks }}" as="x" hint-placeholder-count="5"><span>{{ x }}</span></sc-for>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:8px 28px;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums">
+                  <span>Gemiddeld <strong style="color:var(--text);font-weight:600">{{ chart.avg }}</strong></span>
+                  <span>Hoogste <strong style="color:var(--text);font-weight:600">{{ chart.max }}</strong></span>
+                  <span>Laagste <strong style="color:var(--text);font-weight:600">{{ chart.min }}</strong></span>
+                  <span>{{ chart.n }} metingen</span>
+                </div>
+              </section>
+
+              <section style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:14px;padding:20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Telemetrie</span>
+                  <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--status-live)"><span style="width:6px;height:6px;border-radius:50%;background:var(--status-live)"></span>Operationeel</span>
+                </div>
+                <div style="display:flex;flex-direction:column;font-family:'Geist Mono',ui-monospace,monospace;font-size:12.5px">
+                  <sc-for list="{{ telem }}" as="r" hint-placeholder-count="6">
+                    <div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)">
+                      <span style="color:var(--text-muted)">{{ r.k }}</span>
+                      <span style="text-align:right">{{ r.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:auto">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)"><span>Batterij zender</span><span style="font-variant-numeric:tabular-nums">86 %</span></div>
+                  <div style="height:4px;border-radius:4px;background:var(--surface-2);overflow:hidden"><div style="width:86%;height:100%;background:var(--status-live)"></div></div>
+                </div>
+              </section>
+            </div>
+
+            <footer style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding-top:6px;font-size:12px;color:var(--text-muted)">
+              <span>WeeWX 5.1.0 · Vantage Pro2</span>
+              <span>Bliksemdata: <a href="https://www.ontladingen.nl">ontladingen.nl</a></span>
+            </footer>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGrafieken }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Grafieken</h2><span style="font-size:13px;color:var(--text-muted)">{{ periodDesc }}</span></div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)">
+                  <sc-for list="{{ periods }}" as="p" hint-placeholder-count="5">
+                    <button onClick="{{ p.onClick }}" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500;background:{{ p.bg }};color:{{ p.fg }};box-shadow:{{ p.shadow }}">{{ p.label }}</button>
+                  </sc-for>
+                </div>
+                <button onClick="{{ exportAll }}" style="all:unset;cursor:pointer;height:30px;padding:0 10px;border-radius:8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-muted)" style-hover="color:var(--text)">
+                  <svg viewBox="0 0 24 24" width="13" height="13" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>Alles als CSV</button>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <sc-for list="{{ gCharts }}" as="c" hint-placeholder-count="5">
+                <section style="flex:{{ c.flex }};min-width:0;display:flex;flex-direction:column;gap:14px;padding:18px 20px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px">
+                    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                      <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">{{ c.label }}</span>
+                      <sc-for list="{{ c.legend }}" as="lg" hint-placeholder-count="1"><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><span style="width:14px;height:0;border-top:2px {{ lg.dash }} {{ lg.color }}"></span>{{ lg.name }}</span></sc-for>
+                    </div>
+                    <span style="font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums">{{ c.summary }}</span>
+                  </div>
+                  <div style="display:flex;gap:10px">
+                    <div style="position:relative;width:40px;flex:none;height:{{ c.h }}px;font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums">
+                      <sc-for list="{{ c.yTicks }}" as="t" hint-placeholder-count="5"><span style="position:absolute;right:0;top:{{ t.top }}%;transform:translateY(-50%);white-space:nowrap">{{ t.label }}</span></sc-for>
+                    </div>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+                      <div onMouseMove="{{ c.onMove }}" onMouseLeave="{{ c.onLeave }}" style="position:relative;height:{{ c.h }}px;cursor:crosshair">
+                        <svg viewBox="0 0 1000 {{ c.h }}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+                          <sc-for list="{{ c.yTicks }}" as="t" hint-placeholder-count="5"><line x1="0" x2="1000" y1="{{ t.y }}" y2="{{ t.y }}" style="stroke:var(--grid);stroke-width:1;vector-effect:non-scaling-stroke"></line></sc-for>
+                          <path d="{{ c.area }}" style="fill:{{ c.color }};opacity:.1"></path>
+                          <sc-for list="{{ c.bars }}" as="b" hint-placeholder-count="0"><rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" style="fill:{{ c.color }};opacity:.85"></rect></sc-for>
+                          <sc-for list="{{ c.lines }}" as="l" hint-placeholder-count="1"><path d="{{ l.d }}" style="fill:none;stroke:{{ l.color }};stroke-width:{{ l.w }};stroke-dasharray:{{ l.dash }};vector-effect:non-scaling-stroke;stroke-linejoin:round"></path></sc-for>
+                        </svg>
+                        <sc-if value="{{ c.hover.on }}" hint-placeholder-val="{{ false }}">
+                          <div style="position:absolute;top:0;bottom:0;left:{{ c.hover.x }}%;width:1px;background:var(--text-muted);opacity:.45;pointer-events:none"></div>
+                          <div style="position:absolute;left:{{ c.hover.x }}%;top:{{ c.hover.ty }}%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:{{ c.color }};box-shadow:0 0 0 3px var(--bg);pointer-events:none"></div>
+                          <div style="position:absolute;top:6px;left:{{ c.hover.x }}%;transform:translateX({{ c.hover.shift }});margin:0 10px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--border);font-size:12px;white-space:nowrap;pointer-events:none;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums;box-shadow:0 8px 24px rgba(2,6,23,.25)">
+                            <span style="color:var(--text-muted)">{{ c.hover.label }}</span>
+                            <sc-for list="{{ c.hover.rows }}" as="hr" hint-placeholder-count="1"><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:{{ hr.color }}"></span>{{ hr.v }} <span style="color:var(--text-muted)">{{ hr.name }}</span></span></sc-for>
+                          </div>
+                        </sc-if>
+                      </div>
+                      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
+                        <sc-for list="{{ c.xTicks }}" as="x" hint-placeholder-count="5"><span>{{ x }}</span></sc-for>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isArchief }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Archief</h2><span style="font-size:13px;color:var(--text-muted)">Dag- en maandoverzichten, zoals de NOAA-rapporten van WeeWX</span></div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)">
+                  <sc-for list="{{ archViews }}" as="v" hint-placeholder-count="2">
+                    <button onClick="{{ v.onClick }}" style="all:unset;cursor:pointer;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;background:{{ v.bg }};color:{{ v.fg }};box-shadow:{{ v.shadow }}">{{ v.label }}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;align-items:center;height:30px;border-radius:8px;border:1px solid var(--border)">
+                  <button onClick="{{ arch.prev }}" title="Vorige" style="all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;color:var(--text-muted);opacity:{{ arch.prevOp }}">‹</button>
+                  <span style="min-width:112px;text-align:center;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums">{{ arch.title }}</span>
+                  <button onClick="{{ arch.next }}" title="Volgende" style="all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;color:var(--text-muted);opacity:{{ arch.nextOp }}">›</button>
+                </div>
+                <button onClick="{{ arch.exportTxt }}" style="all:unset;cursor:pointer;height:30px;padding:0 10px;border-radius:8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-muted)" style-hover="color:var(--text)">
+                  <svg viewBox="0 0 24 24" width="13" height="13" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>NOAA .txt</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px">
+              <sc-for list="{{ arch.summary }}" as="s" hint-placeholder-count="5">
+                <div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:{{ s.color }}"></span>{{ s.k }}</span>
+                  <span style="font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ s.v }}</span>
+                  <span style="font-size:12px;color:var(--text-muted)">{{ s.sub }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <section style="padding:6px 8px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+              <div style="overflow-x:auto">
+                <sc-if value="{{ arch.isMonth }}" hint-placeholder-val="{{ true }}">
+                  <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums">
+                    <thead><tr>
+                      <th style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Dag</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Gem</th>
+                      <th style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Min – max</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Max</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Min</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Neerslag</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Wind</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Stoot</th>
+                      <th style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Richting</th>
+                    </tr></thead>
+                    <tbody>
+                      <sc-for list="{{ arch.rows }}" as="r" hint-placeholder-count="10">
+                        <tr style="background:{{ r.bg }}">
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap"><span style="display:inline-block;width:22px;font-weight:600">{{ r.d }}</span><span style="color:var(--text-muted)">{{ r.wd }}</span></td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;font-weight:500">{{ r.avg }}</td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);width:180px"><div style="position:relative;height:6px;border-radius:6px;background:var(--surface-2)"><div style="position:absolute;top:0;bottom:0;left:{{ r.L }}%;width:{{ r.W }}%;border-radius:6px;background:linear-gradient(90deg,var(--accent-primary),var(--accent-wind))"></div></div></td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap">{{ r.max }} <span style="color:var(--text-muted);font-size:11.5px">{{ r.maxT }}</span></td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap">{{ r.min }} <span style="color:var(--text-muted);font-size:11.5px">{{ r.minT }}</span></td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;color:{{ r.rainFg }}">{{ r.rain }}</td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.wind }}</td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.gust }}</td>
+                          <td style="padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text-muted)">{{ r.dir }}</td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </sc-if>
+                <sc-if value="{{ arch.isYear }}" hint-placeholder-val="{{ false }}">
+                  <table style="width:100%;min-width:680px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums">
+                    <thead><tr>
+                      <th style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Maand</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Gem</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Max</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Min</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Neerslag</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Regendagen</th>
+                      <th style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Max stoot</th>
+                    </tr></thead>
+                    <tbody>
+                      <sc-for list="{{ arch.yRows }}" as="r" hint-placeholder-count="12">
+                        <tr style="color:{{ r.fg }};cursor:{{ r.cursor }}" onClick="{{ r.onClick }}" style-hover="background:var(--surface-2)">
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);font-weight:600">{{ r.name }}</td>
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right;font-weight:500">{{ r.avg }}</td>
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.max }}</td>
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.min }}</td>
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.rain }}</td>
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.days }}</td>
+                          <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right">{{ r.gust }}</td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </sc-if>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isTelemetrie }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Telemetrie</h2><span style="font-size:13px;color:var(--text-muted)">Stationshardware, ontvangst en WeeWX-processen</span></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px">
+              <sc-for list="{{ tTiles }}" as="t" hint-placeholder-count="6">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.color }}"></span>{{ t.label }}</span>
+                  <div style="display:flex;align-items:baseline;gap:5px"><span style="font-size:28px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums">{{ t.v }}</span><span style="font-size:13px;color:var(--text-muted)">{{ t.u }}</span></div>
+                  <div style="height:4px;border-radius:4px;background:var(--surface-2);overflow:hidden"><div style="width:{{ t.pct }}%;height:100%;border-radius:4px;background:{{ t.color }}"></div></div>
+                  <span style="font-size:12px;color:var(--text-muted)">{{ t.sub }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <sc-for list="{{ tSparks }}" as="s" hint-placeholder-count="2">
+                <section style="flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:12px;padding:18px 20px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                    <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">{{ s.label }}</span>
+                    <span style="font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums">{{ s.range }}</span>
+                  </div>
+                  <svg viewBox="0 0 300 80" preserveAspectRatio="none" style="width:100%;height:80px;display:block;overflow:visible">
+                    <path d="{{ s.area }}" style="fill:{{ s.color }};opacity:.12"></path>
+                    <path d="{{ s.line }}" style="fill:none;stroke:{{ s.color }};stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
+                  </svg>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)"><span>{{ s.from }}</span><span>nu · {{ s.last }}</span></div>
+                </section>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <section style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:6px;padding:20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Diensten &amp; uploads</span>
+                <sc-for list="{{ services }}" as="sv" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span style="flex:none;width:8px;height:8px;border-radius:50%;background:{{ sv.color }}"></span>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:13.5px;font-weight:500">{{ sv.name }}</span><span style="font-size:12px;color:var(--text-muted)">{{ sv.detail }}</span></div>
+                    <span style="font-size:12px;font-weight:600;color:{{ sv.color }}">{{ sv.status }}</span>
+                  </div>
+                </sc-for>
+              </section>
+              <section style="flex:2 1 480px;min-width:0;display:flex;flex-direction:column;gap:12px;padding:20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Systeemlog</span><span style="font-size:12px;color:var(--text-muted)">journalctl -u weewx</span></div>
+                <div style="display:flex;flex-direction:column;gap:2px;font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;line-height:1.55">
+                  <sc-for list="{{ logs }}" as="lg" hint-placeholder-count="8">
+                    <div style="display:grid;grid-template-columns:62px 44px minmax(0,1fr);gap:10px;padding:5px 0">
+                      <span style="color:var(--text-muted)">{{ lg.t }}</span>
+                      <span style="color:{{ lg.color }};font-weight:500">{{ lg.lvl }}</span>
+                      <span style="overflow-wrap:anywhere">{{ lg.msg }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </section>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAlmanak }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em">Almanak</h2><span style="font-size:13px;color:var(--text-muted)">{{ alm.date }} · 52,37° N 4,90° E</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <section style="flex:1.5 1 440px;min-width:0;display:flex;flex-direction:column;gap:16px;padding:20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-wind)"></span>Zon</span>
+                  <span style="font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums">{{ alm.sunNow }}</span>
+                </div>
+                <svg viewBox="0 0 400 170" style="width:100%;max-height:220px;display:block;overflow:visible">
+                  <line x1="0" x2="400" y1="150" y2="150" style="stroke:var(--border);stroke-width:1"></line>
+                  <path d="M30,150 A170,120 0 0 1 370,150" style="fill:none;stroke:var(--text-muted);stroke-width:1.25;stroke-dasharray:3 5;opacity:.6"></path>
+                  <path d="{{ alm.arcDone }}" style="fill:none;stroke:var(--accent-wind);stroke-width:2.5;stroke-linecap:round"></path>
+                  <sc-if value="{{ alm.isDay }}" hint-placeholder-val="{{ true }}">
+                    <circle cx="{{ alm.sx }}" cy="{{ alm.sy }}" r="14" style="fill:var(--accent-wind);opacity:.2"></circle>
+                    <circle cx="{{ alm.sx }}" cy="{{ alm.sy }}" r="7" style="fill:var(--accent-wind)"></circle>
+                  </sc-if>
+                  <text x="30" y="166" text-anchor="middle" style="fill:var(--text-muted);font-size:11px;font-family:Geist,system-ui">07:28</text>
+                  <text x="200" y="22" text-anchor="middle" style="fill:var(--text-muted);font-size:11px;font-family:Geist,system-ui">13:26 · 36°</text>
+                  <text x="370" y="166" text-anchor="middle" style="fill:var(--text-muted);font-size:11px;font-family:Geist,system-ui">19:24</text>
+                </svg>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;padding-top:14px;border-top:1px solid var(--border)">
+                  <sc-for list="{{ alm.sunTimes }}" as="st" hint-placeholder-count="5">
+                    <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">{{ st.k }}</span><span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">{{ st.v }}</span></div>
+                  </sc-for>
+                </div>
+              </section>
+              <section style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:16px;padding:20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+                <span style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-storm)"></span>Maan</span>
+                <div style="display:flex;align-items:center;gap:20px">
+                  <svg viewBox="0 0 128 128" width="104" height="104" style="flex:none">
+                    <circle cx="64" cy="64" r="56" style="fill:var(--surface-2);stroke:var(--border);stroke-width:1"></circle>
+                    <path d="{{ alm.moonPath }}" style="fill:#e2e8f0"></path>
+                  </svg>
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <span style="font-size:20px;font-weight:600;letter-spacing:-.01em">{{ alm.phase }}</span>
+                    <span style="font-size:13px;color:var(--text-muted)">{{ alm.illum }} verlicht · {{ alm.age }}</span>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:14px;border-top:1px solid var(--border)">
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Maanopkomst</span><span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">18:52</span></div>
+                  <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Maanondergang</span><span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">06:31 <span style="font-size:12px;font-weight:400;color:var(--text-muted)">morgen</span></span></div>
+                </div>
+                <div style="display:flex;flex-direction:column">
+                  <sc-for list="{{ alm.phases }}" as="ph" hint-placeholder-count="4">
+                    <div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--border);font-size:13px"><span>{{ ph.k }}</span><span style="color:var(--text-muted);font-variant-numeric:tabular-nums">{{ ph.v }}</span></div>
+                  </sc-for>
+                </div>
+              </section>
+            </div>
+            <section style="display:flex;flex-direction:column;gap:14px;padding:20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px)">
+              <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px">
+                <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Daglengte door het jaar</span>
+                <div style="display:flex;flex-wrap:wrap;gap:6px 24px;font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums">
+                  <span>Vandaag <strong style="color:var(--text);font-weight:600">11u 56m</strong> (−3m 38s)</span>
+                  <span>Langste <strong style="color:var(--text);font-weight:600">16u 47m</strong> · 21 jun</span>
+                  <span>Kortste <strong style="color:var(--text);font-weight:600">7u 42m</strong> · 21 dec</span>
+                </div>
+              </div>
+              <div style="position:relative;height:120px">
+                <svg viewBox="0 0 1000 120" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+                  <path d="{{ alm.dlArea }}" style="fill:var(--accent-wind);opacity:.12"></path>
+                  <path d="{{ alm.dlLine }}" style="fill:none;stroke:var(--accent-wind);stroke-width:2;vector-effect:non-scaling-stroke"></path>
+                </svg>
+                <div style="position:absolute;top:0;bottom:0;left:{{ alm.dlX }}%;width:1px;background:var(--text-muted);opacity:.5"></div>
+                <div style="position:absolute;left:{{ alm.dlX }}%;top:{{ alm.dlY }}%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--accent-wind);box-shadow:0 0 0 3px var(--bg)"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)">
+                <sc-for list="{{ alm.months }}" as="m" hint-placeholder-count="12"><span>{{ m }}</span></sc-for>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px 24px;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text-muted)">
+                <span>Herfst begon op <strong style="color:var(--text);font-weight:600">23 sep 02:05</strong></span>
+                <span>Winterzonnewende <strong style="color:var(--text);font-weight:600">21 dec 21:50</strong> · over {{ alm.toSolstice }} dagen</span>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ compact }}" hint-placeholder-val="{{ false }}">
+      <nav style="flex:none;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--surface);backdrop-filter:blur(14px)">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.onClick }}" style="all:unset;cursor:pointer;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:10px;color:{{ t.fg }}">
+            <span style="width:22px;height:3px;border-radius:3px;background:{{ t.bar }}"></span>
+            <span style="font-size:11px;font-weight:500">{{ t.label }}</span>
+          </button>
+        </sc-for>
+      </nav>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'dark'|'light'&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2f8bff&quot;,&quot;#14b8a6&quot;,&quot;#e11d48&quot;,&quot;#a3e635&quot;],&quot;default&quot;:&quot;#2f8bff&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;units&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;metrisch&quot;,&quot;imperiaal&quot;],&quot;default&quot;:&quot;metrisch&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { theme: this.initTheme(), lang: 'nl', page: 'dashboard', period: 'dag', hover: null, gh: null, compact: false, now: new Date(), archView: 'maand', archY: 2026, archM: 8 };
+  rootRef = React.createRef();
+  gid = 'wxg' + Math.random().toString(36).slice(2, 8);
+  cache = {};
+
+  initTheme() {
+    const p = (this.props && this.props.theme) || 'auto';
+    if (p !== 'auto') return p;
+    try { const s = localStorage.getItem('wx-theme'); if (s) return s; } catch (e) {}
+    return window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  componentDidMount() {
+    this.applyAccent();
+    this.tick = setInterval(() => this.setState({ now: new Date() }), 15000);
+    const el = this.rootRef.current;
+    if (el && window.ResizeObserver) {
+      this.ro = new ResizeObserver(([e]) => {
+        const c = e.contentRect.width < 780;
+        if (c !== this.state.compact) this.setState({ compact: c });
+      });
+      this.ro.observe(el);
+    }
+  }
+  componentDidUpdate(pp) {
+    this.applyAccent();
+    if (pp.theme !== this.props.theme && this.props.theme && this.props.theme !== 'auto') this.setState({ theme: this.props.theme });
+  }
+  componentWillUnmount() { clearInterval(this.tick); this.ro && this.ro.disconnect(); }
+  applyAccent() { const el = this.rootRef.current; if (el) el.style.setProperty('--accent-primary', this.props.accent || '#2f8bff'); }
+
+  series(p) {
+    if (this.cache[p]) return this.cache[p];
+    let s = p.length * 977 + 13;
+    const r = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const pad = n => String(n).padStart(2, '0');
+    const D = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+    const M = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+    const n = { dag: 49, week: 84, maand: 30, jaar: 52, alles: 96 }[p];
+    const S = Math.sin, TAU = Math.PI * 2, out = [];
+    let drift = 0;
+    for (let i = 0; i < n; i++) {
+      let t, d, l;
+      if (p === 'dag') { const h = i / 2; t = 14.4 + 4.6 * S((h - 9) / 24 * TAU) + (r() - .5) * .5; d = 12.8 + .8 * S((h - 11) / 24 * TAU) + (r() - .5) * .4; l = pad(Math.floor(h) % 24) + ':' + (i % 2 ? '30' : '00'); }
+      else if (p === 'week') { const h = i * 2, day = Math.floor(h / 24); drift += (r() - .5) * .5; t = 13 + day * .4 + drift + 4.3 * S(((h % 24) - 9) / 24 * TAU); d = t - 2.5 - r() * 1.6; l = D[day] + ' ' + pad(h % 24) + ':00'; }
+      else if (p === 'maand') { drift += (r() - .5) * 1.4; t = 17.2 - i * .13 + drift; d = t - 3.2 - r(); l = (i + 1) + ' sep'; }
+      else if (p === 'jaar') { t = 10.2 + 7.6 * S((i - 16) / 52 * TAU) + (r() - .5) * 2.6; d = t - 3.6 - r() * .8; l = 'week ' + (i + 1); }
+      else { const m = i % 12; t = 10.3 + 7.4 * S((m - 3.1) / 12 * TAU) + (r() - .5) * 1.5 + i / 160; d = t - 3.8 - r() * .6; l = M[m] + ' ' + (2019 + Math.floor(i / 12)); }
+      out.push({ t, d, l });
+    }
+    const x = { dag: ['00:00', '06:00', '12:00', '18:00', '24:00'], week: D, maand: ['1 sep', '8', '15', '22', '30 sep'], jaar: ['jan', 'apr', 'jul', 'okt', 'dec'], alles: ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'] }[p];
+    return (this.cache[p] = { pts: out, x });
+  }
+
+  rng(seed) {
+    let s = seed;
+    return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  ext(p) {
+    const k = 'x' + p; if (this.cache[k]) return this.cache[k];
+    const S = this.series(p), r = this.rng(p.length * 31 + 5), dag = p === 'dag';
+    let pr = 1016.4, w = 12;
+    const pts = S.pts.map(q => {
+      pr = Math.max(992, Math.min(1034, pr + (r() - .53) * (dag ? .22 : 1.3)));
+      w = Math.max(3, Math.min(34, w + (r() - .5) * 4));
+      const rain = r() < (dag ? .14 : .32) ? r() * ({ dag: 1.1, week: 3, maand: 9, jaar: 24, alles: 80 }[p]) : 0;
+      return { ...q, pr, w, g: w * (1.45 + r() * .5), rain, h: Math.max(42, Math.min(99, 100 - (q.t - q.d) * 5 + (r() - .5) * 4)) };
+    });
+    return (this.cache[k] = { pts, x: S.x });
+  }
+  mkChart(o) {
+    const H = o.h, n = o.labels.length;
+    const all = o.lines.flatMap(l => l.vals).concat(o.bars || []);
+    let mn = Math.min(...all), mx = Math.max(...all);
+    if (o.bars) mn = 0;
+    if (mx - mn < 1e-6) mx = mn + 1;
+    const raw = (mx - mn) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
+    const lo = Math.floor(mn / step) * step, hi = Math.ceil(mx / step) * step;
+    const dec = step >= 1 ? 0 : step >= .1 ? 1 : 2;
+    const yTicks = [];
+    for (let v = hi; v >= lo - step / 1e3; v -= step) { const fr = (hi - v) / (hi - lo); yTicks.push({ label: o.f(v, dec) + o.tickU, top: fr * 100, y: fr * H }); }
+    const Y = v => H - (v - lo) / (hi - lo) * H;
+    const lines = o.lines.map(l => ({ d: this.paths(l.vals, lo, hi, 1000, H).line, color: l.color, w: l.dash ? 1.5 : 2, dash: l.dash ? '4 4' : 'none' }));
+    const area = o.lines.length ? this.paths(o.lines[0].vals, lo, hi, 1000, H).area : '';
+    const bw = 1000 / n;
+    const bars = (o.bars || []).map((v, i) => ({ x: i * bw + bw * .18, w: bw * .64, y: Y(v), h: Math.max(0, H - Y(v)) }));
+    const gh = this.state.gh; let hover = { on: false };
+    if (gh && gh.k === o.key && gh.i < n) {
+      const i = gh.i, x = o.bars ? (i + .5) / n * 100 : i / (n - 1) * 100;
+      const pv = o.bars ? o.bars[i] : o.lines[0].vals[i];
+      hover = { on: true, x, ty: (hi - pv) / (hi - lo) * 100, shift: x > 62 ? 'calc(-100% - 20px)' : '0', label: o.labels[i], rows: o.tip(i) };
+    }
+    return {
+      key: o.key, label: o.label, color: o.color, legend: o.legend, summary: o.summary, h: H, flex: o.flex, yTicks, xTicks: o.x, lines, area, bars, hover,
+      onMove: e => { const b = e.currentTarget.getBoundingClientRect(); const fr = Math.max(0, Math.min(.9999, (e.clientX - b.left) / b.width)); const i = o.bars ? Math.floor(fr * n) : Math.round(fr * (n - 1)); const g = this.state.gh; if (!g || g.k !== o.key || g.i !== i) this.setState({ gh: { k: o.key, i } }); },
+      onLeave: () => this.setState({ gh: null })
+    };
+  }
+  arch(y, m) {
+    const k = 'a' + y + '-' + m; if (this.cache[k]) return this.cache[k];
+    const r = this.rng(y * 12 + m + 101), TAU = Math.PI * 2;
+    const n = (y === 2026 && m === 8) ? 26 : new Date(y, m + 1, 0).getDate();
+    const base = 10.3 + 7.4 * Math.sin((m - 3.1) / 12 * TAU);
+    const dirs = ['N', 'NO', 'O', 'ZO', 'Z', 'ZW', 'W', 'NW'], wts = [1, 1, 1, 1, 2, 4, 3, 2];
+    const pick = () => { let x = r() * 15; for (let i = 0; i < 8; i++) { x -= wts[i]; if (x <= 0) return dirs[i]; } return 'ZW'; };
+    const p2 = v => String(v).padStart(2, '0');
+    let dr = 0; const rows = [];
+    for (let d = 1; d <= n; d++) {
+      dr = dr * .7 + (r() - .5) * 3;
+      const mx = base + 4 + dr + (r() - .5) * 2, mn = base - 3.5 + dr * .6 + (r() - .5) * 2, w = 7 + r() * 15;
+      rows.push({ d, wd: new Date(y, m, d).getDay(), max: mx, min: mn, avg: (mx + mn) / 2 + (r() - .5) * .6, rain: r() < .42 ? r() * r() * 16 : 0, wind: w, gust: w * 1.7 + r() * 12, dir: pick(), maxT: p2(13 + Math.floor(r() * 4)) + ':' + p2(Math.floor(r() * 60)), minT: p2(4 + Math.floor(r() * 3)) + ':' + p2(Math.floor(r() * 60)) });
+    }
+    return (this.cache[k] = rows);
+  }
+
+  paths(vals, lo, hi, W, H) {
+    const n = vals.length, y = v => H - (v - lo) / (hi - lo) * H;
+    const pts = vals.map((v, i) => [(i / (n - 1) * W).toFixed(1), y(v).toFixed(1)]);
+    const line = 'M' + pts.map(p => p.join(',')).join('L');
+    return { line, area: line + `L${W},${H}L0,${H}Z` };
+  }
+
+  pageVals({ imp, f, T, tU, deg, hm, set, now, period, page }) {
+    const out = {};
+    const W = v => imp ? v / 1.609 : v, wU = imp ? ' mph' : ' km/u';
+    const P = v => imp ? v * .02953 : v, pU = imp ? ' inHg' : ' hPa';
+    const R = v => imp ? v / 25.4 : v, rU = imp ? ' in' : ' mm', rd = imp ? 2 : 1;
+    const dl = (name, color, dash) => ({ name, color, dash: dash ? 'dashed' : 'solid' });
+    const WD = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'], MN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    const dl8 = (url, name, text) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: url })); a.download = name; a.click(); };
+
+    if (page === 'grafieken') {
+      const E = this.ext(period), pts = E.pts, labels = pts.map(p => p.l);
+      const tv = pts.map(p => T(p.t)), dv = pts.map(p => T(p.d)), pv = pts.map(p => P(p.pr)), wv = pts.map(p => W(p.w)), gv = pts.map(p => W(p.g)), rv = pts.map(p => R(p.rain)), hv = pts.map(p => p.h);
+      const sum = a => a.reduce((x, y) => x + y, 0);
+      const base = { labels, x: E.x, f };
+      out.periodDesc = { dag: 'Afgelopen 24 uur · per 30 minuten', week: 'Afgelopen 7 dagen · per 2 uur', maand: 'September 2026 · daggemiddelden', jaar: 'Afgelopen 52 weken · weekgemiddelden', alles: '2019 – 2026 · maandgemiddelden' }[period];
+      out.gCharts = [
+        this.mkChart({ ...base, key: 't', label: 'Temperatuur', color: 'var(--accent-primary)', h: 240, flex: '1 1 100%', tickU: '°', legend: [dl('Buiten', 'var(--accent-primary)'), dl('Dauwpunt', 'var(--text-muted)', 1)], summary: 'Max ' + f(Math.max(...tv)) + '° · Min ' + f(Math.min(...tv)) + '°', lines: [{ vals: tv, color: 'var(--accent-primary)' }, { vals: dv, color: 'var(--text-muted)', dash: 1 }], tip: i => [{ v: f(tv[i]) + ' ' + tU, name: 'buiten', color: 'var(--accent-primary)' }, { v: f(dv[i]) + '°', name: 'dauwpunt', color: 'var(--text-muted)' }] }),
+        this.mkChart({ ...base, key: 'p', label: 'Luchtdruk', color: 'var(--accent-primary)', h: 170, flex: '1 1 420px', tickU: '', legend: [], summary: 'Nu ' + f(pv[pv.length - 1], imp ? 2 : 1) + pU, lines: [{ vals: pv, color: 'var(--accent-primary)' }], tip: i => [{ v: f(pv[i], imp ? 2 : 1) + pU, name: '', color: 'var(--accent-primary)' }] }),
+        this.mkChart({ ...base, key: 'w', label: 'Wind', color: 'var(--accent-wind)', h: 170, flex: '1 1 420px', tickU: '', legend: [dl('Gemiddeld', 'var(--accent-wind)'), dl('Stoten', 'var(--accent-wind)', 1)], summary: 'Max stoot ' + f(Math.max(...gv), 0) + wU, lines: [{ vals: wv, color: 'var(--accent-wind)' }, { vals: gv, color: 'var(--accent-wind)', dash: 1 }], tip: i => [{ v: f(wv[i], 0) + wU, name: 'gemiddeld', color: 'var(--accent-wind)' }, { v: f(gv[i], 0) + wU, name: 'stoot', color: 'var(--accent-wind)' }] }),
+        this.mkChart({ ...base, key: 'r', label: 'Neerslag', color: 'var(--accent-storm)', h: 170, flex: '1 1 420px', tickU: '', legend: [], summary: 'Totaal ' + f(sum(rv), rd) + rU, lines: [], bars: rv, tip: i => [{ v: f(rv[i], rd) + rU, name: '', color: 'var(--accent-storm)' }] }),
+        this.mkChart({ ...base, key: 'h', label: 'Luchtvochtigheid', color: 'var(--accent-primary)', h: 170, flex: '1 1 420px', tickU: '%', legend: [], summary: 'Gem ' + f(sum(hv) / hv.length, 0) + ' %', lines: [{ vals: hv, color: 'var(--accent-primary)' }], tip: i => [{ v: f(hv[i], 0) + ' %', name: '', color: 'var(--accent-primary)' }] })
+      ];
+      out.exportAll = () => {
+        const rows = [['tijd', 'temp', 'dauwpunt', 'luchtdruk', 'wind', 'stoot', 'neerslag', 'vocht']].concat(pts.map((p, i) => [p.l, tv[i].toFixed(1), dv[i].toFixed(1), pv[i].toFixed(2), wv[i].toFixed(1), gv[i].toFixed(1), rv[i].toFixed(2), hv[i].toFixed(0)]));
+        dl8('text/csv', 'weewx-' + period + '.csv', rows.map(r => r.join(';')).join('\n'));
+      };
+    }
+
+    if (page === 'archief') {
+      const { archView, archY, archM } = this.state, isMonth = archView === 'maand';
+      const idx = archY * 12 + archM, minI = 2019 * 12, maxI = 2026 * 12 + 8;
+      out.archViews = [['maand', 'Maand'], ['jaar', 'Jaar']].map(([k, label]) => ({ label, onClick: set({ archView: k }), bg: archView === k ? 'var(--bg)' : 'transparent', fg: archView === k ? 'var(--text)' : 'var(--text-muted)', shadow: archView === k ? '0 1px 2px rgba(2,6,23,.18)' : 'none' }));
+      const agg = rows => {
+        const mx = rows.reduce((a, b) => b.max > a.max ? b : a), mn = rows.reduce((a, b) => b.min < a.min ? b : a), gs = rows.reduce((a, b) => b.gust > a.gust ? b : a);
+        return { avg: rows.reduce((s, r) => s + r.avg, 0) / rows.length, mx, mn, gs, rain: rows.reduce((s, r) => s + r.rain, 0), days: rows.filter(r => r.rain > .1).length };
+      };
+      const summ = (a, when) => [
+        { k: 'Gemiddeld', v: deg(a.avg), sub: 'Temperatuur', color: 'var(--accent-primary)' },
+        { k: 'Hoogste', v: deg(a.mx.max), sub: when(a.mx), color: 'var(--accent-primary)' },
+        { k: 'Laagste', v: deg(a.mn.min), sub: when(a.mn), color: 'var(--accent-primary)' },
+        { k: 'Neerslag', v: f(R(a.rain), rd) + rU, sub: a.days + ' regendagen', color: 'var(--accent-storm)' },
+        { k: 'Max stoot', v: f(W(a.gs.gust), 0) + wU, sub: a.gs.dir + ' · ' + when(a.gs), color: 'var(--accent-wind)' }
+      ];
+      let exportTxt;
+      if (isMonth) {
+        const rows = this.arch(archY, archM), a = agg(rows);
+        const lo = Math.min(...rows.map(r => r.min)) - 1, hi = Math.max(...rows.map(r => r.max)) + 1;
+        const mAbbr = MN[archM].slice(0, 3);
+        out.arch = {
+          isMonth: true, isYear: false, title: MN[archM] + ' ' + archY,
+          summary: summ(a, r => r.d + ' ' + mAbbr),
+          rows: rows.map(r => ({
+            d: r.d, wd: WD[r.wd], avg: deg(r.avg), max: deg(r.max), min: deg(r.min), maxT: r.maxT, minT: r.minT,
+            L: (r.min - lo) / (hi - lo) * 100, W: (r.max - r.min) / (hi - lo) * 100,
+            rain: r.rain > .05 ? f(R(r.rain), rd) : '—', rainFg: r.rain > .05 ? 'var(--text)' : 'var(--text-muted)',
+            wind: f(W(r.wind), 0), gust: f(W(r.gust), 0), dir: r.dir,
+            bg: (archY === 2026 && archM === 8 && r.d === 26) ? 'color-mix(in oklch, var(--accent-primary) 9%, transparent)' : 'transparent'
+          }))
+        };
+        exportTxt = () => {
+          const pad = (v, n) => String(v).padStart(n);
+          const lines = ['                   MONTHLY CLIMATOLOGICAL SUMMARY for ' + MN[archM].toUpperCase() + ' ' + archY, 'NAME: Weerstation Grandmasg   LAT: 52 22.2 N   LONG: 004 54.0 E', '', 'DAY  MEAN   HIGH  TIME   LOW   TIME   RAIN  AVG WIND  HIGH  DOM DIR', '-'.repeat(70)]
+            .concat(rows.map(r => [pad(r.d, 3), pad(r.avg.toFixed(1), 6), pad(r.max.toFixed(1), 6), pad(r.maxT, 6), pad(r.min.toFixed(1), 6), pad(r.minT, 6), pad(r.rain.toFixed(1), 6), pad(r.wind.toFixed(1), 9), pad(r.gust.toFixed(1), 6), pad(r.dir, 6)].join(' ')));
+          dl8('text/plain', 'NOAA-' + archY + '-' + String(archM + 1).padStart(2, '0') + '.txt', lines.join('\n'));
+        };
+        out.arch.prev = () => idx > minI && this.setState({ archY: Math.floor((idx - 1) / 12), archM: (idx - 1) % 12 });
+        out.arch.next = () => idx < maxI && this.setState({ archY: Math.floor((idx + 1) / 12), archM: (idx + 1) % 12 });
+        out.arch.prevOp = idx > minI ? 1 : .3; out.arch.nextOp = idx < maxI ? 1 : .3;
+      } else {
+        const months = MN.map((name, m) => ({ name, m, ok: archY < 2026 || m <= 8 }));
+        const aggs = months.map(o => o.ok ? agg(this.arch(archY, o.m)) : null);
+        const got = aggs.filter(Boolean);
+        const tot = { avg: got.reduce((s, a) => s + a.avg, 0) / got.length, mx: got.reduce((a, b) => b.mx.max > a.mx.max ? b : a).mx, mn: got.reduce((a, b) => b.mn.min < a.mn.min ? b : a).mn, gs: got.reduce((a, b) => b.gs.gust > a.gs.gust ? b : a).gs, rain: got.reduce((s, a) => s + a.rain, 0), days: got.reduce((s, a) => s + a.days, 0) };
+        const whenY = r => { const i = aggs.findIndex(a => a && (a.mx === r || a.mn === r || a.gs === r)); return r.d + ' ' + MN[i].slice(0, 3); };
+        out.arch = {
+          isMonth: false, isYear: true, title: String(archY), summary: summ(tot, whenY),
+          yRows: months.map((o, i) => {
+            const a = aggs[i];
+            if (!a) return { name: o.name, avg: '—', max: '—', min: '—', rain: '—', days: '—', gust: '—', fg: 'var(--text-muted)', cursor: 'default', onClick: undefined };
+            return { name: o.name, avg: deg(a.avg), max: deg(a.mx.max), min: deg(a.mn.min), rain: f(R(a.rain), rd) + rU, days: a.days, gust: f(W(a.gs.gust), 0) + wU, fg: 'var(--text)', cursor: 'pointer', onClick: set({ archView: 'maand', archM: o.m }) };
+          }),
+          prev: () => archY > 2019 && this.setState({ archY: archY - 1, archM: Math.min(archM, 11) }),
+          next: () => archY < 2026 && this.setState({ archY: archY + 1, archM: archY + 1 === 2026 ? Math.min(archM, 8) : archM }),
+          prevOp: archY > 2019 ? 1 : .3, nextOp: archY < 2026 ? 1 : .3
+        };
+        exportTxt = () => {
+          const lines = ['                   CLIMATOLOGICAL SUMMARY for year ' + archY, '', 'MONTH       MEAN   HIGH    LOW    RAIN  DAYS  GUST', '-'.repeat(52)]
+            .concat(months.map((o, i) => { const a = aggs[i]; return a ? [o.name.slice(0, 3).toUpperCase().padEnd(9), a.avg.toFixed(1).padStart(6), a.mx.max.toFixed(1).padStart(6), a.mn.min.toFixed(1).padStart(6), a.rain.toFixed(1).padStart(7), String(a.days).padStart(5), a.gs.gust.toFixed(1).padStart(6)].join(' ') : o.name.slice(0, 3).toUpperCase(); }));
+          dl8('text/plain', 'NOAA-' + archY + '.txt', lines.join('\n'));
+        };
+      }
+      out.arch.exportTxt = exportTxt;
+    }
+
+    if (page === 'telemetrie') {
+      const arc = new Date(Math.floor(now / 3e5) * 3e5), ago = m => hm(new Date(arc - m * 6e4));
+      out.tTiles = [
+        { label: 'Zenderbatterij', v: '4,12', u: 'V', pct: 86, color: 'var(--status-live)', sub: 'ISS · 86 %, geen vervanging nodig' },
+        { label: 'Consolebatterij', v: '4,48', u: 'V', pct: 92, color: 'var(--status-live)', sub: 'Back-up · 3× C-cel' },
+        { label: 'Signaalsterkte', v: '−62', u: 'dBm', pct: 74, color: 'var(--accent-primary)', sub: 'Goed · kanaal 1' },
+        { label: 'Ontvangst', v: '98,4', u: '%', pct: 98, color: 'var(--accent-primary)', sub: '1.412 van 1.435 pakketten (24u)' },
+        { label: 'Voeding', v: '5,02', u: 'V', pct: 100, color: 'var(--status-live)', sub: 'Netadapter · stabiel' },
+        { label: 'Opslag', v: '412', u: 'MB', pct: 21, color: 'var(--accent-storm)', sub: 'weewx.sdb · 21 % van 2 GB' }
+      ];
+      const r = this.rng(77);
+      const sig = Array.from({ length: 96 }, (_, i) => -62 + Math.sin(i / 9) * 2.5 + (r() - .5) * 5);
+      const volt = Array.from({ length: 84 }, (_, i) => 4.08 + .07 * Math.max(0, Math.sin(((i * 2) % 24 - 7) / 24 * Math.PI * 2)) - i * .0002 + (r() - .5) * .01);
+      const sp = (vals, color, label, fmt, u, from) => { const lo = Math.min(...vals), hi = Math.max(...vals), pd = (hi - lo) * .15; const p = this.paths(vals, lo - pd, hi + pd, 300, 80); return { label, color, line: p.line, area: p.area, from, last: fmt(vals[vals.length - 1]) + u, range: 'min ' + fmt(lo) + ' · max ' + fmt(hi) + u }; };
+      out.tSparks = [
+        sp(sig, 'var(--accent-primary)', 'Signaalsterkte · 24 uur', v => f(v, 0).replace('-', '−'), ' dBm', '24 uur geleden'),
+        sp(volt, 'var(--status-live)', 'Zenderspanning · 7 dagen', v => f(v, 2), ' V', '7 dagen geleden')
+      ];
+      const ok = 'var(--status-live)', warn = 'var(--accent-wind)';
+      out.services = [
+        { name: 'weewxd', detail: 'actief · PID 812 · 12d 4u', status: 'OK', color: ok },
+        { name: 'Database', detail: 'SQLite · 1.018.244 records', status: 'OK', color: ok },
+        { name: 'Rapportgenerator', detail: '14 bestanden in 1,84 s · ' + hm(arc), status: 'OK', color: ok },
+        { name: 'WOW-NL', detail: 'laatste upload ' + hm(arc), status: 'OK', color: ok },
+        { name: 'Weather Underground', detail: 'laatste upload ' + hm(arc), status: 'OK', color: ok },
+        { name: 'Windy', detail: 'HTTP 503 · nieuwe poging ' + hm(new Date(+arc + 3e5)), status: 'Fout', color: warn }
+      ];
+      const d = arc.toISOString().slice(0, 10), ts = hm(arc, true);
+      const I = 'var(--status-live)', Wn = 'var(--accent-wind)';
+      out.logs = [
+        { t: hm(arc, true), lvl: 'INFO', color: I, msg: `weewx.manager: Added record ${d} ${ts} CEST to database 'weewx.sdb'` },
+        { t: hm(arc, true), lvl: 'INFO', color: I, msg: 'weewx.restx: WOW-NL: Published record ' + ts },
+        { t: hm(arc, true), lvl: 'INFO', color: I, msg: 'weewx.restx: Wunderground-PWS: Published record ' + ts },
+        { t: hm(arc, true), lvl: 'WARN', color: Wn, msg: 'weewx.restx: Windy: Failed upload attempt 1: HTTP Error 503' },
+        { t: hm(arc, true), lvl: 'INFO', color: I, msg: 'weewx.reportengine: Generated 14 files for report Grandmasg in 1.84 seconds' },
+        { t: ago(5) + ':00', lvl: 'INFO', color: I, msg: 'weewx.drivers.vantage: Clock error is 1.20 seconds (positive is fast)' },
+        { t: ago(5) + ':00', lvl: 'INFO', color: I, msg: `weewx.manager: Added record ${d} ${ago(5)}:00 CEST to database 'weewx.sdb'` },
+        { t: ago(10) + ':00', lvl: 'INFO', color: I, msg: 'weewx.restx: WOW-NL: Published record ' + ago(10) + ':00' }
+      ];
+    }
+
+    if (page === 'almanak') {
+      const sr = 7 * 60 + 28, ss = 19 * 60 + 24, m = now.getHours() * 60 + now.getMinutes();
+      const fr = (m - sr) / (ss - sr), isDay = fr > 0 && fr < 1, c = Math.max(0, Math.min(1, fr)), th = Math.PI * (1 - c);
+      const sx = 200 + 170 * Math.cos(th), sy = 150 - 120 * Math.sin(th);
+      const k = .99, rx = 56 * Math.abs(1 - 2 * k);
+      const TAU = Math.PI * 2, dlen = d => 12.26 + 4.52 * Math.sin((d - 80) / 365 * TAU);
+      const vals = Array.from({ length: 365 }, (_, i) => dlen(i));
+      const p = this.paths(vals, 6, 18, 1000, 120);
+      const doy = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
+      out.alm = {
+        date: now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        sunNow: isDay ? 'Nu: hoogte ' + Math.round(36 * Math.sin(c * Math.PI)) + '° · azimut ' + Math.round(95 + c * 170) + '°' : 'Zon onder de horizon',
+        isDay, sx: sx.toFixed(1), sy: sy.toFixed(1),
+        arcDone: c > 0 ? `M30,150 A170,120 0 0 1 ${sx.toFixed(1)},${sy.toFixed(1)}` : '',
+        sunTimes: [{ k: 'Schemering', v: '06:54' }, { k: 'Opkomst', v: '07:28' }, { k: 'Middag', v: '13:26' }, { k: 'Ondergang', v: '19:24' }, { k: 'Schemering', v: '19:58' }],
+        moonPath: `M64,8 A56,56 0 0 1 64,120 A${rx.toFixed(1)},56 0 0 ${k > .5 ? 1 : 0} 64,8Z`,
+        phase: 'Wassende maan', illum: '99 %', age: '14,2 dagen oud',
+        phases: [{ k: 'Volle maan', v: 'za 26 sep · 18:49' }, { k: 'Laatste kwartier', v: 'za 3 okt · 13:15' }, { k: 'Nieuwe maan', v: 'za 10 okt · 05:50' }, { k: 'Eerste kwartier', v: 'zo 18 okt · 18:12' }],
+        dlLine: p.line, dlArea: p.area, dlX: doy / 365 * 100, dlY: (18 - dlen(doy)) / 12 * 100,
+        months: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
+        toSolstice: Math.max(0, Math.ceil((new Date(2026, 11, 21) - now) / 864e5))
+      };
+    }
+    return out;
+  }
+
+  renderVals() {
+    const imp = this.props.units === 'imperiaal';
+    const { theme, lang, page, period, hover, compact, now } = this.state;
+    const f = (v, d = 1) => v.toLocaleString(lang === 'en' ? 'en-GB' : 'nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const T = c => imp ? c * 9 / 5 + 32 : c;
+    const tU = imp ? '°F' : '°C', deg = v => f(T(v)) + '°';
+    const hm = (d, s) => d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: s ? '2-digit' : undefined });
+    const set = o => () => this.setState(o);
+
+    const cur = {
+      temp: f(T(17.4)), tU, feels: deg(16.1), max: deg(19.2), min: deg(11.8), dew: deg(13.5),
+      wind: imp ? f(14 / 1.609, 0) : '14', wU: imp ? 'mph' : 'km/u', gust: imp ? f(27 / 1.609, 0) + ' mph' : '27 km/u',
+      press: imp ? f(1013.2 * .02953, 2) : f(1013.2), pU: imp ? 'inHg' : 'hPa', pTrend: imp ? f(1.4 * .02953, 2) + ' inHg' : '1,4 hPa',
+      rain: imp ? f(2.4 / 25.4, 2) : f(2.4), rU: imp ? 'in' : 'mm', rate: imp ? f(.6 / 25.4, 2) + ' in/u' : '0,6 mm/u'
+    };
+
+    const day = this.series('dag').pts.map(p => T(p.t));
+    const dLo = Math.min(...day) - .5, dHi = Math.max(...day) + .5;
+    const sp = this.paths(day, dLo, dHi, 300, 64);
+    const spark = { ...sp, gid: this.gid, fill: `url(#${this.gid})` };
+
+    const S = this.series(period), tv = S.pts.map(p => T(p.t)), dv = S.pts.map(p => T(p.d));
+    const all = tv.concat(dv), mn = Math.min(...all), mx = Math.max(...all);
+    const step = [1, 2, 5, 10, 20].find(s => (mx - mn) / s <= 5) || 20;
+    const lo = Math.floor(mn / step) * step, hi = Math.ceil(mx / step) * step, H = 220;
+    const yTicks = [];
+    for (let v = hi; v >= lo - 1e-9; v -= step) { const fr = (hi - v) / (hi - lo); yTicks.push({ label: f(v, 0) + '°', top: fr * 100, y: fr * H }); }
+    const tp = this.paths(tv, lo, hi, 1000, H), dp = this.paths(dv, lo, hi, 1000, H);
+    const avg = tv.reduce((a, b) => a + b, 0) / tv.length;
+    const chart = { temp: tp.line, area: tp.area, dew: dp.line, yTicks, xTicks: S.x, avg: deg(imp ? (avg - 32) * 5 / 9 : avg), max: f(Math.max(...tv)) + '°', min: f(Math.min(...tv)) + '°', n: tv.length.toLocaleString('nl-NL') };
+
+    let hv = { on: false };
+    if (hover != null && hover < tv.length) {
+      const x = hover / (tv.length - 1) * 100;
+      hv = { on: true, x, ty: (hi - tv[hover]) / (hi - lo) * 100, shift: x > 62 ? 'calc(-100% - 20px)' : '0', label: S.pts[hover].l, t: f(tv[hover]) + ' ' + tU, d: f(dv[hover]) + '°' };
+    }
+
+    const pages = [['dashboard', 'Dashboard'], ['grafieken', 'Grafieken'], ['archief', 'Archief'], ['telemetrie', 'Telemetrie'], ['almanak', 'Almanak']];
+    const nav = {}, go = {};
+    pages.forEach(([k]) => {
+      nav[k] = { bg: page === k ? 'color-mix(in oklch, var(--accent-primary) 16%, transparent)' : 'transparent', fg: page === k ? 'var(--accent-primary)' : 'var(--text-muted)' };
+      go[k] = set({ page: k });
+    });
+    const tabs = pages.map(([k, label]) => ({ label, onClick: go[k], fg: page === k ? 'var(--text)' : 'var(--text-muted)', bar: page === k ? 'var(--accent-primary)' : 'transparent' }));
+
+    const sunrise = 7 * 60 + 28, sunset = 19 * 60 + 24, m = now.getHours() * 60 + now.getMinutes();
+    const pct = Math.max(0, Math.min(100, (m - sunrise) / (sunset - sunrise) * 100));
+    const uvCol = i => i < 2 ? '#4ade80' : i < 5 ? '#facc15' : i < 7 ? 'var(--accent-wind)' : i < 10 ? '#ef4444' : 'var(--accent-storm)';
+
+    return {
+      rootRef: this.rootRef, theme, isDark: theme === 'dark', isLight: theme === 'light',
+      showSidebar: !compact, compact, tileCols: compact ? 2 : 3, isDashboard: page === 'dashboard',
+      isGrafieken: page === 'grafieken', isArchief: page === 'archief', isTelemetrie: page === 'telemetrie', isAlmanak: page === 'almanak',
+      ...this.pageVals({ imp, f, T, tU, deg, hm, set, now, period, page }),
+      liveDot: React.createElement('span', { style: { position: 'relative', width: 8, height: 8, display: 'inline-block' } },
+        React.createElement('span', { style: { position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--status-live)', animation: 'wxpulse 1.8s ease-out infinite' } }),
+        React.createElement('span', { style: { position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--status-live)' } })),
+      nowShort: hm(now), nowLong: hm(now, true),
+      toggleTheme: () => {
+        const t = theme === 'dark' ? 'light' : 'dark';
+        if ((this.props.theme || 'auto') === 'auto') { try { localStorage.setItem('wx-theme', t); } catch (e) {} }
+        this.setState({ theme: t });
+      },
+      langs: ['nl', 'en'].map(l => ({ label: l.toUpperCase(), onClick: set({ lang: l }), bg: lang === l ? 'var(--surface-2)' : 'transparent', fg: lang === l ? 'var(--text)' : 'var(--text-muted)' })),
+      nav, go, tabs, cur, spark, chart, hover: hv,
+      sun: { pct }, uvSegs: Array.from({ length: 11 }, (_, i) => ({ bg: i < 3 ? uvCol(i) : 'var(--surface-2)' })),
+      periods: [['dag', 'Dag'], ['week', 'Week'], ['maand', 'Maand'], ['jaar', 'Jaar'], ['alles', 'Alles']].map(([k, label]) => ({
+        label, onClick: set({ period: k, hover: null }), bg: period === k ? 'var(--bg)' : 'transparent', fg: period === k ? 'var(--text)' : 'var(--text-muted)', shadow: period === k ? '0 1px 2px rgba(2,6,23,.18)' : 'none'
+      })),
+      onChartMove: e => { const b = e.currentTarget.getBoundingClientRect(); const i = Math.round(Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * (tv.length - 1)); if (i !== hover) this.setState({ hover: i }); },
+      onChartLeave: set({ hover: null }),
+      exportCsv: () => {
+        const rows = [['tijd', 'temperatuur_' + (imp ? 'F' : 'C'), 'dauwpunt']].concat(S.pts.map((p, i) => [p.l, tv[i].toFixed(1), dv[i].toFixed(1)]));
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(';')).join('\n')], { type: 'text/csv' }));
+        a.download = 'temperatuur-' + period + '.csv'; a.click();
+      },
+      telem: [
+        { k: 'console', v: 'Vantage Pro2 · OK' },
+        { k: 'zender', v: imp ? '4.12 V' : '4,12 V' },
+        { k: 'signaal', v: '−62 dBm · 98 %' },
+        { k: 'voeding', v: imp ? '5.02 V' : '5,02 V' },
+        { k: 'archief', v: 'elke 5 min · ' + hm(new Date(Math.floor(now / 3e5) * 3e5)) },
+        { k: 'uptime', v: '12d 4u 18m' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+#errorCatcher Echo
+#encoding UTF-8
+{
+  "period": "year",
+  "generated": $current.dateTime.raw,
+  "temp": $year.outTemp.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "dewpoint": $year.dewpoint.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "barometer": $year.barometer.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "windSpeed": $year.windSpeed.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "windGust": $year.windGust.series(aggregate_type='max', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "rain": $year.rain.series(aggregate_type='sum', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "humidity": $year.outHumidity.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "uv": $year.UV.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "radiation": $year.radiation.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "cloudbase": $year.cloudbase.series(aggregate_type='avg', aggregate_interval=86400, time_series='start').json(order_by='column'),
+  "et": $year.ET.series(aggregate_type='sum', aggregate_interval=86400, time_series='start').json(order_by='column')
+}

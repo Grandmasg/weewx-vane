@@ -1,0 +1,209 @@
+#encoding UTF-8
+#errorCatcher Echo
+<!DOCTYPE html>
+<html lang="$lang" data-theme="">
+<head>
+<script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$gettext('Graphs') &mdash; $station.location</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/vane.css">
+<link rel="stylesheet" href="static/js/vendor/uPlot.min.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+</head>
+<body>
+<div class="vane-shell">
+
+  <nav class="vane-sidebar">
+    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      <span>$gettext('Dashboard')</span>
+    </a>
+    <button class="nav-btn active" title="$gettext('Graphs')" aria-current="page">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+      <span>$gettext('Graphs')</span>
+    </button>
+    <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
+      <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+      <span>$gettext('Archive')</span>
+    </a>
+    <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
+      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <span>$gettext('Telemetry')</span>
+    </a>
+    <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
+      <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      <span>$gettext('Almanac')</span>
+    </a>
+  </nav>
+
+  <div class="vane-main">
+    <div class="vane-content">
+      <div class="vane-container">
+
+        <header class="vane-header">
+          <div>
+            <h1>$gettext('Graphs')</h1>
+            <span class="subtitle">$station.location</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)" id="vane-period-selector">
+              <button class="period-btn active" data-period="day" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Day')</button>
+              <button class="period-btn" data-period="week" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Week')</button>
+              <button class="period-btn" data-period="month" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Month')</button>
+              <button class="period-btn" data-period="year" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Year')</button>
+              <button class="period-btn" data-period="all" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('All')</button>
+            </div>
+            #if str($Vane.Features.get('date_picker', 'false')).lower() == 'true'
+            <input type="month" id="vane-month-picker" style="height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 8px;font-size:12px;font-family:inherit">
+            #end if
+            #if str($Vane.Features.get('csv_export', 'false')).lower() == 'true'
+            <button id="vane-csv-export" style="all:unset;cursor:pointer;height:30px;padding:0 10px;border-radius:8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-muted)">
+              <svg viewBox="0 0 24 24" width="13" height="13" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>CSV
+            </button>
+            #end if
+            #for $lcode, $lsubdir in $Vane.Languages.items()
+            #if $lcode != $lang
+            #set $lseg = $lsubdir + '/' if $lsubdir else ''
+            <a class="pill" href="${Vane.root_href}${lseg}graphs.html" title="$gettext('Switch language')">$lcode.upper()</a>
+            #end if
+            #end for
+            <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
+              <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="card" style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer.svg" alt="">$gettext('Temperature')</span>
+            <span id="vane-graph-status" style="font-size:12px;color:var(--text-muted)"></span>
+          </div>
+          <div id="vane-temp-chart" style="width:100%"></div>
+        </section>
+
+        <div class="row-wrap">
+          <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/barometer.svg" alt="">$gettext('Pressure')</span>
+            <div id="vane-pressure-chart" style="width:100%"></div>
+          </section>
+          <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/wind.svg" alt="">$gettext('Wind')</span>
+            <div id="vane-wind-chart" style="width:100%"></div>
+          </section>
+        </div>
+
+        <section class="card" style="display:flex;flex-direction:column;gap:14px">
+          <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Rain')</span>
+          <div id="vane-rain-chart" style="width:100%"></div>
+        </section>
+
+        <div class="row-wrap">
+          <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/humidity.svg" alt="">$gettext('Humidity')</span>
+            <div id="vane-humidity-chart" style="width:100%"></div>
+          </section>
+          <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext('UV index')</span>
+            <div id="vane-uv-chart" style="width:100%"></div>
+          </section>
+        </div>
+
+        <section class="card" style="display:flex;flex-direction:column;gap:14px">
+          <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext('Radiation')</span>
+          <div id="vane-radiation-chart" style="width:100%"></div>
+        </section>
+
+        <div class="row-wrap">
+          <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/overcast.svg" alt="">$gettext('Cloud base')</span>
+            <div id="vane-cloudbase-chart" style="width:100%"></div>
+          </section>
+          <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Evapotranspiration')</span>
+            <div id="vane-et-chart" style="width:100%"></div>
+          </section>
+        </div>
+
+        #*
+          Windroos + windvector: same $vane_windrose/$vane_wind_vector
+          objects as Dashboard/Archief (one computation per
+          page-generation, all-time [[ToDate]] timespan — see skin.conf
+          [CheetahGenerator]), just reused here for whoever is already
+          looking at wind speed/gust over time on this page.
+        *#
+        #if $vane_windrose.has_data or $vane_wind_vector.has_data
+        <div class="row-wrap">
+          #if $vane_windrose.has_data
+          <section class="card" style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span class="uppercase-label" style="align-self:flex-start">$gettext('Wind') &middot; $gettext('Direction')</span>
+            <svg class="windrose-svg" viewBox="-18 -18 336 336">
+              <circle class="windrose-ring" cx="150" cy="150" r="125"></circle>
+              <circle class="windrose-ring" cx="150" cy="150" r="83.3"></circle>
+              <circle class="windrose-ring" cx="150" cy="150" r="41.6"></circle>
+              #for $sector in $vane_windrose.sectors
+              #if $sector.freq_pct > 0
+              #set $tt = "%s — %s%% · %s %s" % ($sector.label, $round($sector.freq_pct, 1), $round($sector.avg_speed, 1), $unit.label.windSpeed)
+              <path d="$sector.path_d" fill="$sector.color" opacity="0.88" data-tooltip="$tt"></path>
+              #end if
+              #end for
+              #for $lp in $vane_windrose.label_points
+              <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
+              #if $lp.freq_pct > 0
+              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.freq_pct%</text>
+              #end if
+              #end for
+            </svg>
+            <span class="tile-sub">$gettext('Calm'): $round($vane_windrose.calm_pct, 1)%</span>
+          </section>
+          #end if
+          #if $vane_wind_vector.has_data
+          <section class="card" style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span class="uppercase-label" style="align-self:flex-start">$gettext('Wind') &middot; $gettext('Vector')</span>
+            <svg class="windrose-svg" viewBox="-18 -18 336 336">
+              <circle class="windrose-ring" cx="150" cy="150" r="125"></circle>
+              <circle class="windrose-ring" cx="150" cy="150" r="83.3"></circle>
+              <circle class="windrose-ring" cx="150" cy="150" r="41.6"></circle>
+              #for $lp in $vane_wind_vector.label_points
+              <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
+              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.speed/$lp.gust</text>
+              #end for
+              <polygon class="windvector-polygon" points="$vane_wind_vector.gust_points" fill="var(--accent-wind)" stroke="var(--accent-wind)"></polygon>
+              <polygon class="windvector-polygon" points="$vane_wind_vector.speed_points" fill="var(--accent-primary)" stroke="var(--accent-primary)"></polygon>
+              #for $m in $vane_wind_vector.markers
+              #set $mtt = "%s — %s: %s %s · %s: %s %s" % ($m.label, $gettext("Wind speed"), $m.speed, $unit.label.windSpeed, $gettext("Gusts"), $m.gust, $unit.label.windSpeed)
+              <circle class="windvector-marker" cx="$m.speed_x" cy="$m.speed_y" r="4" fill="var(--accent-primary)" data-tooltip="$mtt"></circle>
+              <circle class="windvector-marker" cx="$m.gust_x" cy="$m.gust_y" r="4" fill="var(--accent-wind)" data-tooltip="$mtt"></circle>
+              #end for
+            </svg>
+            <div class="windvector-legend">
+              <span><span class="dot" style="background:var(--accent-primary)"></span>$gettext("Wind speed")</span>
+              <span><span class="dot" style="background:var(--accent-wind)"></span>$gettext("Gusts")</span>
+            </div>
+            <span class="tile-sub">$gettext("Max"): $vane_wind_vector.scale_max $unit.label.windSpeed</span>
+          </section>
+          #end if
+        </div>
+        #end if
+
+        #include "footer.inc"
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>window.VANE_LANG = "$lang";</script>
+<script src="static/js/vendor/uPlot.iife.min.js"></script>
+<script src="static/js/theme-toggle.js"></script>
+<script src="static/js/chart-tooltip.js"></script>
+<script src="static/js/graphs.js"></script>
+</body>
+</html>
