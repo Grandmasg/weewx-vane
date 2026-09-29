@@ -254,9 +254,12 @@
             <div class="tile">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext("UV index")</span>
               <div class="tile-value"><span class="num" data-live="UV" style="color:$uv_col">$current.UV.format(add_label=False, format_string="%.0f")</span></div>
-              #if $day.radiation.has_data
-              <span class="tile-sub"><span data-live="radiation">$current.radiation.format(add_label=False, format_string="%.0f")</span> $unit.label.radiation</span>
-              #end if
+              <span class="tile-sub">
+                $gettext("Max today") $day.UV.max.format(add_label=False, format_string="%.0f")
+                #if $day.radiation.has_data
+                &middot; <span data-live="radiation">$current.radiation.format(add_label=False, format_string="%.0f")</span> $unit.label.radiation
+                #end if
+              </span>
               <svg class="gauge-svg" viewBox="0 0 120 70">
                 <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
                 <path class="gauge-value" d="$uv_gauge[0]" stroke="$uv_col"></path>
@@ -275,14 +278,18 @@
             <div class="tile">
               <span class="tile-label"><span class="tile-dot" style="background:var(--accent-primary)"></span>$gettext("Cloud base")</span>
               <div class="tile-value"><span class="num">$current.cloudbase.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.cloudbase</span></div>
+              <div class="tile-range">
+                <span>$gettext("Min") $day.cloudbase.min.format(add_label=False, format_string="%.0f")$unit.label.cloudbase</span>
+                <span>$gettext("Max") $day.cloudbase.max.format(add_label=False, format_string="%.0f")$unit.label.cloudbase</span>
+              </div>
             </div>
             #end if
 
             #if $day.ET.has_data and $day.ET.sum.raw
             <div class="tile">
               <span class="tile-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext("Evapotranspiration")</span>
-              <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET</span></div>
-              <span class="tile-sub">$gettext("today")</span>
+              <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET $gettext("today")</span></div>
+              <span class="tile-sub">$month.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this month") &middot; $year.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this year")</span>
             </div>
             #end if
 
