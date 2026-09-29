@@ -42,27 +42,49 @@ CORE_OBSERVATIONS = frozenset([
     "txBatteryStatus", "consBatteryVoltage", "rxCheckPercent", "signal4",
 ])
 
-# Native display name (+ decorative flag emoji, see DESIGN_PLAN.md/UX
-# research on the language <select>) for common ISO 639-1 codes — used as
-# the default label so adding a common European language only needs a line
-# in skin.conf [Vane][[Languages]], no matching [[LanguageNames]] entry.
+# Native display name for common ISO 639-1 codes — used as the default
+# label so adding a common European language only needs a line in
+# skin.conf [Vane][[Languages]], no matching [[LanguageNames]] entry.
 # skin.conf's [[LanguageNames]] always wins when present (see
 # _language_name below), for overriding one of these or adding a code
 # that isn't in this table at all.
 LANGUAGE_NAMES = {
-    "nl": "🇳🇱 Nederlands",
-    "en": "🇬🇧 English",
-    "de": "🇩🇪 Deutsch",
-    "fr": "🇫🇷 Français",
-    "es": "🇪🇸 Español",
-    "it": "🇮🇹 Italiano",
-    "pt": "🇵🇹 Português",
-    "pl": "🇵🇱 Polski",
-    "da": "🇩🇰 Dansk",
-    "sv": "🇸🇪 Svenska",
-    "no": "🇳🇴 Norsk",
-    "fi": "🇫🇮 Suomi",
+    "nl": "Nederlands",
+    "en": "English",
+    "de": "Deutsch",
+    "fr": "Français",
+    "es": "Español",
+    "it": "Italiano",
+    "pt": "Português",
+    "pl": "Polski",
+    "da": "Dansk",
+    "sv": "Svenska",
+    "no": "Norsk",
+    "fi": "Suomi",
     "fy": "Frysk",
+}
+
+# Language code -> flag-icons (lipis, MIT, see THIRD-PARTY-LICENSES.md)
+# country code, for the custom listbox's flag icons
+# (skins/Vane/static/img/flags/<code>.svg). A flag represents a country,
+# not a language (Dutch is also spoken in Belgium, English in plenty of
+# countries) — this is deliberately just the conventional "most
+# recognizable" choice for each, same tradeoff every language switcher
+# with flags makes. A language with no entry here simply gets no flag
+# icon (falls back to text-only in the template), rather than erroring.
+FLAG_CODES = {
+    "nl": "nl",
+    "en": "gb",
+    "de": "de",
+    "fr": "fr",
+    "es": "es",
+    "it": "it",
+    "pt": "pt",
+    "pl": "pl",
+    "da": "dk",
+    "sv": "se",
+    "no": "no",
+    "fi": "fi",
 }
 
 # (prefix, group name) — first match wins. Freely extendable without ever
@@ -175,6 +197,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_lightning_api": self._vane_lightning_api,
                  "vane_dashboard_plugins_html": self._dashboard_plugins_html(),
                  "vane_language_name": self._language_name,
+                 "vane_language_flag": self._language_flag,
                  "vane_gauge_arc": self._gauge_arc,
                  "vane_gauge_pointer_arc": self._gauge_pointer_arc,
                  "vane_uv_color": self._uv_color,
@@ -729,6 +752,14 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         if lcode in override:
             return override[lcode]
         return LANGUAGE_NAMES.get(lcode, lcode.upper())
+
+    @staticmethod
+    def _language_flag(lcode):
+        """Flag-icons country code for lcode's flag icon (see FLAG_CODES),
+        or None if this language has no flag mapping — the template treats
+        that as "skip the icon", not an error, so an unmapped custom
+        language degrades to text-only rather than breaking."""
+        return FLAG_CODES.get(lcode)
 
     def _dashboard_plugins_html(self):
         """Reads plugins/<name>.inc for each name in skin.conf

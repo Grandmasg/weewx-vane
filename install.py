@@ -150,6 +150,20 @@ class VaneInstaller(ExtensionInstaller):
                 ("skins/Vane/static/img", [
                     "skins/Vane/static/img/logo-mark.svg",
                 ]),
+                ("skins/Vane/static/img/flags", [
+                    "skins/Vane/static/img/flags/nl.svg",
+                    "skins/Vane/static/img/flags/gb.svg",
+                    "skins/Vane/static/img/flags/de.svg",
+                    "skins/Vane/static/img/flags/fr.svg",
+                    "skins/Vane/static/img/flags/es.svg",
+                    "skins/Vane/static/img/flags/it.svg",
+                    "skins/Vane/static/img/flags/pt.svg",
+                    "skins/Vane/static/img/flags/pl.svg",
+                    "skins/Vane/static/img/flags/dk.svg",
+                    "skins/Vane/static/img/flags/se.svg",
+                    "skins/Vane/static/img/flags/no.svg",
+                    "skins/Vane/static/img/flags/fi.svg",
+                ]),
                 ("skins/Vane/static/img/icons", [
                     "skins/Vane/static/img/icons/clear-day.svg",
                     "skins/Vane/static/img/icons/clear-night.svg",

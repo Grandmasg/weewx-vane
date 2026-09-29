@@ -60,17 +60,33 @@
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span class="pill"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Operational')</span>
-            <select class="lang-select" title="$gettext('Switch language')" aria-label="$gettext('Switch language')">
-              #for $lcode, $lsubdir in $Vane.Languages.items()
-              #set $lname = $vane_language_name($lcode)
-              #if $lcode == $lang
-              <option value="" selected>$lname</option>
-              #else
-              #set $lseg = $lsubdir + '/' if $lsubdir else ''
-              <option value="${Vane.root_href}${lseg}telemetry.html">$lname</option>
-              #end if
-              #end for
-            </select>
+            #set $cur_flag = $vane_language_flag($lang)
+            <div class="lang-combo">
+              <button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" title="$gettext('Switch language')" aria-label="$gettext('Switch language')">
+                #if $cur_flag
+                <img class="lang-flag" src="static/img/flags/${cur_flag}.svg" alt="" width="18" height="14">
+                #end if
+                <span class="lang-trigger-label">$vane_language_name($lang)</span>
+                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
+              </button>
+              <ul class="lang-listbox" role="listbox" tabindex="-1" hidden>
+                #for $lcode, $lsubdir in $Vane.Languages.items()
+                #set $lname = $vane_language_name($lcode)
+                #set $lflag = $vane_language_flag($lcode)
+                #if $lcode == $lang
+                <li role="option" class="lang-option" aria-selected="true" tabindex="0">
+                #else
+                #set $lseg = $lsubdir + '/' if $lsubdir else ''
+                <li role="option" class="lang-option" aria-selected="false" tabindex="-1" data-href="${Vane.root_href}${lseg}telemetry.html">
+                #end if
+                  #if $lflag
+                  <img class="lang-flag" src="static/img/flags/${lflag}.svg" alt="" width="18" height="14">
+                  #end if
+                  <span>$lname</span>
+                </li>
+                #end for
+              </ul>
+            </div>
             </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
               <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
