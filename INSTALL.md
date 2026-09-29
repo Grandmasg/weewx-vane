@@ -72,9 +72,24 @@ removes the whole stanza, install puts it back to the defaults from
 ## 5. Multilingual support / adding your own language
 
 By default, Vane installs two reports: `[[Vane]]` (Dutch) and `[[VaneEN]]`
-(English); see `docs/THEME_PLAN.md` for how to add a third language (copy
-the `[[VaneEN]]` block, a new `HTML_ROOT`/`lang`, and a
-`lang/<code>.conf` file).
+(English). Every page shows a language `<select>` (native names, e.g.
+"Nederlands"/"English", not codes) driven entirely by `skin.conf` — no
+template changes needed to add a language.
+
+To add a third language (e.g. German), 4 things need to agree on the same
+code — see `docs/THEME_PLAN.md`'s "Multilingual (i18n)" section for the
+full explanation, in short:
+
+1. `skin.conf` `[Vane][[Languages]]`: add `de = de` (code → output subfolder).
+2. `skin.conf` `[Vane][[LanguageNames]]`: add `de = 🇩🇪 Deutsch` (what the
+   `<select>` shows — this is what makes the new language actually appear
+   in the switcher; adding `lang/de.conf` alone does **not** do this).
+3. `install.py`: copy the `[[VaneEN]]` `StdReport` stanza to a new
+   `[[VaneDE]]` (new `HTML_ROOT`, `lang`, `Vane.root_href`), then rebuild
+   the zip (`python build.py`) and reinstall (see section 4 above).
+4. `lang/de.conf`: the actual translations — copy `lang/en.conf` and
+   translate the `[Texts]` section (plus any locale-specific overrides,
+   see `lang/nl.conf` for the pattern).
 
 ## 6. Personal integrations don't belong in this zip
 
