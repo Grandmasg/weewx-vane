@@ -16,8 +16,8 @@
   dashboard_plugins slot, not hardcoded here — see THEME_PLAN.md
   "Personal integrations are a separate plugin".
 *#
-<div class="vane-footer-sticky">
-  <footer class="vane-footer-wide">
+<footer class="vane-footer-sticky">
+  <div class="vane-footer-wide">
     <div class="footer-col">
       <span class="uppercase-label">$gettext("About")</span>
       <div class="footer-lines">
@@ -32,12 +32,14 @@
     <div class="footer-col">
       <span class="uppercase-label">$gettext("Links")</span>
       <div class="footer-lines">
+        <a href="https://weewx.com/" target="_blank" rel="noopener">WeeWX</a>
         <a href="https://www.windy.com/?${station.latitude_f},${station.longitude_f},10" target="_blank" rel="noopener">Windy</a>
       </div>
     </div>
-  </footer>
+  </div>
 
-  <footer class="vane-footer">
-    <span>WeeWX $station.version &middot; $station.hardware</span>
-  </footer>
-</div>
+  <div class="vane-footer">
+    <span><a href="https://weewx.com/" target="_blank" rel="noopener">WeeWX $station.version</a> &middot; $station.hardware</span>
+    <span><a href="https://github.com/Grandmasg/weewx-vane" target="_blank" rel="noopener">Vane v$vane_version</a></span>
+  </div>
+</footer>

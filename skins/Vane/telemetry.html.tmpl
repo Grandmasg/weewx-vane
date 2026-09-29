@@ -13,6 +13,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$gettext('Telemetry') &mdash; $station.location</title>
+<meta name="description" content="$station.location — $gettext('Weather station telemetry, battery levels and signal status.')">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -25,26 +26,26 @@
 <body>
 <div class="vane-shell">
 
-  <nav class="vane-sidebar">
+  <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
     <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
     <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext('Dashboard')</span>
     </a>
     <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
-      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
       <span>$gettext('Graphs')</span>
     </a>
     <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
-      <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext('Archive')</span>
     </a>
     <button class="nav-btn active" title="$gettext('Telemetry')" aria-current="page">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
       <span>$gettext('Telemetry')</span>
     </button>
     <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
-      <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext('Almanac')</span>
     </a>
   </nav>
@@ -59,7 +60,7 @@
             <span class="subtitle">$station.location</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="pill"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Operational')</span>
+            <div class="pill"><span class="live-dot"></span><span style="color:var(--status-live)">$gettext('Operational')</span></div>
             #set $cur_flag = $vane_language_flag($lang)
             <div class="lang-combo">
               <button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" title="$gettext('Switch language')" aria-label="$gettext('Switch language')">
@@ -67,9 +68,9 @@
                 <img class="lang-flag" src="static/img/flags/${cur_flag}.svg" alt="" width="18" height="14">
                 #end if
                 <span class="lang-trigger-label">$vane_language_name($lang)</span>
-                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
+                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
               </button>
-              <ul class="lang-listbox" role="listbox" tabindex="-1" hidden>
+              <ul class="lang-listbox" role="listbox" aria-label="$gettext('Switch language')" tabindex="-1" hidden>
                 #for $lcode, $lsubdir in $Vane.Languages.items()
                 #set $lname = $vane_language_name($lcode)
                 #set $lflag = $vane_language_flag($lcode)
@@ -88,7 +89,7 @@
               </ul>
             </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
-              <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
             </button>
           </div>
         </header>
@@ -245,11 +246,11 @@ $line
         #if $vane_extra_sensors
         <section class="card">
           <span class="uppercase-label">$gettext('Extra sensors')</span>
-          <div class="tiles-grid" style="margin-top:12px">
+          <div class="tiles-grid" style="margin-top:12px;flex:none;width:100%">
             #for $group in $vane_extra_sensors
             #for $item in $group.items
             <div class="tile">
-              <span class="tile-label">$item.label</span>
+              <span class="tile-label"><span class="tile-dot" style="background:var(--accent-primary)"></span>$item.label</span>
               <div class="tile-value"><span class="num">$item.value</span></div>
             </div>
             #end for

@@ -7,6 +7,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$station.location — Vane</title>
+<meta name="description" content="$station.location — $gettext('Live weather conditions, statistics and sensor data.')">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,26 +20,26 @@
 <body>
 <div class="vane-shell">
 
-  <nav class="vane-sidebar">
+  <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
     <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
     <button class="nav-btn active" title="$gettext('Dashboard')" aria-current="page">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext("Dashboard")</span>
     </button>
     <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
-      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
       <span>$gettext("Graphs")</span>
     </a>
     <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
-      <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext("Archive")</span>
     </a>
     <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
       <span>$gettext("Telemetry")</span>
     </a>
     <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
-      <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext("Almanac")</span>
     </a>
   </nav>
@@ -76,9 +77,9 @@
                 <img class="lang-flag" src="static/img/flags/${cur_flag}.svg" alt="" width="18" height="14">
                 #end if
                 <span class="lang-trigger-label">$vane_language_name($lang)</span>
-                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
+                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
               </button>
-              <ul class="lang-listbox" role="listbox" tabindex="-1" hidden>
+              <ul class="lang-listbox" role="listbox" aria-label="$gettext('Switch language')" tabindex="-1" hidden>
                 #for $lcode, $lsubdir in $Vane.Languages.items()
                 #set $lname = $vane_language_name($lcode)
                 #set $lflag = $vane_language_flag($lcode)
@@ -97,7 +98,7 @@
               </ul>
             </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
-              <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
             </button>
           </div>
         </header>
@@ -315,34 +316,83 @@
             #if $day.rain.has_data
             <div class="tile">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext("Rain")</span>
-              <div class="tile-value"><span class="num" style="color:var(--accent-storm)">$day.rain.sum.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.rain $gettext("today")</span></div>
-              <span class="tile-sub">$month.rain.sum.format(add_label=False, format_string="%.0f")$unit.label.rain $gettext("this month")</span>
-              <span class="tile-sub">$year.rain.sum.format(add_label=False, format_string="%.0f")$unit.label.rain $gettext("this year")</span>
+              <div class="tile-value"><span class="num" style="color:var(--accent-storm)">$day.rain.sum.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.rain</span></div>
+              <span class="tile-sub">$gettext("today").capitalize()</span>
+              <div class="tile-stats-stacked">
+                <div class="stat-row">
+                  <span>$gettext("this month").capitalize()</span>
+                  <span class="stat-val">$month.rain.sum.format(add_label=True, format_string="%.1f")</span>
+                </div>
+                <div class="stat-row">
+                  <span>$gettext("this year").capitalize()</span>
+                  <span class="stat-val">$year.rain.sum.format(add_label=True, format_string="%.0f")</span>
+                </div>
+              </div>
             </div>
             #end if
 
             #if $day.luminosity.has_data
             <div class="tile">
-              <span class="tile-label"><span class="tile-dot" style="background:var(--accent-wind)"></span>$gettext("Luminosity")</span>
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/clear-day.svg" alt="">$gettext("Luminosity")</span>
               <div class="tile-value"><span class="num" data-live="luminosity">$current.luminosity.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.luminosity</span></div>
             </div>
             #end if
 
             #if $day.ET.has_data and $day.ET.sum.raw
             <div class="tile">
-              <span class="tile-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext("Evapotranspiration")</span>
-              <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET $gettext("today")</span></div>
-              <span class="tile-sub">$month.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this month")</span>
-              <span class="tile-sub">$year.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this year")</span>
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/fog.svg" alt="">$gettext("Evapotranspiration")</span>
+              <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET</span></div>
+              <span class="tile-sub">$gettext("today").capitalize()</span>
+              <div class="tile-stats-stacked">
+                <div class="stat-row">
+                  <span>$gettext("this month").capitalize()</span>
+                  <span class="stat-val">$month.ET.sum.format(add_label=True, format_string="%.2f")</span>
+                </div>
+                <div class="stat-row">
+                  <span>$gettext("this year").capitalize()</span>
+                  <span class="stat-val">$year.ET.sum.format(add_label=True, format_string="%.2f")</span>
+                </div>
+              </div>
             </div>
             #end if
 
             #if $day.cloudbase.has_data
+            #set $cb_cur = $current.cloudbase.raw
+            #set $cb_min = $day.cloudbase.min.raw
+            #set $cb_max = $day.cloudbase.max.raw
+            #set $cb_unit = $unit.label.cloudbase.strip()
+            #set $is_feet = 'ft' in $cb_unit or 'foot' in $cb_unit
+            #set $fog_threshold = 100 if $is_feet else 30
+            #set $cur_is_fog = ($cb_cur is not None and $cb_cur <= $fog_threshold)
+            #set $min_is_fog = ($cb_min is not None and $cb_min <= $fog_threshold)
             <div class="tile">
-              <span class="tile-label"><span class="tile-dot" style="background:var(--accent-primary)"></span>$gettext("Cloud base")</span>
-              <div class="tile-value"><span class="num">$current.cloudbase.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.cloudbase</span></div>
+              <span class="tile-label">
+                #if $cur_is_fog
+                <img class="tile-icon" width="28" height="28" src="static/img/icons/fog.svg" alt="">
+                #else
+                <img class="tile-icon" width="28" height="28" src="static/img/icons/cloudy.svg" alt="">
+                #end if
+                $gettext("Cloud base")
+              </span>
+              <div class="tile-value">
+                #if $cur_is_fog
+                <span class="num" style="font-size:26px">$gettext("Fog")</span>
+                #else
+                <span class="num">$current.cloudbase.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.cloudbase</span>
+                #end if
+              </div>
+              #if $cur_is_fog or ($cb_cur is not None and $cb_cur <= (300 if $is_feet else 100))
+              <span class="tile-sub">$gettext("Very low cloud base")</span>
+              #end if
+              #if $cb_min is not None and $cb_max is not None and $cb_max > $cb_min and $cb_cur is not None
+              #set $eff_min = $fog_threshold if $cb_min <= $fog_threshold else $cb_min
+              #if $cb_max > $eff_min
+              #set $cb_pct = max(0, min(100, 100.0 * ($cb_cur - $eff_min) / ($cb_max - $eff_min)))
+              <div class="tile-bar"><span style="width:${cb_pct}%;background:var(--accent-primary)"></span></div>
+              #end if
+              #end if
               <div class="tile-range">
-                <span>$gettext("Min") $day.cloudbase.min.format(add_label=False, format_string="%.0f")$unit.label.cloudbase</span>
+                <span>$gettext("Min") #if $min_is_fog#$gettext("Fog")#else#$day.cloudbase.min.format(add_label=False, format_string="%.0f")$unit.label.cloudbase#end if#</span>
                 <span>$gettext("Max") $day.cloudbase.max.format(add_label=False, format_string="%.0f")$unit.label.cloudbase</span>
               </div>
             </div>
@@ -378,7 +428,9 @@
               <span class="tile-sub">&gt; $current.lightning_distance.raw km</span>
               #end if
               #else
+              <div class="tile-value"><span class="num" style="color:var(--status-live);font-size:26px">0</span><span class="unit">$gettext("strikes / hour")</span></div>
               <span class="tile-sub">$gettext("No activity in range")</span>
+              <div class="tile-status-badge"><span class="live-dot" style="background:var(--status-live)"></span> $gettext("OK")</div>
               #end if
             </div>
             #elif $vane_lightning_mode == 'api' and $vane_lightning_api
@@ -390,7 +442,9 @@
               <span class="tile-sub">&gt; $vane_lightning_api.avg_distance_km km</span>
               #end if
               #else
+              <div class="tile-value"><span class="num" style="color:var(--status-live);font-size:26px">0</span><span class="unit">$gettext("strikes / hour")</span></div>
               <span class="tile-sub">$gettext("No activity in range")</span>
+              <div class="tile-status-badge"><span class="live-dot" style="background:var(--status-live)"></span> $gettext("OK")</div>
               #end if
             </div>
             #end if
@@ -424,9 +478,7 @@
               #end for
               #for $lp in $vane_windrose.label_points
               <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
-              #if $lp.freq_pct > 0
               <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.freq_pct%</text>
-              #end if
               #end for
             </svg>
             <span class="tile-sub">$gettext("Calm"): $round($vane_windrose.calm_pct, 1)%</span>
@@ -480,7 +532,7 @@
               #if $day.rain.has_data
               <div style="min-width:0">
                 <span class="uppercase-label">$gettext("Rain") &middot; $gettext("Last 7 days")</span>
-                <div style="display:flex;align-items:flex-end;gap:8px;height:90px;margin-top:8px">
+                <div class="rain-week-chart">
                   #for $d in $span(day_delta=6).days
                   #set $mm = $d.rain.sum.raw
                   #set $mm_val = $mm if $mm is not None else 0
@@ -488,9 +540,12 @@
                   #set $bar_day_num = $d.dateTime.format('%d')
                   #set $bar_mm_display = $round($mm_val, 1)
                   #set $is_today = $d.dateTime.format("%Y-%m-%d") == $current.dateTime.format("%Y-%m-%d")
-                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%" title="$bar_day_num: $bar_mm_display mm">
-                    <div style="width:100%;height:${bar_pct}%;min-height:2px;border-radius:3px 3px 0 0;background:$vane_rain_color($mm)"></div>
-                    <span class="tile-sub" style="#if $is_today#color:var(--accent-primary);font-weight:700#end if#">$bar_day_num</span>
+                  <div class="rain-week-col" title="$bar_day_num: $bar_mm_display $unit.label.rain">
+                    <span class="rain-week-val#if $mm_val == 0# is-zero#end if#">$bar_mm_display</span>
+                    <div class="rain-week-bar-wrap">
+                      <div class="rain-week-bar" style="height:${bar_pct}%;background:$vane_rain_color($mm)"></div>
+                    </div>
+                    <span class="tile-sub#if $is_today# is-today#end if#">$bar_day_num</span>
                   </div>
                   #end for
                 </div>
@@ -499,19 +554,22 @@
               #if $year.outTemp.has_data
               <div style="min-width:0">
                 <span class="uppercase-label">$gettext("Records") &middot; $gettext("this year")</span>
-                <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div class="records-list">
+                  <div class="records-row">
                     <span class="tile-sub">$gettext("Highest")</span>
-                    <span><strong style="font-variant-numeric:tabular-nums">$year.outTemp.max.format(add_label=False, format_string="%.1f")&deg;</strong> <span class="tile-sub">$year.outTemp.maxtime.format("%d-%m")</span></span>
+                    <span class="r-val">$year.outTemp.max.format(add_label=False, format_string="%.1f")&deg;</span>
+                    <span class="r-date">$year.outTemp.maxtime.format("%d-%m")</span>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <div class="records-row">
                     <span class="tile-sub">$gettext("Lowest")</span>
-                    <span><strong style="font-variant-numeric:tabular-nums">$year.outTemp.min.format(add_label=False, format_string="%.1f")&deg;</strong> <span class="tile-sub">$year.outTemp.mintime.format("%d-%m")</span></span>
+                    <span class="r-val">$year.outTemp.min.format(add_label=False, format_string="%.1f")&deg;</span>
+                    <span class="r-date">$year.outTemp.mintime.format("%d-%m")</span>
                   </div>
                   #if $year.windGust.has_data
-                  <div style="display:flex;justify-content:space-between;align-items:baseline">
-                    <span class="tile-sub">$gettext("gusts")</span>
-                    <span><strong style="font-variant-numeric:tabular-nums">$year.windGust.max.format(add_label=False, format_string="%.0f")$unit.label.windSpeed</strong> <span class="tile-sub">$year.windGust.maxtime.format("%d-%m")</span></span>
+                  <div class="records-row">
+                    <span class="tile-sub">$gettext("Gusts")</span>
+                    <span class="r-val">$year.windGust.max.format(add_label=False, format_string="%.0f") $unit.label.windSpeed</span>
+                    <span class="r-date">$year.windGust.maxtime.format("%d-%m")</span>
                   </div>
                   #end if
                 </div>
