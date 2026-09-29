@@ -29,6 +29,14 @@ import weewx.units
 
 log = logging.getLogger(__name__)
 
+# Cache-busting query string for static/css/js asset URLs (see
+# get_extension_list's vane_version) — without this, a browser that
+# cached an old vane.css/*.js keeps using it after an update even though
+# the generated HTML already has new markup, which can visibly break the
+# layout until the user hard-refreshes. Bump this alongside install.py's
+# version whenever static/css or static/js changes.
+VANE_VERSION = "0.3.2"
+
 
 # CORE observations get their own designed tile (see DESIGN_PLAN.md) and
 # are therefore excluded from the "extra sensors" detection below. Must
@@ -198,6 +206,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_dashboard_plugins_html": self._dashboard_plugins_html(),
                  "vane_language_name": self._language_name,
                  "vane_language_flag": self._language_flag,
+                 "vane_version": VANE_VERSION,
                  "vane_gauge_arc": self._gauge_arc,
                  "vane_gauge_pointer_arc": self._gauge_pointer_arc,
                  "vane_uv_color": self._uv_color,

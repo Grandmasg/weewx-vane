@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="static/css/vane.css">
+<link rel="stylesheet" href="static/css/vane.css?v=$vane_version">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -476,9 +476,9 @@
 <script>window.VANE_MQTT = $vane_mqtt_config_json;</script>
 <script src="static/js/vendor/mqtt.min.js"></script>
 #end if
-<script src="static/js/theme-toggle.js"></script>
-<script src="static/js/lang-select.js"></script>
-<script src="static/js/chart-tooltip.js"></script>
-<script src="static/js/dashboard-live.js"></script>
+<script src="static/js/theme-toggle.js?v=$vane_version"></script>
+<script src="static/js/lang-select.js?v=$vane_version"></script>
+<script src="static/js/chart-tooltip.js?v=$vane_version"></script>
+<script src="static/js/dashboard-live.js?v=$vane_version"></script>
 </body>
 </html>

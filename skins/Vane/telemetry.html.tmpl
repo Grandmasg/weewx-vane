@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="static/css/vane.css">
+<link rel="stylesheet" href="static/css/vane.css?v=$vane_version">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -86,7 +86,6 @@
                 </li>
                 #end for
               </ul>
-            </div>
             </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
               <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
@@ -266,7 +265,7 @@ $line
   </div>
 </div>
 
-<script src="static/js/theme-toggle.js"></script>
-<script src="static/js/lang-select.js"></script>
+<script src="static/js/theme-toggle.js?v=$vane_version"></script>
+<script src="static/js/lang-select.js?v=$vane_version"></script>
 </body>
 </html>
