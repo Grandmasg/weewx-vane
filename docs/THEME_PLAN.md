@@ -327,9 +327,10 @@ WeeWX has this built in, no gettext/PO needed:
 Starting languages: **NL** (primary), **EN** (for eventual sharing/
 publishing).
 
-**Adding a language end-to-end** touches 4 places, none of them templates
-(every page just loops over `$Vane.Languages`/`$Vane.LanguageNames`, see the
-`<select class="lang-select">` in each `.html.tmpl`):
+**Adding a language end-to-end** touches 3 places, none of them templates
+(every page just loops over `$Vane.Languages` and calls
+`$vane_language_name($lcode)`, see the `<select class="lang-select">` in
+each `.html.tmpl`):
 
 1. `skin.conf` `[Vane][[Languages]]` — one line, the language code mapped to
    its output subfolder (empty for the primary/root language):
@@ -339,27 +340,32 @@ publishing).
        en = en
        de = de
    ```
-2. `skin.conf` `[Vane][[LanguageNames]]` — the native display name shown in
-   the language `<select>` (see DESIGN_PLAN.md/UX research: native names,
-   not codes), with an optional decorative flag-emoji prefix:
+   **This is often the only skin.conf change needed.** The `<select>`'s
+   display name (native name + a decorative flag emoji, see
+   DESIGN_PLAN.md/UX research: native names, not codes) comes from
+   `vane_language_name()` in `bin/user/vane_extras.py`, which checks
+   `skin.conf [Vane][[LanguageNames]]` first, then falls back to a
+   built-in `LANGUAGE_NAMES` table covering common ISO 639-1 codes
+   (de/fr/es/it/pt/pl/da/sv/no/fi/fy, alongside nl/en) — only add an entry
+   to `[[LanguageNames]]` to override one of those or to name a code the
+   table doesn't know at all:
    ```ini
    [[LanguageNames]]
-       nl = 🇳🇱 Nederlands
-       en = 🇬🇧 English
-       de = 🇩🇪 Deutsch
+       de = 🇩🇪 Deutsch am Bodensee   # only needed to override/add
    ```
-3. `install.py` — a new `[[VaneDE]]` `StdReport` stanza (copy the
+2. `install.py` — a new `[[VaneDE]]` `StdReport` stanza (copy the
    `[[VaneEN]]` block: new `HTML_ROOT`, `lang`, and `Vane.root_href`).
-4. `lang/de.conf` — the actual translations (`[Texts]` section, copied and
+3. `lang/de.conf` — the actual translations (`[Texts]` section, copied and
    translated from `lang/en.conf`), plus any locale-specific overrides
    `lang/nl.conf` shows the pattern for (`[Labels]` hemisphere letters,
    `[Units][[Ordinates]]` compass abbreviations, `[Almanac]` moon-phase
    names).
 
-Steps 1+2 are skin-level config (apply to every install using that
-`skin.conf`); step 3 is installer-level (what `weectl extension install`
-actually writes into the end user's `weewx.conf`); step 4 is the translation
-content itself. All three need to agree on the same language code.
+Step 1 is skin-level config (applies to every install using that
+`skin.conf`); step 2 is installer-level (what `weectl extension install`
+actually writes into the end user's `weewx.conf`); step 3 is the
+translation content itself. All three need to agree on the same language
+code.
 
 ## Dark/light + accent color
 

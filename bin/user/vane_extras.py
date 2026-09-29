@@ -42,6 +42,29 @@ CORE_OBSERVATIONS = frozenset([
     "txBatteryStatus", "consBatteryVoltage", "rxCheckPercent", "signal4",
 ])
 
+# Native display name (+ decorative flag emoji, see DESIGN_PLAN.md/UX
+# research on the language <select>) for common ISO 639-1 codes — used as
+# the default label so adding a common European language only needs a line
+# in skin.conf [Vane][[Languages]], no matching [[LanguageNames]] entry.
+# skin.conf's [[LanguageNames]] always wins when present (see
+# _language_name below), for overriding one of these or adding a code
+# that isn't in this table at all.
+LANGUAGE_NAMES = {
+    "nl": "🇳🇱 Nederlands",
+    "en": "🇬🇧 English",
+    "de": "🇩🇪 Deutsch",
+    "fr": "🇫🇷 Français",
+    "es": "🇪🇸 Español",
+    "it": "🇮🇹 Italiano",
+    "pt": "🇵🇹 Português",
+    "pl": "🇵🇱 Polski",
+    "da": "🇩🇰 Dansk",
+    "sv": "🇸🇪 Svenska",
+    "no": "🇳🇴 Norsk",
+    "fi": "🇫🇮 Suomi",
+    "fy": "Frysk",
+}
+
 # (prefix, group name) — first match wins. Freely extendable without ever
 # needing to maintain a fixed sensor list anywhere.
 BUCKET_RULES = (
@@ -151,6 +174,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_lightning_mode": self._lightning_mode(timespan, db_manager),
                  "vane_lightning_api": self._vane_lightning_api,
                  "vane_dashboard_plugins_html": self._dashboard_plugins_html(),
+                 "vane_language_name": self._language_name,
                  "vane_mqtt_config_json": self._mqtt_config_json(),
                  "vane_current_json": self._current_conditions_json(record),
                  "vane_sun_arc": self._sun_arc_data(timespan),
@@ -608,6 +632,19 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         # containing "</script>" could still break out of the <script>
         # block; escape that sequence explicitly.
         return json.dumps(payload).replace("</", "<\\/")
+
+    def _language_name(self, lcode):
+        """Display name for the language <select> — skin.conf
+        [Vane][[LanguageNames]] wins when it has an entry (override, or a
+        code the built-in LANGUAGE_NAMES table doesn't know at all),
+        otherwise the built-in table, otherwise just the bare code
+        uppercased (still functional, just less pretty) rather than
+        erroring out for a language nobody's added a name for yet."""
+        vane_config = self.generator.skin_dict.get("Vane", {})
+        override = vane_config.get("LanguageNames", {})
+        if lcode in override:
+            return override[lcode]
+        return LANGUAGE_NAMES.get(lcode, lcode.upper())
 
     def _dashboard_plugins_html(self):
         """Reads plugins/<name>.inc for each name in skin.conf
