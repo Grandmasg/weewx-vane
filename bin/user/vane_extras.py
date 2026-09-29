@@ -176,6 +176,8 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_dashboard_plugins_html": self._dashboard_plugins_html(),
                  "vane_language_name": self._language_name,
                  "vane_gauge_arc": self._gauge_arc,
+                 "vane_gauge_pointer_arc": self._gauge_pointer_arc,
+                 "vane_uv_color": self._uv_color,
                  "vane_mqtt_config_json": self._mqtt_config_json(),
                  "vane_current_json": self._current_conditions_json(record),
                  "vane_sun_arc": self._sun_arc_data(timespan),
@@ -326,6 +328,37 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                 return "#%02x%02x%02x" % (r, g, b)
         return "#94a3b8"
 
+    # WHO UV index risk bands (low/moderate/high/very high/extreme) — a
+    # universal scale like WIND_COLOR_SHAPE, not climate-relative, so no
+    # per-station override. Green->yellow->orange->red->purple, reusing
+    # the same hue family as TEMP_COLOR_SHAPE/WIND_COLOR_SHAPE where they
+    # overlap (comfortable green, wind-orange) for visual consistency.
+    UV_COLOR_SHAPE = [
+        (0, (74, 222, 128)),    # low
+        (3, (250, 204, 21)),    # moderate
+        (6, (251, 146, 60)),    # high
+        (8, (239, 68, 68)),     # very high
+        (11, (168, 85, 247)),   # extreme
+    ]
+
+    @classmethod
+    def _uv_color(cls, uv):
+        if uv is None:
+            return "#94a3b8"
+        stops = cls.UV_COLOR_SHAPE
+        if uv <= stops[0][0]:
+            return "#%02x%02x%02x" % stops[0][1]
+        if uv >= stops[-1][0]:
+            return "#%02x%02x%02x" % stops[-1][1]
+        for (v0, c0), (v1, c1) in zip(stops, stops[1:]):
+            if v0 <= uv <= v1:
+                local = (uv - v0) / (v1 - v0)
+                r = round(c0[0] + (c1[0] - c0[0]) * local)
+                g = round(c0[1] + (c1[1] - c0[1]) * local)
+                b = round(c0[2] + (c1[2] - c0[2]) * local)
+                return "#%02x%02x%02x" % (r, g, b)
+        return "#94a3b8"
+
     WINDROSE_SECTORS = 16
 
     def _windrose_data(self, timespan, db_manager):
@@ -452,6 +485,28 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
             return "M%.2f,%.2f L%.2f,%.2f" % (x0, y0, x0, y0), frac
         return ("M%.2f,%.2f A%.2f,%.2f 0 %d,1 %.2f,%.2f" %
                 (x0, y0, r, r, large_arc, x1, y1)), frac
+
+    @staticmethod
+    def _gauge_pointer_arc(value, lo, hi, half_width=0.04, cx=60.0, cy=60.0, r=50.0):
+        """Like _gauge_arc, but for a quantity with no meaningful zero (e.g.
+        barometric pressure) — a filled-from-left arc would visually read
+        as "37% full", which is meaningless for a position-in-range value.
+        Instead draws a short floating segment centered on the value's own
+        position, track gray everywhere else, mimicking a classic analog
+        gauge needle rather than a progress bar.
+
+        Returns (path_d, frac) — same contract as _gauge_arc."""
+        frac = 0.0 if hi <= lo else (value - lo) / (hi - lo)
+        frac = max(0.0, min(1.0, frac))
+
+        f0 = max(0.0, frac - half_width)
+        f1 = min(1.0, frac + half_width)
+        a0 = math.pi - math.pi * f0
+        a1 = math.pi - math.pi * f1
+        x0, y0 = cx + r * math.cos(a0), cy - r * math.sin(a0)
+        x1, y1 = cx + r * math.cos(a1), cy - r * math.sin(a1)
+        return ("M%.2f,%.2f A%.2f,%.2f 0 0,1 %.2f,%.2f" %
+                (x0, y0, r, r, x1, y1)), frac
 
     def _wind_vector_data(self, timespan, db_manager):
         """8-direction wind vector radar: average windSpeed vs average
