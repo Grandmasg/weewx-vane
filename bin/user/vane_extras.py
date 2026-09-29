@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 # the generated HTML already has new markup, which can visibly break the
 # layout until the user hard-refreshes. Bump this alongside install.py's
 # version whenever static/css or static/js changes.
-VANE_VERSION = "0.3.5"
+VANE_VERSION = "0.3.6"
 
 
 # CORE observations get their own designed tile (see DESIGN_PLAN.md) and
@@ -180,7 +180,21 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                 label = self.generator.skin_dict.get("Labels", {}).get(
                     "Generic", {}
                 ).get(key, key)
-                group_items.append({"key": key, "label": label, "value": helper})
+                raw_val = helper.raw
+                val_str = str(helper)
+                if isinstance(raw_val, (int, float)):
+                    k_lower = key.lower()
+                    if "battery" in k_lower or "volt" in k_lower:
+                        val_str = "%.2f V" % raw_val
+                    elif "rad" in k_lower:
+                        val_str = "%.0f W/m²" % raw_val
+                    elif "index" in k_lower or "humidex" in k_lower:
+                        val_str = "%.1f°" % raw_val
+                    elif isinstance(raw_val, float):
+                        unit_match = re.search(r'[^\d\.\s]+.*$', val_str)
+                        unit_suffix = (" " + unit_match.group(0).strip()) if unit_match else ""
+                        val_str = ("%.2f" % raw_val) + unit_suffix
+                group_items.append({"key": key, "label": label, "value": val_str})
             if group_items:
                 extra_sensors.append({"group": group, "items": group_items})
 

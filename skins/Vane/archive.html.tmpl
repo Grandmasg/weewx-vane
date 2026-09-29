@@ -10,6 +10,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$gettext('Archive') &mdash; $station.location</title>
+<meta name="description" content="$station.location — $gettext('Weather archive, records and historical climatology.')">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -22,26 +23,26 @@
 <body>
 <div class="vane-shell">
 
-  <nav class="vane-sidebar">
+  <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
     <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
     <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext('Dashboard')</span>
     </a>
     <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
-      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
       <span>$gettext('Graphs')</span>
     </a>
     <button class="nav-btn active" title="$gettext('Archive')" aria-current="page">
-      <svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext('Archive')</span>
     </button>
     <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
       <span>$gettext('Telemetry')</span>
     </a>
     <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
-      <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext('Almanac')</span>
     </a>
   </nav>
@@ -65,9 +66,9 @@
                 <img class="lang-flag" src="static/img/flags/${cur_flag}.svg" alt="" width="18" height="14">
                 #end if
                 <span class="lang-trigger-label">$vane_language_name($lang)</span>
-                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
+                <svg class="lang-chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 9l6 6 6-6"></path></svg>
               </button>
-              <ul class="lang-listbox" role="listbox" tabindex="-1" hidden>
+              <ul class="lang-listbox" role="listbox" aria-label="$gettext('Switch language')" tabindex="-1" hidden>
                 #for $lcode, $lsubdir in $Vane.Languages.items()
                 #set $lname = $vane_language_name($lcode)
                 #set $lflag = $vane_language_flag($lcode)
@@ -86,7 +87,7 @@
               </ul>
             </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
-              <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
             </button>
           </div>
         </header>
@@ -111,7 +112,7 @@
           #if $month.rain.has_data
           <div class="tile">
             <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Rain')</span>
-            <div class="tile-value"><span class="num">$month.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit">mm</span></div>
+            <div class="tile-value"><span class="num">$month.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit"> mm</span></div>
             <span class="tile-sub">$gettext('this month')</span>
           </div>
           #end if
@@ -133,7 +134,7 @@
             </div>
             #if $year.windGust.has_data
             <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/wind.svg" alt="">$gettext('gusts')</span>
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/wind.svg" alt="">$gettext('Gusts')</span>
               <div class="tile-value"><span class="num">$year.windGust.max.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.windSpeed</span></div>
               <span class="tile-sub">$year.windGust.maxtime.format("%d-%m")</span>
             </div>
@@ -141,7 +142,7 @@
             #if $year.rain.has_data
             <div class="tile">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Rain')</span>
-              <div class="tile-value"><span class="num">$year.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit">mm</span></div>
+              <div class="tile-value"><span class="num">$year.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit"> mm</span></div>
               <span class="tile-sub">$gettext('this year')</span>
             </div>
             #end if
@@ -161,14 +162,12 @@
               #for $sector in $vane_windrose.sectors
               #if $sector.freq_pct > 0
               #set $tt = "%s — %s%% · %s %s" % ($sector.label, $round($sector.freq_pct, 1), $round($sector.avg_speed, 1), $unit.label.windSpeed)
-              <path d="$sector.path_d" fill="$sector.color" opacity="0.88" data-tooltip="$tt"></path>
+              <path d="$sector.path_d" fill="var(--accent-primary)" opacity="0.88" data-tooltip="$tt"></path>
               #end if
               #end for
               #for $lp in $vane_windrose.label_points
               <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
-              #if $lp.freq_pct > 0
               <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.freq_pct%</text>
-              #end if
               #end for
             </svg>
             <span class="tile-sub">$gettext('Calm'): $round($vane_windrose.calm_pct, 1)%</span>
@@ -224,7 +223,12 @@
               #if $i == 0
               #set $cell_style = "grid-column-start:" + str($vane_weekday($d.dateTime.raw)) + ";" + $cell_style
               #end if
-              <div class="$cell_class" style="$cell_style" title="$day_num: $mm_display mm">$day_num</div>
+              <div class="$cell_class" style="$cell_style" title="$day_num: $mm_display $unit.label.rain">
+                <span class="cal-date">$day_num</span>
+                #if $mm is not None and $mm > 0
+                <span class="cal-val">$mm_display</span>
+                #end if
+              </div>
               #end for
             </div>
           </section>

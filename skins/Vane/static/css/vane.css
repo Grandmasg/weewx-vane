@@ -459,17 +459,20 @@ a:hover {
 }
 .tile-value .num {
   font-size: 30px;
+  line-height: 1;
   font-weight: 600;
   letter-spacing: -.03em;
   font-variant-numeric: tabular-nums;
 }
 .tile-value .unit {
   font-size: 13px;
+  line-height: 1;
   color: var(--text-muted);
 }
 
 .tile-sub {
   font-size: 12.5px;
+  line-height: 1.35;
   color: var(--text-muted);
 }
 
@@ -478,6 +481,7 @@ a:hover {
   border-radius: 4px;
   background: var(--surface-2);
   overflow: hidden;
+  margin-top: auto;
 }
 .tile-bar > span {
   display: block;
@@ -537,9 +541,31 @@ a:hover {
 .tile-range {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   font-size: 11px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  margin-top: auto;
+}
+
+.tile-stats-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.tile-stats-stacked .stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--text-muted);
+}
+.tile-stats-stacked .stat-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .tile-spark {
@@ -550,12 +576,32 @@ a:hover {
   margin-top: auto;
 }
 
+.tile-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: auto;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+}
+
 .tiles-grid {
   flex: 1.45 1 420px;
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
+}
+
+.card > .tiles-grid {
+  flex: none;
+  width: 100%;
 }
 
 .hero-card {
@@ -588,8 +634,13 @@ a:hover {
 
 .hero-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 14px;
+}
+@media (max-width: 640px) {
+  .hero-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .hero-meta .k {
   font-size: 11px;
@@ -601,6 +652,30 @@ a:hover {
   font-size: 15px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.records-row {
+  display: grid;
+  grid-template-columns: 1fr auto 44px;
+  align-items: baseline;
+  gap: 8px;
+}
+.records-row .r-val {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.records-row .r-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .empty-state {
@@ -751,6 +826,54 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
+   Rain 7-day chart (Dashboard)
+   --------------------------------------------------------------------------- */
+.rain-week-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 96px;
+  margin-top: 8px;
+}
+.rain-week-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 100%;
+  min-width: 0;
+}
+.rain-week-val {
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+  text-align: center;
+}
+.rain-week-val.is-zero {
+  visibility: hidden;
+}
+.rain-week-bar-wrap {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+}
+.rain-week-bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  transition: height .2s ease;
+}
+.rain-week-col .tile-sub.is-today {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------------
    Rain calendar heatmap (Archive page) — grid-column-start is set inline
    only on the month's first day cell (vane_weekday()), CSS auto-flow
    handles the rest of the weeks on its own.
@@ -773,13 +896,28 @@ a:hover {
 .cal-cell {
   aspect-ratio: 1;
   border-radius: 7px;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 1px;
   font-variant-numeric: tabular-nums;
   color: var(--text);
   background: var(--surface-2);
   border: 1px solid var(--border);
+  box-sizing: border-box;
+}
+.cal-cell .cal-date {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.cal-cell .cal-val {
+  font-size: 8.5px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.95;
 }
 /* Marks "today" independent of the rain-intensity fill color, so a
    colored (rained) cell that happens to be today isn't ambiguous with a
@@ -852,7 +990,7 @@ a:hover {
   white-space: pre;
 }
 
-footer.vane-footer {
+.vane-footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -861,8 +999,17 @@ footer.vane-footer {
   font-size: 12px;
   color: var(--text-muted);
 }
+.vane-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.vane-footer a:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
 
-footer.vane-footer-wide {
+.vane-footer-wide {
   display: flex;
   flex-wrap: wrap;
   gap: 32px;
@@ -871,23 +1018,23 @@ footer.vane-footer-wide {
   background: var(--surface);
   border: 1px solid var(--border);
 }
-footer.vane-footer-wide .footer-col {
+.vane-footer-wide .footer-col {
   flex: 1 1 200px;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-footer.vane-footer-wide .footer-lines {
+.vane-footer-wide .footer-lines {
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
   color: var(--text-muted);
 }
-footer.vane-footer-wide .footer-lines a {
+.vane-footer-wide .footer-lines a {
   color: var(--text-muted);
 }
-footer.vane-footer-wide .footer-lines a:hover {
+.vane-footer-wide .footer-lines a:hover {
   color: var(--accent-primary);
 }
