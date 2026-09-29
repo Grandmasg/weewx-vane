@@ -1,175 +1,177 @@
-# Dashboard Expansion Plan — van "kale MVP" naar volwaardig dashboard
+# Dashboard Expansion Plan — from "bare MVP" to a full dashboard
 
-## Status (2026-09-28): Fase 1-3 uitgevoerd, plus een aantal dingen die niet in dit plan stonden
+## Status (2026-09-28): Phases 1-3 done, plus a few things not in this plan
 
-Alle drie fases hieronder zijn gebouwd en geverifieerd tegen een WSL-testinstallatie
-met **echte WeatherFlow Tempest-data** (niet meer alleen de Simulator):
+All three phases below have been built and verified against a WSL test
+install with **real WeatherFlow Tempest data** (no longer just the
+Simulator):
 
-- [x] **Fase 1** — sparklines + min/max op wind/druk/vocht/neerslag-tegels,
-  kleur per databron (`--accent-wind`/`--accent-storm`), Zon-tegel toont een
-  aftel-tekst i.p.v. een kapot ogende 0%-balk vóór zonsopgang.
-- [x] **Fase 2** — windroos + regenkalender (laatste 7 dagen) op het
-  Dashboard, hergebruik van bestaande `vane_windrose`/`vane_rain_color`.
-- [x] **Fase 3** — Records-teaser ("dit jaar": hoogste/laagste temp,
-  hoogste windstoot) op zowel Dashboard als Archief. **Afwijking van de
-  oorspronkelijke tekst hieronder**: "meeste neerslag in 24u" bleek een
-  aparte dag-voor-dag-aggregatie te vereisen die niet met een kant-en-klare
-  WeeWX-tag te doen is — vervangen door "neerslag dit jaar" (`$year.rain.sum`),
-  wat wel met bestaande tags kan.
+- [x] **Phase 1** — sparklines + min/max on wind/pressure/humidity/rain
+  tiles, color per data source (`--accent-wind`/`--accent-storm`), the Sun
+  tile shows a countdown text instead of a broken-looking 0% bar before
+  sunrise.
+- [x] **Phase 2** — wind rose + rain calendar (last 7 days) on the
+  Dashboard, reusing the existing `vane_windrose`/`vane_rain_color`.
+- [x] **Phase 3** — Records teaser ("this year": highest/lowest temp,
+  highest wind gust) on both Dashboard and Archive. **Deviation from the
+  original text below**: "most rain in 24h" turned out to require a
+  separate day-by-day aggregation that can't be done with a ready-made
+  WeeWX tag — replaced with "rain this year" (`$year.rain.sum`), which can
+  be done with existing tags.
 
-**Niet in dit document gepland, wel gebouwd** (naar aanleiding van doorlopende
-review tijdens het bouwen, zie ook de code-comments in `vane_extras.py`):
+**Not planned in this document, but built anyway** (as a result of ongoing
+review while building, see also the code comments in `vane_extras.py`):
 
-- **Wind-vector-radar** (`_wind_vector_data`) naast de windroos — gemiddelde
-  snelheid vs. windstoten per 8 hoofdrichtingen, eigen SVG-polygoon i.p.v. een
-  chart-library (zelfde principe als de windroos). Reden: de windroos toont
-  *frequentie* per richting, niet *hoeveel wind* er per richting staat — een
-  echt andere vraag, dus geen dubbeling.
-- **Gedeelde footer** (`footer.inc`, Cheetah `#include` — voor het eerst
-  gebruikt in deze skin) met stationsinfo + praktische links (Windy, generiek
-  uit coördinaten), nu op alle 5 pagina's i.p.v. alleen het Dashboard.
-- **Grafieken-pagina uitgebreid**: Vocht, UV-index en Straling als losse
-  grafieken (UV en Straling bewust niet gecombineerd — te verschillende schaal),
-  plus de windroos ook daar.
-- Onderweg gevonden en gefixt: een NOAA-modal-CSS-bug (`.vane-modal` had
-  `display:flex` zonder `[open]`-guard, dus de dialoog stond altijd zichtbaar
-  in de paginaflow i.p.v. verborgen), een sensor-mapping-mismatch tussen de
-  WeatherFlow-driver en het WeeWX-schema (`lightning_strikes`/`avg_distance`
-  bestonden niet als kolomnamen — moest `lightning_strike_count`/
-  `lightning_distance` zijn), en een `color-scheme`-fix zodat native
-  formulier-UI (de maand-picker op Grafieken) het thema volgt.
+- **Wind vector radar** (`_wind_vector_data`) next to the wind rose —
+  average speed vs. gusts per 8 main compass directions, own SVG polygon
+  instead of a chart library (same principle as the wind rose). Reason: the
+  wind rose shows *frequency* per direction, not *how much wind* there is
+  per direction — a genuinely different question, so not a duplicate.
+- **Shared footer** (`footer.inc`, Cheetah `#include` — used for the first
+  time in this skin) with station info + practical links (Windy, generic
+  from coordinates), now on all 5 pages instead of just the Dashboard.
+- **Graphs page expanded**: Humidity, UV index and Radiation as separate
+  charts (UV and Radiation deliberately not combined — too different a
+  scale), plus the wind rose there too.
+- Found and fixed along the way: a NOAA-modal CSS bug (`.vane-modal` had
+  `display:flex` without an `[open]` guard, so the dialog was always
+  visible in the page flow instead of hidden), a sensor-mapping mismatch
+  between the WeatherFlow driver and the WeeWX schema
+  (`lightning_strikes`/`avg_distance` didn't exist as column names — needed
+  to be `lightning_strike_count`/`lightning_distance`), and a
+  `color-scheme` fix so native form UI (the month picker on Graphs) follows
+  the theme.
 
-Wat nog **niet** is gedaan uit "Later, apart te beslissen" hieronder: externe
-forecast-API, gauge/dial-widgets, webcam/radar — die staan bewust nog steeds
-buiten scope.
+What's still **not** done from "Later, to decide separately" below: external
+forecast API, gauge/dial widgets, webcam/radar — those deliberately remain
+out of scope.
 
 ---
 
-Aanleiding: de v1-dashboardpagina (`index.html.tmpl`) is precies gebouwd naar
-de scope die `DESIGN_PLAN.md` voor de eerste mockup vastlegde — "hero-kaart +
-stat-tegels + mini-grafiek" — maar in de praktijk oogt dat resultaat karig en
-kaal: op een normaal scherm is >50% van de viewport lege achtergrond, er is
-maar één grafiekje, en van het eigen kleursysteem (`--accent-wind`,
-`--accent-storm`) wordt op deze pagina niets gebruikt. Dit document onderzoekt
-wat vergelijkbare weersites/WeeWX-skins daadwerkelijk tonen, en zet dat om in
-een concreet, gefaseerd plan — passend binnen de al vastgelegde architectuur
-(sensor-agnostisch, `has_data`-checks, uPlot, geen framework), niet een
-herstart.
+Motivation: the v1 dashboard page (`index.html.tmpl`) was built exactly to
+the scope `DESIGN_PLAN.md` set for the first mockup — "hero card + stat
+tiles + mini chart" — but in practice the result looks sparse and bare: on a
+normal screen, >50% of the viewport is empty background, there's only one
+small chart, and the color system itself (`--accent-wind`, `--accent-storm`)
+isn't used on this page at all. This document researches what comparable
+weather sites/WeeWX skins actually show, and turns that into a concrete,
+phased plan — fitting within the architecture already laid down
+(sensor-agnostic, `has_data` checks, uPlot, no framework), not a restart.
 
-## Onderzoek: wat bevat een volwaardig PWS-dashboard
+## Research: what does a full-featured PWS dashboard contain
 
-**Referenties**: [weewx-belchertown](https://github.com/poblabs/weewx-belchertown)
-(marktleider qua features), [Weather34](https://github.com/Drealine/weewx-Weather34)
-/ [Meteotemplate](https://www.meteotemplate.com/) (gauge-gedreven templates),
-[weewx-wdc](https://github.com/Daveiano/weewx-wdc) (moderne D3-skin), en —
-het meest relevant, want al lokaal aanwezig als directe voorganger — **NeoWX
-Material** in `reference/neowx-material/index.html.tmpl`.
+**References**: [weewx-belchertown](https://github.com/poblabs/weewx-belchertown)
+(market leader on features), [Weather34](https://github.com/Drealine/weewx-Weather34)
+/ [Meteotemplate](https://www.meteotemplate.com/) (gauge-driven templates),
+[weewx-wdc](https://github.com/Daveiano/weewx-wdc) (modern D3 skin), and —
+most relevant, since it's already present locally as the direct predecessor
+— **NeoWX Material** in `reference/neowx-material/index.html.tmpl`.
 
-Gemeenschappelijke elementen die bij Vane ontbreken of onderbenut zijn:
+Common elements that Vane is missing or under-using:
 
-| Element | Belchertown | Weather34/Meteotemplate | NeoWX Material (referentie, lokaal) | Vane nu |
+| Element | Belchertown | Weather34/Meteotemplate | NeoWX Material (reference, local) | Vane now |
 |---|---|---|---|---|
-| Per-metric trendgrafiek op de hoofdpagina | ✅ (Highcharts, elke observatie) | ✅ (gauges + geschiedenis) | ✅ — **elke** tegel (temp, wind, druk, vocht, UV, regen, extra sensoren) heeft een eigen chart-kaart, direct onder de waarden-rij | ❌ alleen de hero-tegel (temperatuur) heeft een sparkline |
-| Windroos zichtbaar op dashboard | ✅ | ✅ (vaak prominent, gauge) | ✅ (radar-chart) | ❌ — bestaat al (`vane_windrose` in `vane_extras.py`), maar alleen gebruikt op de Archief-pagina |
-| Min/max/gemiddelde náást elke waarde | ✅ | ✅ | ✅ (drie kolommen: laag / huidig / hoog, per tegel) | ~gedeeltelijk — alleen de hero-tegel (temp) toont max/min, de andere tegels niet |
-| Trendpijl (stijgend/dalend) per metric | ✅ | ✅ | ✅ (icoon in de titel van elke tegel, niet alleen druk) | ~alleen bij luchtdruk, tekst i.p.v. icoon |
-| Records (dit jaar / all-time) | ✅ (aparte pagina + teaser) | ✅ | via jaar/maand-overzichten | ❌ — geen teaser op dashboard, Archief-pagina toont alleen huidige maand |
-| Forecast (extern, API-key) | ✅ (Xweather/Pirate Weather) | ✅ (vaak ingebouwd) | ❌ | ❌ — bewust nog niet gepland |
-| Gauge-/dial-widgets | zelden kern | ✅ **kenmerkend** | deels (progress-achtige balken) | ~alleen de vocht-tegel heeft een balk |
-| Kleur per databron consistent gebruikt | ja | ja, vaak fel | ja | ❌ — `--accent-wind`/`--accent-storm` worden wél gebruikt op de Almanak-pagina (zon-boog, daglengte-grafiek), maar niet op het Dashboard, dat overal hetzelfde blauw gebruikt |
-| Webcam/radar-embed | optioneel, community-verzoek (géén ingebouwde kern-feature) | vaak wel | nee | n.v.t. — hoort sowieso in de plugin-slot, niet in core (zie `THEME_PLAN.md` "Persoonlijke integraties") |
+| Per-metric trend chart on the main page | ✅ (Highcharts, every observation) | ✅ (gauges + history) | ✅ — **every** tile (temp, wind, pressure, humidity, UV, rain, extra sensors) has its own chart card, directly below the values row | ❌ only the hero tile (temperature) has a sparkline |
+| Wind rose visible on dashboard | ✅ | ✅ (often prominent, gauge) | ✅ (radar chart) | ❌ — already exists (`vane_windrose` in `vane_extras.py`), but only used on the Archive page |
+| Min/max/average next to every value | ✅ | ✅ | ✅ (three columns: low / current / high, per tile) | ~partially — only the hero tile (temp) shows max/min, the other tiles don't |
+| Trend arrow (rising/falling) per metric | ✅ | ✅ | ✅ (icon in every tile's title, not just pressure) | ~only for pressure, text instead of icon |
+| Records (this year / all-time) | ✅ (separate page + teaser) | ✅ | via year/month overviews | ❌ — no teaser on dashboard, Archive page only shows the current month |
+| Forecast (external, API key) | ✅ (Xweather/Pirate Weather) | ✅ (often built in) | ❌ | ❌ — deliberately not planned yet |
+| Gauge/dial widgets | rarely core | ✅ **characteristic** | partly (progress-bar-like bars) | ~only the humidity tile has a bar |
+| Color used consistently per data source | yes | yes, often bold | yes | ❌ — `--accent-wind`/`--accent-storm` *are* used on the Almanac page (sun arc, day-length chart), but not on the Dashboard, which uses the same blue everywhere |
+| Webcam/radar embed | optional, community request (not a built-in core feature) | often yes | no | n/a — belongs in the plugin slot regardless, not in core (see `THEME_PLAN.md` "Personal integrations") |
 
-**Conclusie van het onderzoek**: het probleem is niet dat Vane een missende
-functie heeft die alle anderen wél hebben — het is dat de *dichtheid per
-tegel* laag is. Elke referentie-skin geeft een tegel drie dingen: een waarde,
-een bereik (min/max of gauge), én een geschiedenis (grafiek of trendpijl).
-Vane's dashboard geeft op dit moment meestal alleen de waarde.
+**Research conclusion**: the problem isn't that Vane is missing a feature
+that everyone else has — it's that the *density per tile* is low. Every
+reference skin gives a tile three things: a value, a range (min/max or
+gauge), and a history (chart or trend arrow). Vane's dashboard currently
+mostly gives just the value.
 
-## Wat dit niet is
+## What this is not
 
-Geen architectuurwijziging. Alles hieronder past binnen wat al vastligt:
-- Geen nieuwe chart-library — de bestaande eigen SVG-sparkline-techniek
-  (`vane_sparkline_path`, nu alleen voor temperatuur) wordt hergebruikt voor
-  andere metrics; uPlot blijft gereserveerd voor de Grafieken-pagina
-  (interactief/zoombaar), zoals `THEME_PLAN.md` al vastlegt.
-- Geen build-stap, geen framework, geen nieuwe dependency.
-- Geen forecast-API — vereist een account/key bij een derde partij en is een
-  aparte beslissing (zie "Later, apart te beslissen" hieronder), geen
-  onderdeel van "de bestaande dashboard-pagina beter vullen".
-- Geen webcam/radar — dat hoort in de al bestaande plugin-slot
-  (`dashboard_plugins`), niet in de core-tegels.
+No architecture change. Everything below fits within what's already
+established:
+- No new chart library — the existing own SVG sparkline technique
+  (`vane_sparkline_path`, currently only for temperature) gets reused for
+  other metrics; uPlot stays reserved for the Graphs page
+  (interactive/zoomable), as `THEME_PLAN.md` already establishes.
+- No build step, no framework, no new dependency.
+- No forecast API — requires a third-party account/key and is a separate
+  decision (see "Later, to decide separately" below), not part of "filling
+  in the existing dashboard page better".
+- No webcam/radar — that belongs in the existing plugin slot
+  (`dashboard_plugins`), not in the core tiles.
 
-## Fase 1 — Elke tegel krijgt bereik + geschiedenis (grootste visuele winst)
+## Phase 1 — Every tile gets a range + history (biggest visual gain)
 
-Dit raakt alleen `index.html.tmpl` + een uitbreiding van
-`vane_sparkline_path` (of een generieke variant) in `vane_extras.py`, geen
-nieuwe secties:
+This only touches `index.html.tmpl` + an extension of `vane_sparkline_path`
+(or a generic variant) in `vane_extras.py`, no new sections:
 
-1. **Mini-sparkline op wind, luchtdruk, vocht en neerslag** — zelfde
-   SVG-techniek als de hero-tegel, 24u-venster, maar compact (~28px hoog)
-   onderin de tegel. Vult de nu lege ruimte onder elk getal en toont in één
-   oogopslag of iets aan het stijgen/dalen/stabiliseren is, i.p.v. alleen een
-   los pijltje-woord bij luchtdruk.
-2. **Min/max toevoegen aan élke tegel**, niet alleen de hero — wind, vocht en
-   luchtdruk hebben deze data al beschikbaar via `$day.<obs>.min`/`.max`
-   (dezelfde tags die de hero-tegel al gebruikt), dit is puur een
-   template-uitbreiding, geen nieuwe databron.
-3. **Kleur differentiëren per databron**, zoals `DESIGN_PLAN.md` al
-   voorschrijft maar het dashboard nog niet doet: wind/zon → `--accent-wind`
-   (al gebruikt op Almanak), neerslag/onweer → `--accent-storm` (nu nergens
-   gebruikt). Blauw (`--accent-primary`) blijft gereserveerd voor
-   temperatuur. Kost niets — de tokens bestaan al in `vane.css`.
-4. **Zon-tegel: 0%-balk voor zonsopgang oplossen** — nu oogt een lege balk als
-   kapot; vervang door de balk pas te tonen ná zonsopgang, of toon in plaats
-   daarvan een korte "nog X uur tot zonsopgang"-tekst.
+1. **Mini sparkline on wind, pressure, humidity and rain** — same SVG
+   technique as the hero tile, 24h window, but compact (~28px tall) at the
+   bottom of the tile. Fills the currently empty space below each number and
+   shows at a glance whether something is rising/falling/stable, instead of
+   just a lone arrow-word for pressure.
+2. **Add min/max to every tile**, not just the hero — wind, humidity and
+   pressure already have this data available via `$day.<obs>.min`/`.max`
+   (the same tags the hero tile already uses), this is purely a template
+   extension, no new data source.
+3. **Differentiate color per data source**, as `DESIGN_PLAN.md` already
+   prescribes but the dashboard doesn't yet do: wind/sun → `--accent-wind`
+   (already used on Almanac), rain/thunderstorm → `--accent-storm`
+   (currently unused anywhere). Blue (`--accent-primary`) stays reserved
+   for temperature. Costs nothing — the tokens already exist in `vane.css`.
+4. **Sun tile: fix the 0% bar before sunrise** — currently an empty bar
+   looks broken; replace it by only showing the bar after sunrise, or
+   instead show a short "sunrise in X hours" text.
 
-## Fase 2 — Windroos + regenkalender naar het dashboard
+## Phase 2 — Wind rose + rain calendar onto the dashboard
 
-Beide bestaan al technisch (`vane_windrose` in `vane_extras.py`, de
-CSS-Grid-regenkalender op de Archief-pagina) maar staan alleen op Archief.
-Een **compacte variant** (kleinere windroos zonder de volledige
-label-chrome, laatste 7 dagen van de regenkalender i.p.v. de hele maand) als
-extra kaart naast de bestaande hero+tegels-rij op het Dashboard. Dit is de
-belangrijkste stap om de onderste helft van de pagina te vullen zonder een
-volledig nieuwe component te bouwen.
+Both already exist technically (`vane_windrose` in `vane_extras.py`, the
+CSS-Grid rain calendar on the Archive page) but only live on Archive. A
+**compact variant** (a smaller wind rose without the full label chrome, the
+last 7 days of the rain calendar instead of the whole month) as an extra
+card next to the existing hero+tiles row on the Dashboard. This is the main
+step to fill the bottom half of the page without building a completely new
+component.
 
-## Fase 3 — Records-teaser
+## Phase 3 — Records teaser
 
-Een kleine kaart "Records dit jaar" (hoogste/laagste temperatuur, meeste
-neerslag in 24u, hoogste windstoot) — data via `$year.<obs>.max`/`.min`,
-dezelfde tag-familie die al overal gebruikt wordt. Geen nieuwe pagina nodig
-voor v1, wel een linkje naar een uitgebreider records-overzicht op de
-Archief-pagina als latere uitbreiding van die pagina (niet in scope van dit
-plan).
+A small "Records this year" card (highest/lowest temperature, most rain in
+24h, highest wind gust) — data via `$year.<obs>.max`/`.min`, the same tag
+family already used everywhere. No new page needed for v1, but a link to a
+more extensive records overview on the Archive page as a later expansion of
+that page (not in scope for this plan).
 
-## Later, apart te beslissen (bewust buiten dit plan)
+## Later, to decide separately (deliberately out of this plan)
 
-- **Externe forecast (Xweather/Pirate Weather/Open-Meteo)** — vereist een
-  keuze over API/key-beheer en of dat per-installatie configureerbaar moet
-  zijn (zelfde patroon als de al bestaande `[Vane][[Lightning]] api_url`).
-  Functioneel waardevol, maar een aparte beslissing met eigen
-  privacy/kosten-afweging, niet iets om "erbij te doen" in deze ronde.
-- **Gauge/dial-widgets (Weather34-stijl)** — visueel aantrekkelijk maar een
-  eigen SVG-component die evenveel ontwerpwerk vraagt als de windroos ooit
-  kostte. Kandidaat voor een latere iteratie als Fase 1+2 niet genoeg blijken.
-- **Webcam/radar** — hoort in de plugin-slot (`dashboard_plugins`), niet in
-  Vane's core, conform de bestaande "persoonlijke integraties zijn een losse
-  plugin"-regel in `THEME_PLAN.md`.
+- **External forecast (Xweather/Pirate Weather/Open-Meteo)** — requires a
+  decision about API/key management and whether that should be
+  configurable per install (same pattern as the existing
+  `[Vane][[Lightning]] api_url`). Functionally valuable, but a separate
+  decision with its own privacy/cost trade-off, not something to "add
+  along the way" in this round.
+- **Gauge/dial widgets (Weather34 style)** — visually appealing but its own
+  SVG component that takes as much design work as the wind rose once did.
+  Candidate for a later iteration if Phase 1+2 turn out not to be enough.
+- **Webcam/radar** — belongs in the plugin slot (`dashboard_plugins`), not
+  in Vane's core, per the existing "personal integrations are a separate
+  plugin" rule in `THEME_PLAN.md`.
 
-## Volgorde-advies
+## Recommended order
 
-Fase 1 eerst: laagste risico (alleen template + kleine Python-uitbreiding,
-geen nieuwe visuele componenten om te ontwerpen), en pakt het grootste deel
-van de "kaal"-klacht aan (elke tegel wordt drie keer zo informatief). Fase 2
-erna om de onderste helft van de pagina daadwerkelijk te vullen. Fase 3 is
-klein en kan tegelijk met Fase 2.
+Phase 1 first: lowest risk (only template + a small Python extension, no
+new visual components to design), and addresses most of the "bare"
+complaint (every tile becomes three times as informative). Phase 2 after
+that to actually fill the bottom half of the page. Phase 3 is small and can
+be done alongside Phase 2.
 
-## Bronnen
+## Sources
 
-- [poblabs/weewx-belchertown](https://github.com/poblabs/weewx-belchertown) — README en wiki (forecast, records, real-time streaming, wind rose)
+- [poblabs/weewx-belchertown](https://github.com/poblabs/weewx-belchertown) — README and wiki (forecast, records, real-time streaming, wind rose)
 - [poblabs/weewx-belchertown skin.conf](https://github.com/poblabs/weewx-belchertown/blob/master/skins/Belchertown/skin.conf)
 - [Drealine/weewx-Weather34](https://github.com/Drealine/weewx-Weather34)
-- [Daveiano/weewx-wdc](https://github.com/Daveiano/weewx-wdc) — readme.md (tegel-/diagramtypes, climatogram)
-- [Meteotemplate](https://www.meteotemplate.com/) — gauges/dashboard-blokken
-- `reference/neowx-material/index.html.tmpl` (lokaal) — directe voorganger, per-tegel chart-kaarten
+- [Daveiano/weewx-wdc](https://github.com/Daveiano/weewx-wdc) — readme.md (tile/diagram types, climatogram)
+- [Meteotemplate](https://www.meteotemplate.com/) — gauges/dashboard blocks
+- `reference/neowx-material/index.html.tmpl` (local) — direct predecessor, per-tile chart cards
 - [Pi Stack — Self-Hosted Weather Station Software 2026](https://www.pistack.xyz/posts/2026-05-04-self-hosted-weather-station-software-weewx-meteobridge-weather34-guide/)

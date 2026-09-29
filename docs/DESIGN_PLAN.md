@@ -1,151 +1,151 @@
-# Design Plan — Visueel ontwerp
+# Design Plan — Visual design
 
-Basis voor het eerste Claude-artifact mockup. Afgeleid uit onderzoek van de
-bestaande huisstijl ([grandmasg.nl](https://www.grandmasg.nl),
-[ontladingen.nl](https://www.ontladingen.nl)) en concurrerende WeeWX-skins
-(vooral [NeoWX Material](https://neoground.com/en/open-source/neowx-material),
-het huidige theme).
+Basis for the first Claude Artifact mockup. Derived from research into the
+existing brand identity ([grandmasg.nl](https://www.grandmasg.nl),
+[ontladingen.nl](https://www.ontladingen.nl)) and competing WeeWX skins
+(especially [NeoWX Material](https://neoground.com/en/open-source/neowx-material),
+the current theme).
 
-## Merkonderzoek — wat er al bestaat
+## Brand research — what already exists
 
-**grandmasg.nl** (computed styles, geen schatting):
-- Achtergrond: `rgb(2,6,23)` — Tailwind `slate-950`
-- Tekst: `rgb(148,163,184)` (slate-400, body) / `rgb(241,245,249)` (slate-100, headings)
-- Accent blauw (weerstation): `rgb(47,139,255)` – `rgb(124,196,255)`
-- Accent oranje (Ontladingen-blok): `rgb(251,146,60)` / `rgb(234,108,16)`
-- Status-groen (live/operationeel): `rgb(74,222,128)`
+**grandmasg.nl** (computed styles, not estimated):
+- Background: `rgb(2,6,23)` — Tailwind `slate-950`
+- Text: `rgb(148,163,184)` (slate-400, body) / `rgb(241,245,249)` (slate-100, headings)
+- Accent blue (weather station): `rgb(47,139,255)` – `rgb(124,196,255)`
+- Accent orange (Ontladingen block): `rgb(251,146,60)` / `rgb(234,108,16)`
+- Status green (live/operational): `rgb(74,222,128)`
 - Font: **Geist**, fallback `system-ui`
-- Patroon: grote kaarten met dunne semi-transparante rand, groot cijfer +
-  sparkline, kleine uppercase labels met letter-spacing (`WIND`, `VOCHT`, ...)
+- Pattern: large cards with thin semi-transparent border, big number +
+  sparkline, small uppercase labels with letter-spacing (`WIND`, `HUMIDITY`, ...)
 
 **ontladingen.nl** (computed styles):
-- Achtergrond: `rgb(15,23,42)` — Tailwind `slate-900`
-- Accent paars: `rgb(124,92,255)`
-- Status-groen (live-badge): `rgb(81,224,154)`
-- Glasachtige panelen: witte alpha-overlays (`rgba(255,255,255,0.02–0.07)`)
-- Patroon: smalle icon-sidebar, icon-grid van tegels (icoon + label), topbar met
-  zoek/live-badge/taal-toggle/thema-toggle
+- Background: `rgb(15,23,42)` — Tailwind `slate-900`
+- Accent purple: `rgb(124,92,255)`
+- Status green (live badge): `rgb(81,224,154)`
+- Glass-like panels: white alpha overlays (`rgba(255,255,255,0.02–0.07)`)
+- Pattern: narrow icon sidebar, icon grid of tiles (icon + label), top bar with
+  search/live badge/language toggle/theme toggle
 
-**Gemene deler**: donkere slate-achtergrond, glasachtige kaarten met subtiele
-randen, één kleur per databron, groene stip+tekst voor "live"-status, sans-serif
-met uppercase micro-labels. Dit is de visuele familie waar het WeeWX-theme in
-moet passen.
+**Common denominator**: dark slate background, glass-like cards with subtle
+borders, one color per data source, green dot+text for "live" status,
+sans-serif with uppercase micro-labels. This is the visual family the WeeWX
+theme needs to fit into.
 
-## Kleursysteem
+## Color system
 
-Eén systeem, geen 19 losse thema's (zoals NeoWX) — wél één instelbare accentkleur
-voor als het theme gedeeld wordt met andere WeeWX-gebruikers.
+One system, not 19 separate themes (like NeoWX) — but one configurable accent
+color for when the theme is shared with other WeeWX users.
 
-| Token | Dark | Light | Gebruik |
+| Token | Dark | Light | Use |
 |---|---|---|---|
-| `--bg` | `#020617` (slate-950) | `#f8fafc` (slate-50) | paginabasis |
-| `--surface` | `#0f172a` @ 55–78% alpha | wit @ 70% alpha | kaarten (glass) |
+| `--bg` | `#020617` (slate-950) | `#f8fafc` (slate-50) | page base |
+| `--surface` | `#0f172a` @ 55–78% alpha | white @ 70% alpha | cards (glass) |
 | `--text` | `#f1f5f9` | `#0f172a` | headings |
-| `--text-muted` | `#94a3b8` | `#64748b` | labels/secundair |
-| `--accent-primary` | instelbaar, default `#2f8bff` | idem | huidige conditie / temperatuur |
-| `--accent-wind` | `#fb923c` | idem | wind / zon / UV |
-| `--accent-storm` | `#7c5cff` | idem | onweer / bliksem / neerslag |
-| `--status-live` | `#4ade80` | `#16a34a` | live-indicator |
+| `--text-muted` | `#94a3b8` | `#64748b` | labels/secondary |
+| `--accent-primary` | configurable, default `#2f8bff` | same | current condition / temperature |
+| `--accent-wind` | `#fb923c` | same | wind / sun / UV |
+| `--accent-storm` | `#7c5cff` | same | thunderstorm / lightning / rain |
+| `--status-live` | `#4ade80` | `#16a34a` | live indicator |
 
-Modus: automatisch via `prefers-color-scheme`, met handmatige toggle
-(`data-theme="dark|light"`) die de voorkeur onthoudt (`localStorage`).
-Instelbare accentkleur via een `skin.conf`-optie die een CSS-variabele overschrijft.
+Mode: automatic via `prefers-color-scheme`, with a manual toggle
+(`data-theme="dark|light"`) that remembers the preference (`localStorage`).
+Configurable accent color via a `skin.conf` option that overrides a CSS
+variable.
 
-**Focus-indicator** (toegankelijkheid, geen losse toevoeging maar onderdeel
-van het kleursysteem — zie ook `THEME_PLAN.md`): elk interactief element
-(knoppen, tabs, tabelrijen) krijgt via `:focus-visible` een 2px-ring in
-`--accent-primary` met 2px offset — WCAG 2.2-conform (min. 2px dik, 3:1
-contrast). Nooit `outline: none` zetten zonder vervanging.
+**Focus indicator** (accessibility, not a separate add-on but part of the
+color system — see also `THEME_PLAN.md`): every interactive element
+(buttons, tabs, table rows) gets a 2px ring in `--accent-primary` with a 2px
+offset via `:focus-visible` — WCAG 2.2 compliant (min. 2px thick, 3:1
+contrast). Never set `outline: none` without a replacement.
 
-## Iconografie: animated weather icons
+## Iconography: animated weather icons
 
 **[Meteocons](https://github.com/basmilius/meteocons)** (Bas Milius, MIT) —
-4000+ handgemaakte, geanimeerde SVG-weericonen in 4 stijlen (fill/flat/line/
-monochrome). Animatie zit in de SVG zelf (CSS-keyframes + SVG-transforms),
-géén Lottie-runtime of JS-library nodig — gebruik de plain-SVG-variant, niet
-de Lottie-JSON-variant.
+4000+ handcrafted, animated SVG weather icons in 4 styles (fill/flat/line/
+monochrome). Animation is embedded in the SVG itself (CSS keyframes + SVG
+transforms), no Lottie runtime or JS library needed — use the plain-SVG
+variant, not the Lottie-JSON variant.
 
-- **Gekozen stijl: `line`** — **correctie na daadwerkelijk downloaden**: geen
-  van de stijlen gebruikt `currentColor` (line heeft eigen vaste kleuren als
-  `#F8AF18` voor de zon; monochrome gebruikt `black`/`white` als twee-toon
-  cutout-effect, dus niet 1-op-1 vervangbaar door `currentColor` zonder de
-  laag-op-laag tekening te breken). `line`'s eigen kleurenpalet (zongeel,
-  wolkgrijs, regenblauw) is bovendien beter herkenbaar dan een plat silhouet
-  — bewust gekozen boven het origineel bedachte "herkleurbaar" idee.
-- Zelf gehost in `static/img/icons/` (zelfde patroon als uPlot), geen CDN —
-  npm-pakket `@meteocons/svg@0.1.0`, `line`-map.
-- Alleen de subset gedownload die WeeWX-condities daadwerkelijk nodig hebben:
+- **Chosen style: `line`** — **correction after actually downloading**: none
+  of the styles use `currentColor` (line has its own fixed colors like
+  `#F8AF18` for the sun; monochrome uses `black`/`white` as a two-tone
+  cutout effect, so it's not 1:1 replaceable by `currentColor` without
+  breaking the layered drawing). `line`'s own color palette (sun yellow,
+  cloud gray, rain blue) is moreover more recognizable than a flat
+  silhouette — deliberately chosen over the originally proposed
+  "recolorable" idea.
+- Self-hosted in `static/img/icons/` (same pattern as uPlot), no CDN —
+  npm package `@meteocons/svg@0.1.0`, `line` folder.
+- Only the subset actually needed for WeeWX conditions was downloaded:
   `clear-day`, `clear-night`, `partly-cloudy-day`, `partly-cloudy-night`,
   `cloudy`, `overcast`, `fog`, `drizzle`, `rain`, `thunderstorms`, `snow`,
-  `sleet`, `hail`, `sunrise`, `sunset` — niet alle 475 varianten per stijl.
-- **`prefers-reduced-motion` respecteren**: animatie bevriezen op stilstaand
-  beeld voor wie bewegingsgevoelig is of op een lager-vermogen toestel
-  (wall-display) kijkt — sluit aan bij de focus-indicator-toegankelijkheid
-  hierboven.
-- **Implementatie-aandachtspunt** (zie ook `THEME_PLAN.md`): WeeWX heeft geen
-  ingebouwd "conditie"-observatietype. Er komt een kleine eigen
-  mapping-tabel nodig (afgeleid van `cloudcover`/`solarRadiation`/neerslag →
-  welk Meteocons-icoon), dit is geen kant-en-klare WeeWX-tag.
+  `sleet`, `hail`, `sunrise`, `sunset` — not all 475 variants per style.
+- **Respect `prefers-reduced-motion`**: freeze animation on a still frame
+  for anyone motion-sensitive or on a lower-power device (wall display) —
+  ties in with the focus-indicator accessibility above.
+- **Implementation note** (see also `THEME_PLAN.md`): WeeWX has no built-in
+  "condition" observation type. A small custom mapping table is needed
+  (derived from `cloudcover`/`solarRadiation`/precipitation → which
+  Meteocons icon), this isn't a ready-made WeeWX tag.
 
-## Typografie
+## Typography
 
-- **Geist** (open source, Vercel) als primair font, `system-ui` als fallback —
-  geen extra licentiekosten, sluit aan bij grandmasg.nl.
-- Hoofdmeting (bv. temperatuur): groot, bold, tabular nums.
-- Micro-labels (WIND, VOCHT, LUCHTDRUK): uppercase, klein, letter-spacing,
-  gedempte kleur — direct overgenomen patroon van grandmasg.nl.
+- **Geist** (open source, Vercel) as the primary font, `system-ui` as
+  fallback — no extra licensing cost, aligns with grandmasg.nl.
+- Headline metric (e.g. temperature): large, bold, tabular nums.
+- Micro-labels (WIND, HUMIDITY, PRESSURE): uppercase, small, letter-spacing,
+  muted color — pattern taken directly from grandmasg.nl.
 
-## Sensor-agnostisch ontwerp
+## Sensor-agnostic design
 
-Belangrijk uitgangspunt (niet alleen technisch, ook visueel): het station
-wisselt (nu WeatherFlow Tempest, over een paar maanden Ecowitt WittBoy, later
-weer onbekend). De stat-tegel-grid moet dus **visueel verdragen dat het
-aantal tegels varieert** (5 of 9, niet altijd hetzelfde), zonder er
-onevenwichtig uit te zien:
+Important starting point (not just technical, also visual): the station
+changes (currently WeatherFlow Tempest, an Ecowitt WittBoy in a few months,
+something unknown again later). The stat-tile grid therefore needs to
+**visually tolerate a varying number of tiles** (5 or 9, not always the
+same), without looking unbalanced:
 
-- Grid met `auto-fit`/`minmax` (zoals de mockup al doet), geen vast
-  kolomaantal — voorkomt lege gaten of rare wraps bij minder tegels.
-- Ontbrekende sensor (bv. geen UV bij Vantage Vue) = tegel bestaat niet,
-  geen "N/A"-tegel tonen.
-- **Lege/onvolledige data-staat** ontwerpen: een net aangesloten station
-  heeft geen jaar-historie — archief/jaargrafiek toont een nette tekst
-  ("nog onvoldoende data voor dit overzicht") i.p.v. een lege/kapotte
-  grafiek. Dit hoort in het eerste mockup al meegenomen te worden, niet
-  achteraf toegevoegd.
+- Grid with `auto-fit`/`minmax` (as the mockup already does), no fixed
+  number of columns — avoids empty gaps or odd wraps with fewer tiles.
+- Missing sensor (e.g. no UV on a Vantage Vue) = tile doesn't exist, don't
+  show an "N/A" tile.
+- **Design an empty/incomplete-data state**: a freshly connected station has
+  no year of history — the archive/year chart should show a clean message
+  ("not enough data for this view yet") instead of an empty/broken chart.
+  This belongs in the first mockup already, not added afterward.
 
-## Componenten
+## Components
 
-1. **Hero-kaart huidige conditie** — groot cijfer + icoon + sparkline (24u),
-   net als de weerstation-kaart op grandmasg.nl.
-2. **Stat-tegels** — grid van kleine kaarten (wind, vocht, luchtdruk, neerslag,
-   UV, zon), uppercase label boven, waarde + eenheid onder.
-3. **Live-badge** — groene stip + tekst + tijdstip, herbruikbaar op elke pagina
-   met actuele data (patroon van beide sites).
-4. **Grafiekkaart** — periode-selector (dag/week/maand/jaar/all-time) +
-   uPlot/ECharts-canvas in dezelfde kaartstijl, export naar CSV/PNG.
-5. **Icon-sidebar** (optioneel, geïnspireerd op ontladingen.nl) — Dashboard,
-   Grafieken, Archief, Telemetrie, Almanak — compacter dan een topnav.
-6. **Taal- + thema-toggle** — vaste plek rechtsboven, zoals op beide sites.
-7. **Telemetrie-tegel** — batterij/signaal/voltage, aansluitend bij de
-   "systeemlog"-stijl die grandmasg.nl al gebruikt voor techniek/status.
+1. **Current-condition hero card** — big number + icon + sparkline (24h),
+   just like the weather-station card on grandmasg.nl.
+2. **Stat tiles** — grid of small cards (wind, humidity, pressure, rain,
+   UV, sun), uppercase label on top, value + unit below.
+3. **Live badge** — green dot + text + timestamp, reusable on every page
+   with current data (pattern from both sites).
+4. **Chart card** — period selector (day/week/month/year/all-time) +
+   uPlot/ECharts canvas in the same card style, export to CSV/PNG.
+5. **Icon sidebar** (optional, inspired by ontladingen.nl) — Dashboard,
+   Graphs, Archive, Telemetry, Almanac — more compact than a top nav.
+6. **Language + theme toggle** — fixed spot top-right, as on both sites.
+7. **Telemetry tile** — battery/signal/voltage, in line with the
+   "system log" style grandmasg.nl already uses for tech/status.
 
-## Pagina's (mockup-volgorde)
+## Pages (mockup order)
 
-1. **Dashboard** — hero-kaart + stat-tegels + mini-grafiek (eerste mockup)
-2. **Grafieken** — volledige interactieve charts met periode-selector
-3. **Archief** — dag/maand/jaar-overzichten, NOAA-achtige tabellen
-4. **Telemetrie** — batterij/signaal/voltage
-5. **Almanac** (optioneel) — zon/maan
+1. **Dashboard** — hero card + stat tiles + mini chart (first mockup)
+2. **Graphs** — full interactive charts with period selector
+3. **Archive** — day/month/year overviews, NOAA-like tables
+4. **Telemetry** — battery/signal/voltage
+5. **Almanac** (optional) — sun/moon
 
 ## Responsive
 
-- Mobiel: stat-tegels stapelen 2-koloms, sidebar wordt bottom-tabbar of
-  hamburger — desktop: icon-sidebar links, content-grid rechts (max-width
-  container, geen edge-to-edge op grote schermen).
-- Full-HD wall-display variant (zoals NeoWX) is een latere iteratie, geen
-  vereiste voor v1.
+- Mobile: stat tiles stack in 2 columns, sidebar becomes a bottom tab bar or
+  hamburger menu — desktop: icon sidebar on the left, content grid on the
+  right (max-width container, no edge-to-edge on large screens).
+- Full-HD wall-display variant (like NeoWX) is a later iteration, not a
+  requirement for v1.
 
-## Volgende stap
+## Next step
 
-Eerste Claude-artifact: dashboard-pagina, licht + donker, met dummy-data,
-gebouwd op bovenstaand kleursysteem en componenten.
+First Claude Artifact: dashboard page, light + dark, with dummy data, built
+on the color system and components above.

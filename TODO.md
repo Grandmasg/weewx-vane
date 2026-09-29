@@ -3,16 +3,6 @@
 Open items tracked from development so far — not a roadmap, just things
 that are known and deliberately not done yet.
 
-## Repo language
-
-- [ ] Most of the repo's own working language is Dutch (`docs/*.md`, code
-  comments in `bin/user/vane_extras.py` and the `.tmpl` files, this file's
-  earlier drafts). Now that this is a public GitHub repo, it'd be worth
-  translating the docs and comments to English at some point — the
-  *skin's* own `lang/nl.conf`/`lang/en.conf` (what site visitors see) is
-  unaffected either way, this is purely about the project's own
-  documentation/source-comment language for outside contributors.
-
 ## Deferred by design (see `docs/DASHBOARD_EXPANSION_PLAN.md`)
 
 These were explicitly scoped out, not forgotten:

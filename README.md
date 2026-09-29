@@ -1,86 +1,86 @@
 # Vane — WeeWX Theme
 
-Een eigen, modern WeeWX-skin: licht/donker, meertalig, lichtgewicht client-side
-grafieken, en sensor-agnostisch (werkt ongewijzigd bij een stationswissel,
-bv. WeatherFlow Tempest → Ecowitt). Opvolger van
-[NeoWX Material](https://neoground.com/en/open-source/neowx-material), niet als
-kopie maar als lichtere, modernere eigen build.
+A custom, modern WeeWX skin: light/dark, multilingual, lightweight
+client-side charts, and sensor-agnostic (works unchanged across a station
+swap, e.g. WeatherFlow Tempest → Ecowitt). Successor to
+[NeoWX Material](https://neoground.com/en/open-source/neowx-material), not
+as a copy but as a lighter, more modern build of its own.
 
 ## Status
 
-Werkend en getest tegen een echte WeeWX-installatie met live WeatherFlow
-Tempest-data (niet alleen de Simulator): Dashboard, Grafieken, Archief,
-Telemetrie en Almanak staan er allemaal, inclusief windroos, windvector-radar,
-regenkalender, records-teaser en meertaligheid (NL/EN). Zie
-`docs/DASHBOARD_EXPANSION_PLAN.md` voor de status per onderdeel.
+Working and tested against a real WeeWX install with live WeatherFlow
+Tempest data (not just the Simulator): Dashboard, Graphs, Archive, Telemetry
+and Almanac are all there, including a wind rose, wind-vector radar, rain
+calendar, records teaser and multilingual support (NL/EN). See
+`docs/DASHBOARD_EXPANSION_PLAN.md` for the status per component.
 
-![Vane dashboard, donker thema](docs/images/dashboard.png)
+![Vane dashboard, dark theme](docs/images/dashboard.png)
 
-## Installeren
+## Installing
 
-Zie **[INSTALL.md](INSTALL.md)** voor de volledige installatie-/update-instructies
-(zip bouwen, verschil pip- vs. pakket-installatie, updaten).
+See **[INSTALL.md](INSTALL.md)** for the full install/update instructions
+(building the zip, pip vs. package install, updating).
 
-Kort:
+Short version:
 
 ```bash
 python build.py
-weectl extension install dist/vane-<versie>.zip
+weectl extension install dist/vane-<version>.zip
 sudo systemctl restart weewx
 ```
 
-## Mapstructuur
+## Directory structure
 
-- [`docs/`](docs/) — de plannen en beslissingen (zie hieronder)
-- [`skins/Vane/`](skins/Vane/) — de daadwerkelijke WeeWX-skin (Cheetah-templates, CSS, JS)
-- [`bin/user/vane_extras.py`](bin/user/vane_extras.py) — search-list-extension
-  (sensor-detectie, windroos/windvector-berekeningen, SVG-helpers)
+- [`docs/`](docs/) — the plans and decisions (see below)
+- [`skins/Vane/`](skins/Vane/) — the actual WeeWX skin (Cheetah templates, CSS, JS)
+- [`bin/user/vane_extras.py`](bin/user/vane_extras.py) — search-list extension
+  (sensor detection, wind-rose/wind-vector calculations, SVG helpers)
 - [`install.py`](install.py) — WeeWX `ExtensionInstaller`
-- [`build.py`](build.py) — bouwt de installeerbare zip uit `install.py`'s eigen bestandenlijst
-- [`design/`](design/) — designwerk: `mockup-handoff/` (Claude Design-export),
-  `chart-test/` (uPlot vs. eigen-SVG benchmark), `wsl-test-output/` (gegenereerde
-  testoutput, git-ignored)
-- [`reference/`](reference/) — invoermateriaal, geen onderdeel van Vane zelf
-  (actief `weewx.conf` met wachtwoorden, volledige broncode van het NeoWX
-  Material-theme) — zie `reference/README.md`. Gevoelige/derde-partij-bestanden
-  hierin zijn **git-ignored**.
+- [`build.py`](build.py) — builds the installable zip from `install.py`'s own file list
+- [`design/`](design/) — design work: `mockup-handoff/` (Claude Design export),
+  `chart-test/` (uPlot vs. own-SVG benchmark), `wsl-test-output/` (generated
+  test output, git-ignored)
+- [`reference/`](reference/) — input material, not part of Vane itself
+  (a live `weewx.conf` with passwords, the full source of the NeoWX
+  Material theme) — see `reference/README.md`. Sensitive/third-party files
+  in here are **git-ignored**.
 
-## Documentatie
+## Documentation
 
-- [`docs/DESIGN_PLAN.md`](docs/DESIGN_PLAN.md) — visueel ontwerp: kleuren, typografie,
-  componenten, pagina's, sensor-agnostisch tegel-ontwerp.
-- [`docs/THEME_PLAN.md`](docs/THEME_PLAN.md) — technisch plan: WeeWX-skinarchitectuur,
-  sensor-agnostische `[[Tiles]]`-configuratie, datastrategie (uPlot), i18n, distributie.
+- [`docs/DESIGN_PLAN.md`](docs/DESIGN_PLAN.md) — visual design: colors, typography,
+  components, pages, sensor-agnostic tile design.
+- [`docs/THEME_PLAN.md`](docs/THEME_PLAN.md) — technical plan: WeeWX skin architecture,
+  sensor-agnostic `[[Tiles]]` configuration, data strategy (uPlot), i18n, distribution.
 - [`docs/DASHBOARD_EXPANSION_PLAN.md`](docs/DASHBOARD_EXPANSION_PLAN.md) —
-  onderzoek naar andere WeeWX-skins/weersites, gefaseerd uitbreidingsplan en
-  status van wat daarvan daadwerkelijk gebouwd is.
-- [`docs/MOCKUP_REVIEW.md`](docs/MOCKUP_REVIEW.md) — bevindingen op het
-  originele Claude Design-mockup.
-- [`INSTALL.md`](INSTALL.md) — installatie/update.
+  research into other WeeWX skins/weather sites, a phased expansion plan and
+  the status of what's actually been built from it.
+- [`docs/MOCKUP_REVIEW.md`](docs/MOCKUP_REVIEW.md) — findings on the
+  original Claude Design mockup.
+- [`INSTALL.md`](INSTALL.md) — install/update.
 
-## Referenties / concurrentie-onderzoek
+## References / competitive research
 
-| Skin | Belangrijkste eigenschap | Charting |
+| Skin | Key trait | Charting |
 |---|---|---|
-| [NeoWX Material](https://neoground.com/en/open-source/neowx-material) | huidige theme, 19 kleurthema's, mature | ApexCharts |
-| [weewx-belchertown](https://github.com/poblabs/weewx-belchertown) | live updates via MQTT/websockets, forecast | Highcharts (licentie!) |
-| [Weather34](https://github.com/Drealine/weewx-Weather34) | gauge-gedreven templates | eigen |
-| [weewx-wdc](https://github.com/Daveiano/weewx-wdc) | IBM Carbon + Nivo, veel widgets | Nivo (React-stack) |
-| [weewx-aganetwx](https://github.com/aganet/weewx-aganetwx) | i18n, dark mode, sensor-agnostisch | Apache ECharts |
+| [NeoWX Material](https://neoground.com/en/open-source/neowx-material) | current theme, 19 color themes, mature | ApexCharts |
+| [weewx-belchertown](https://github.com/poblabs/weewx-belchertown) | live updates via MQTT/websockets, forecast | Highcharts (license!) |
+| [Weather34](https://github.com/Drealine/weewx-Weather34) | gauge-driven templates | own |
+| [weewx-wdc](https://github.com/Daveiano/weewx-wdc) | IBM Carbon + Nivo, lots of widgets | Nivo (React stack) |
+| [weewx-aganetwx](https://github.com/aganet/weewx-aganetwx) | i18n, dark mode, sensor-agnostic | Apache ECharts |
 
-Zie `docs/THEME_PLAN.md` en `docs/DASHBOARD_EXPANSION_PLAN.md` voor de
-volledige afweging en gekozen richting.
+See `docs/THEME_PLAN.md` and `docs/DASHBOARD_EXPANSION_PLAN.md` for the full
+trade-off and chosen direction.
 
-## Vereisten
+## Requirements
 
 - WeeWX 5.x
-- Python 3.7+ (voor de skin-generator/installer)
-- Geen build-stap voor de frontend (vanilla JS, geen framework) — houdt het licht
-  en makkelijk te onderhouden.
+- Python 3.7+ (for the skin generator/installer)
+- No build step for the frontend (vanilla JS, no framework) — keeps it light
+  and easy to maintain.
 
-## Licentie
+## License
 
-[MIT](LICENSE) — zelfde als de meeste referentie-skins hierboven. Vane
-gebruikt daarnaast een klein aantal MIT/OFL-gelicenseerde derdenbibliotheken
-(Meteocons-weericonen, uPlot, MQTT.js, Geist-lettertype) — zie
-[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) voor de details.
+[MIT](LICENSE) — same as most reference skins above. Vane also uses a small
+number of MIT/OFL-licensed third-party libraries (Meteocons weather icons,
+uPlot, MQTT.js, the Geist font) — see
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) for details.

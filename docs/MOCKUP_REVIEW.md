@@ -1,90 +1,93 @@
-# Mockup Review — bevindingen op de Claude Design export
+# Mockup Review — findings on the Claude Design export
 
-Bron: `design/mockup-handoff/ui-mockups-for-weewx-theme/project/WeeWX Dashboard.dc.html`
-(export uit claude.ai/design, 26-09-2026). Bevindingen zijn een combinatie van
-een Gemini-review op de screenshots + eigen leeswerk van de daadwerkelijke
-broncode (Gemini zag alleen de plaatjes, geen code).
+Source: `design/mockup-handoff/ui-mockups-for-weewx-theme/project/WeeWX Dashboard.dc.html`
+(export from claude.ai/design, 2026-09-26). Findings are a combination of a
+Gemini review of the screenshots + own reading of the actual source code
+(Gemini only saw the images, no code).
 
-Status: **input voor implementatie**, nog niets hiervan is gebouwd.
+Status: **input for implementation**, none of this has been built yet.
 
-## Functionele gaten (uit Gemini's review, bevestigd relevant)
+## Functional gaps (from Gemini's review, confirmed relevant)
 
-- [ ] Regenaccumulaties op dashboard: alleen "vandaag" — mist deze maand
-      (`$month.rain.sum`) en dit jaar (`$year.rain.sum`)
-- [ ] Solar radiation / UV-grafiek ontbreekt op de Grafieken-pagina (alleen
-      UV-tegel op dashboard)
-- [ ] Gevoelstemperatuur niet expliciet windchill vs. heatindex
+- [ ] Rain accumulations on dashboard: "today" only — missing this month
+      (`$month.rain.sum`) and this year (`$year.rain.sum`)
+- [ ] Solar radiation / UV chart missing on the Graphs page (only a UV tile
+      on the dashboard)
+- [ ] Feels-like temperature not explicitly windchill vs. heatindex
       (`$current.windchill` resp. `$current.heatindex`)
-- [ ] Bliksem-tegel op dashboard (koppeling met ontladingen.nl) — nu alleen
-      een tekstlink in de footer
-- [ ] Windrichting over tijd (los van gemiddelde snelheid/stoten) in de
-      windgrafiek
-- [ ] Klimaatstatistieken in archief: aantal warme/zomerse/tropische/vorst-/
-      ijsdagen per maand
-- [ ] Jaar-navigatie/selector in Archief (nu alleen `< september 2026 >`,
-      geen snelle jaarkeuze voor stations met 5+ jaar historie)
-- [ ] Zon-/maanhoogte (azimuth) bij de almanak-boog, naast alleen tijden
+- [ ] Lightning tile on the dashboard (link with ontladingen.nl) — currently
+      only a text link in the footer
+- [ ] Wind direction over time (separate from average speed/gusts) in the
+      wind chart
+- [ ] Climate statistics in the archive: number of warm/summer/tropical/
+      frost/ice days per month
+- [ ] Year navigation/selector in Archive (currently only
+      `< September 2026 >`, no quick year picker for stations with 5+ years
+      of history)
+- [ ] Sun/moon altitude (azimuth) alongside the almanac arc, in addition to
+      just times
 
-## Technische nuances op Gemini's review (Gemini zag alleen screenshots)
+## Technical nuances on Gemini's review (Gemini only saw screenshots)
 
-- **Zonneschijnduur** is geen standaard WeeWX-veld. `radiation` (W/m²) is er
-  wel, maar "zonneschijnuren" vereist een eigen drempelwaarde-berekening
-  (vergelijkbaar met de losse `weewx-sunshine`-extensie) — dus geen kant-en-
-  klare `$day.sunshine_hours.sum`.
-- **Windroos**: geen ingebouwde WeeWX-tag hiervoor. Vereist zelf binnen in
-  sectoren (N/NO/O/...) over `$span.wind.series`, het handigst via een kleine
-  custom search-list-extension in Python (niet in pure Cheetah-loops).
-- **Maanillustratie met schaduw** — dit zit al in de mockup (`alm.moonPath`,
-  een SVG-path die de sikkel/schaduw tekent). Gemini's punt hierover is dus al
-  gedekt, geen actie nodig.
+- **Sunshine duration** isn't a standard WeeWX field. `radiation` (W/m²) is
+  available, but "sunshine hours" requires its own threshold-based
+  calculation (similar to the separate `weewx-sunshine` extension) — so
+  there's no ready-made `$day.sunshine_hours.sum`.
+- **Wind rose**: no built-in WeeWX tag for this. Requires binning into
+  sectors (N/NE/E/...) over `$span.wind.series` ourselves, most practically
+  via a small custom search-list-extension in Python (not in pure Cheetah
+  loops).
+- **Moon illustration with shadow** — this is already in the mockup
+  (`alm.moonPath`, an SVG path that draws the crescent/shadow). Gemini's
+  point about this is therefore already covered, no action needed.
 
-## Eigen bevindingen uit het lezen van de broncode
+## Own findings from reading the source code
 
-1. **Windpijl niet data-gebonden** — `transform:rotate(45deg)` staat hard
-   gecodeerd (regel 118 van het bronbestand), draait niet mee met de echte
-   winddraaiing. Moet sowieso gefixt worden, los van of er een volledig
-   kompaswidget bijkomt.
-2. **Chart-implementatie is al framework-/library-loos** — de mockup gebruikt
-   geen uPlot/ECharts/ApexCharts; hover/crosshair/lijnen/staven worden met
-   pure SVG-paths + een handgeschreven `mkChart()`-functie getekend. **Dit is
-   lichter dan het uPlot-plan in `THEME_PLAN.md`** — voorstel: dit patroon
-   overnemen/uitbreiden i.p.v. alsnog een chart-library te introduceren.
-3. **Stijlen zijn 100% inline** (iedere kaart herhaalt een lange
-   `style="..."`-string). Prima voor een designtool-export, maar wordt bij
-   implementatie omgezet naar echte CSS-classes met custom properties — niet
-   1-op-1 overnemen (conform de handoff-instructies zelf).
-4. **Taal-toggle is puur cosmetisch** — `state.lang` wisselt visueel, maar er
-   wordt nergens een vertaalde string getoond; alle teksten staan hard in het
-   Nederlands. De EN-vertaling (`lang/en.conf`) moet dus volledig zelf gebouwd
-   worden, dit mockup helpt daar inhoudelijk niet bij.
-5. **Geen zichtbare `:focus-visible`-states** op de `all:unset`-knoppen (nav,
-   thema-toggle, periode-selector, jaartabel-rijen) — ontbrekend voor
-   toetsenbordtoegankelijkheid, niet genoemd door Gemini.
-6. **Geen windroos/regen-kalenderheatmap ergens in de 5 schermen** — dit is
-   sterker dan "windrichting kan beter": er is nog helemaal geen widget voor.
-   Sluit aan bij de openstaande designtaak in `THEME_PLAN.md`.
+1. **Wind arrow not data-bound** — `transform:rotate(45deg)` is hardcoded
+   (line 118 of the source file), doesn't rotate with the actual wind
+   direction. Needs fixing regardless of whether a full compass widget gets
+   added.
+2. **Chart implementation is already framework-/library-free** — the mockup
+   doesn't use uPlot/ECharts/ApexCharts; hover/crosshair/lines/bars are drawn
+   with plain SVG paths + a hand-written `mkChart()` function. **This is
+   lighter than the uPlot plan in `THEME_PLAN.md`** — suggestion: adopt/
+   extend this pattern instead of introducing a chart library after all.
+3. **Styles are 100% inline** (every card repeats a long `style="..."`
+   string). Fine for a design-tool export, but gets converted to real CSS
+   classes with custom properties during implementation — not carried over
+   1:1 (per the handoff instructions themselves).
+4. **Language toggle is purely cosmetic** — `state.lang` switches visually,
+   but no translated string is shown anywhere; all text is hardcoded in
+   Dutch. The EN translation (`lang/en.conf`) therefore needs to be built
+   entirely from scratch, this mockup doesn't help with the content there.
+5. **No visible `:focus-visible` states** on the `all:unset` buttons (nav,
+   theme toggle, period selector, year-table rows) — missing for keyboard
+   accessibility, not mentioned by Gemini.
+6. **No wind rose/rain calendar heatmap anywhere in the 5 screens** — this is
+   stronger than "wind direction could be better": there's no widget for it
+   at all yet. Aligns with the open design task in `THEME_PLAN.md`.
 
-## Wat al goed zit (geen actie nodig)
+## What's already fine (no action needed)
 
-- Kleursysteem in de mockup (`--bg`, `--surface`, `--accent-*`, ...) komt
-  exact overeen met `DESIGN_PLAN.md` — geen aanpassing nodig.
-- `data-props` in de mockup (`theme: auto/dark/light`, `accent: 4 presets`,
-  `units: metrisch/imperiaal`) sluit aan bij het idee van "1 instelbare
-  accentkleur" i.p.v. 19 losse thema's.
-- Maanillustratie, live-badge, telemetrie-stijl: al conform plan.
+- The color system in the mockup (`--bg`, `--surface`, `--accent-*`, ...)
+  matches `DESIGN_PLAN.md` exactly — no adjustment needed.
+- `data-props` in the mockup (`theme: auto/dark/light`, `accent: 4 presets`,
+  `units: metric/imperial`) aligns with the idea of "1 configurable accent
+  color" instead of 19 separate themes.
+- Moon illustration, live badge, telemetry style: already per plan.
 
-## Openstaande technische vraag (naast bestaande punten in THEME_PLAN.md)
+## Open technical question (in addition to existing points in THEME_PLAN.md)
 
-- [ ] Systeemlog (`journalctl -u weewx`) en proces-status (PID, uptime) op de
-      Telemetrie-pagina: WeeWX genereert standaard alleen statische HTML via
-      Cheetah en heeft geen root-toegang tot `journalctl`/processen. Vereist
-      een klein losstaand Python-script/cronjob dat dit filtert en als JSON
-      wegschrijft, of terugvallen op wat WeeWX zelf al bijhoudt
-      (`$station.uptime`, extensie-states) voor een soberdere versie.
+- [ ] System log (`journalctl -u weewx`) and process status (PID, uptime) on
+      the Telemetry page: WeeWX by default only generates static HTML via
+      Cheetah and has no root access to `journalctl`/processes. Requires
+      either a small standalone Python script/cronjob that filters this and
+      writes it out as JSON, or falling back to what WeeWX itself already
+      tracks (`$station.uptime`, extension states) for a more modest version.
 
-## Volgende stap
+## Next step
 
-Implementatie starten met de **Dashboard**-pagina: inline-stijlen omzetten
-naar CSS-classes, synthetische data vervangen door echte WeeWX Cheetah-tags,
-en de bovenstaande gaten (regenaccumulaties, windpijl-binding, bliksem-tegel)
-meteen meenemen i.p.v. later te patchen.
+Start implementation with the **Dashboard** page: convert inline styles to
+CSS classes, replace synthetic data with real WeeWX Cheetah tags, and address
+the gaps above (rain accumulations, wind-arrow binding, lightning tile)
+immediately rather than patching them in later.

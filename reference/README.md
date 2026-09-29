@@ -1,27 +1,27 @@
-# Reference — invoermateriaal, geen onderdeel van Vane
+# Reference — input material, not part of Vane
 
-Deze map bevat materiaal dat we gebruiken *als input/vergelijking*, maar dat
-zelf geen onderdeel van het Vane-theme is en niet meegepubliceerd wordt.
-Zie de root-`.gitignore` — een deel hiervan wordt bewust genegeerd door git.
+This folder contains material used *as input/comparison*, but that isn't
+itself part of the Vane theme and isn't published along with it. See the
+root `.gitignore` — part of this is deliberately ignored by git.
 
 ## `weewx-conf/`
 
-- **`weewx.conf`** — het actieve, live `weewx.conf` van het Grandmasg-station
-  (WeatherFlow Tempest). Bevat wachtwoorden/API-keys voor uploads (WOW,
-  Wunderground, MQTT, etc.) — **git-ignored, nooit committen**. Gebruikt om te
-  verifiëren welke `[StdReport]`/`[Station]`-instellingen en welke
-  observatietypes er in de praktijk beschikbaar zijn.
-- **`weewx.conf-5.5.0.dist`** — een schone, ongewijzigde WeeWX 5.5.0
-  standaardconfiguratie. Veilig te committen; gebruiken om te zien wat
-  standaard vs. aangepast is in het actieve bestand hierboven.
+- **`weewx.conf`** — the live, active `weewx.conf` of the Grandmasg station
+  (WeatherFlow Tempest). Contains passwords/API keys for uploads (WOW,
+  Wunderground, MQTT, etc.) — **git-ignored, never commit**. Used to verify
+  which `[StdReport]`/`[Station]` settings and which observation types are
+  actually available in practice.
+- **`weewx.conf-5.5.0.dist`** — a clean, unmodified WeeWX 5.5.0 default
+  configuration. Safe to commit; used to see what's default vs. customized
+  in the live file above.
 
 ## `neowx-material/`
 
-Volledige broncode van het huidige, actieve theme (NeoWX Material) — 346
-bestanden, inclusief echte Cheetah-templates (`.tmpl`/`.inc`), `skin.conf`,
-CSS/JS. Waardevol als **echt werkend voorbeeld** van WeeWX-Cheetah-syntax in
-de praktijk (verder dan de marketingpagina), maar dit is code van Neoground
-met een eigen licentie — **git-ignored**, blijft lokaal, wordt niet
-overgenomen 1-op-1 in Vane (zie ook de handoff-instructies in
-`design/mockup-handoff/.../README.md`: hetzelfde principe — ter inspiratie
-lezen, niet kopiëren).
+Full source code of the current, live theme (NeoWX Material) — 346 files,
+including real Cheetah templates (`.tmpl`/`.inc`), `skin.conf`, CSS/JS.
+Valuable as a **genuinely working example** of WeeWX Cheetah syntax in
+practice (beyond the marketing page), but this is Neoground's code under
+its own license — **git-ignored**, stays local, is not carried over 1:1
+into Vane (see also the handoff instructions in
+`design/mockup-handoff/.../README.md`: same principle — read for
+inspiration, don't copy).

@@ -1,201 +1,200 @@
-# Theme Plan — Technische architectuur
+# Theme Plan — Technical architecture
 
-Technisch plan voor de WeeWX-skin zelf. Los van `DESIGN_PLAN.md` (dat gaat over
-het uiterlijk); dit gaat over hoe het onder de motorkap werkt.
+Technical plan for the WeeWX skin itself. Separate from `DESIGN_PLAN.md`
+(which covers appearance); this covers how it works under the hood.
 
-## Persoonlijke integraties zijn een losse plugin, geen onderdeel van Vane
+## Personal integrations are a separate plugin, not part of Vane
 
-**Vane zelf blijft altijd volledig generiek en publiceerbaar** — geen enkele
-verwijzing naar grandmasg.nl, ontladingen.nl of andere persoonlijke
-infrastructuur in de core-skin. Dat soort koppelingen (bv. een
-ontladingen.nl-kaart/-widget op het dashboard) worden een **losse, optionele
-extensie**, met een eigen `install.py`, die een gedefinieerd uitbreidingspunt
-in Vane gebruikt in plaats van core-templates te wijzigen:
+**Vane itself always stays fully generic and publishable** — no reference at
+all to grandmasg.nl, ontladingen.nl or other personal infrastructure in the
+core skin. That kind of integration (e.g. an ontladingen.nl map/widget on the
+dashboard) becomes a **separate, optional extension**, with its own
+`install.py`, that uses a defined extension point in Vane instead of
+modifying core templates:
 
-- Vane's `[[Tiles]]`-configuratie krijgt een leeg, generiek slot:
-  `dashboard_plugins = ` (comma-separated namen, standaard leeg).
-- Elke naam in die lijst wordt door de core-template opgezocht als
-  `templates/plugins/<naam>.inc` — bestaat het bestand niet, dan gebeurt er
-  simpelweg niets (geen fout).
-- De published/publieke Vane-repo bevat dus wél het mechanisme (de lege
-  slot + documentatie/voorbeeld), maar geen enkel concreet plugin-bestand.
-- Jouw eigen `ontladingen`-plugin (los pakket,
-  `templates/plugins/ontladingen.inc` + `dashboard_plugins = ontladingen` in je eigen,
-  git-ignored `weewx.conf`/`skin.conf`-override) leeft **buiten** de Vane-repo
-  — zelfde patroon als het actieve `weewx.conf` uit `reference/`: het
-  mechanisme is publiek, de persoonlijke invulling niet.
-- Voordeel: iemand anders die Vane installeert ziet nooit iets van
-  ontladingen.nl, maar jouw eigen deployment kan het gewoon aanzetten zonder
-  dat je een fork van Vane hoeft te onderhouden.
+- Vane's `[[Tiles]]` config gets an empty, generic slot:
+  `dashboard_plugins = ` (comma-separated names, empty by default).
+- Every name in that list gets looked up by the core template as
+  `templates/plugins/<name>.inc` — if the file doesn't exist, nothing
+  happens (no error).
+- The published/public Vane repo therefore does contain the mechanism (the
+  empty slot + documentation/example), but no actual plugin file.
+- Your own `ontladingen` plugin (a separate package,
+  `templates/plugins/ontladingen.inc` + `dashboard_plugins = ontladingen` in
+  your own, git-ignored `weewx.conf`/`skin.conf` override) lives **outside**
+  the Vane repo — same pattern as the live `weewx.conf` from `reference/`:
+  the mechanism is public, the personal content isn't.
+- Benefit: someone else installing Vane never sees anything of
+  ontladingen.nl, but your own deployment can just turn it on without you
+  having to maintain a fork of Vane.
 
-## Basisarchitectuur
+## Basic architecture
 
-WeeWX-skins bestaan uit:
-- `skin.conf` — configuratie: generators, grafiek-definities, teksten, taal
-- Templates (`.tmpl`) in **Cheetah** — de enige officieel ondersteunde
-  templating-engine (Jinja2 is ooit geopperd op de dev-mailinglist, nooit
-  doorgevoerd in WeeWX 5.x, dus niet gebruiken)
-- `lang/xx.conf` — vertaalbestanden
-- Installatie via `weectl extension install` (een `ExtensionInstaller`-klasse
-  zet een `[[SkinNaam]]`-stanza in `weewx.conf`)
+WeeWX skins consist of:
+- `skin.conf` — configuration: generators, chart definitions, texts, language
+- Templates (`.tmpl`) in **Cheetah** — the only officially supported
+  templating engine (Jinja2 was floated on the dev mailing list once, never
+  implemented in WeeWX 5.x, so don't use it)
+- `lang/xx.conf` — translation files
+- Installation via `weectl extension install` (an `ExtensionInstaller` class
+  sets a `[[SkinName]]` stanza in `weewx.conf`)
 
-Bronnen: [WeeWX customization guide](https://weewx.com/docs/5.4/custom/introduction/),
+Sources: [WeeWX customization guide](https://weewx.com/docs/5.4/custom/introduction/),
 [Cheetah generator](https://weewx.com/docs/5.2/custom/cheetah-generator/),
 [Extensions](https://weewx.com/docs/5.5/custom/extensions/).
 
-## Sensor-agnostische architectuur (kernprincipe, geen bijzaak)
+## Sensor-agnostic architecture (core principle, not an afterthought)
 
-**Aanleiding**: huidig station is een WeatherFlow (Tempest), over een paar
-maanden een Ecowitt WittBoy — en dat kan later weer veranderen. Vane mag dus
-nergens aannemen dat een specifieke sensor (UV, solar, ET, rxCheckPercent,
-bliksem) aanwezig is. Dit is het uitgangspunt van de architectuur, niet een
-latere toevoeging.
+**Motivation**: the current station is a WeatherFlow (Tempest), an Ecowitt
+WittBoy in a few months — and that may change again later. Vane must
+therefore never assume a specific sensor (UV, solar, ET, rxCheckPercent,
+lightning) is present. This is the starting point of the architecture, not a
+later addition.
 
-**Patroon: curated core + automatisch ontdekte extra's** (uitgewerkt na
-onderzoek naar hoe aganetwx dit daadwerkelijk oplost — GPLv3, dus het
-patroon overnemen, niet hun code):
+**Pattern: curated core + auto-discovered extras** (worked out after
+researching how aganetwx actually solves this — GPLv3, so the pattern is
+adopted, not their code):
 
-1. **CORE-set**: een vaste, door Vane zelf ontworpen lijst kernobservaties
+1. **CORE set**: a fixed, Vane-designed list of core observations
    (`outTemp`, `windSpeed`, `windDir`, `windGust`, `outHumidity`, `barometer`,
-   `rain`, `UV`, `radiation`, ...) krijgt de eigen, curated tegels uit
-   `DESIGN_PLAN.md`. Elke tegel checkt zelf `$day.<obs>.has_data` (WeeWX's
-   ingebouwde check) voordat hij rendert — geen data betekent niets tonen,
-   geen kapotte/NaN-widget. Dit blijft de nette, ontworpen kern van het
-   dashboard, ongeacht stationstype.
-2. **Automatische ontdekking van al het overige**: een kleine, eigen
-   WeeWX search-list-extension (`bin/user/vane_extras.py`) inspecteert bij
-   elke report-generatie welke databasekolommen (`db_manager.sqlkeys`) in het
-   laatste record daadwerkelijk een waarde hebben, filtert de CORE-set eruit,
-   en groepeert de rest via simpele patroonherkenning (`extraTemp*`/
-   `soilTemp*` → temperatuurgroep, `pm*`/`co2*` → luchtkwaliteit,
-   batterij/signaal-velden → status, onbekend → overig). Dit landt in een
-   generiek **"Extra sensoren"-paneel**, automatisch gevuld — dus geen
-   `skin.conf`-aanpassing nodig bij een stationswissel.
-3. Resultaat: dezelfde skin werkt ongewijzigd voor Vantage, Tempest, Ecowitt,
-   RTL_433, of wat er later bij komt — bekende metrics krijgen mooie curated
-   tegels, onbekende/extra sensoren verschijnen vanzelf in een generiek paneel
-   i.p.v. dat je ze moet registreren.
+   `rain`, `UV`, `radiation`, ...) gets its own curated tiles from
+   `DESIGN_PLAN.md`. Every tile checks its own `$day.<obs>.has_data`
+   (WeeWX's built-in check) before rendering — no data means nothing shown,
+   no broken/NaN widget. This remains the neat, designed core of the
+   dashboard, regardless of station type.
+2. **Automatic discovery of everything else**: a small, custom WeeWX
+   search-list extension (`bin/user/vane_extras.py`) inspects, on every
+   report generation, which database columns (`db_manager.sqlkeys`) actually
+   have a value in the latest record, filters out the CORE set, and groups
+   the rest via simple pattern matching (`extraTemp*`/`soilTemp*` →
+   temperature group, `pm*`/`co2*` → air quality, battery/signal fields →
+   status, unknown → other). This lands in a generic **"Extra sensors"
+   panel**, filled automatically — so no `skin.conf` change is needed when
+   switching stations.
+3. Result: the same skin works unchanged for Vantage, Tempest, Ecowitt,
+   RTL_433, or whatever comes later — known metrics get nice curated tiles,
+   unknown/extra sensors show up automatically in a generic panel instead of
+   you having to register them.
 
-**Bekende verschillen tussen stations (waarom dit nodig is)**:
+**Known differences between stations (why this is needed)**:
 
-- **WeatherFlow Tempest** (huidig station): heeft solar/UV, én **eigen
-  bliksemdetectie** (afstand + tijd) — een mogelijke 2e bliksembron náást
-  ontladingen.nl, niet per se hetzelfde in te vullen.
-- **Ecowitt WittBoy** (toekomstig station): vaak uitgebreid met extra
-  kanalen (bodemvocht, bladvocht, extra temp/vocht-sensoren) via een gateway;
-  reception/batterij-telemetrie ziet er anders uit dan Davis' `rxCheckPercent`.
-- **Davis Vantage** (waar de huidige mockup op gebaseerd is): heeft UV/solar/ET
-  alleen met de juiste losse sensor, en `rxCheckPercent` is Davis-specifiek —
-  bestaat niet bij andere merken.
-- Consequentie: telemetrie-tegels (signaal/batterij) moeten per stationstype
-  een eigen set velden kunnen tonen, niet één harde lijst.
+- **WeatherFlow Tempest** (current station): has solar/UV, and **its own
+  lightning detection** (distance + time) — a possible 2nd lightning source
+  alongside ontladingen.nl, not necessarily filled in the same way.
+- **Ecowitt WittBoy** (future station): often extended with extra channels
+  (soil moisture, leaf wetness, extra temp/humidity sensors) via a gateway;
+  reception/battery telemetry looks different from Davis' `rxCheckPercent`.
+- **Davis Vantage** (what the current mockup is based on): only has UV/
+  solar/ET with the right separate sensor, and `rxCheckPercent` is
+  Davis-specific — doesn't exist on other brands.
+- Consequence: telemetry tiles (signal/battery) need to be able to show a
+  different set of fields per station type, not one fixed list.
 
-**Drukmeting — expliciete keuze nodig**: WeeWX kent 3 drukwaarden:
-`barometer` (zeeniveau-gecorrigeerd), `pressure` (ruwe stationsdruk),
-`altimeter` (hoogtemeter-gecorrigeerd). Vane gebruikt **`barometer`** als
-standaard dashboardwaarde (wat gebruikers verwachten), maar dit is een
-bewuste keuze, geen toeval — vastleggen in de template-comments.
+**Pressure measurement — an explicit choice is needed**: WeeWX has 3
+pressure values: `barometer` (sea-level corrected), `pressure` (raw station
+pressure), `altimeter` (altitude-corrected). Vane uses **`barometer`** as the
+default dashboard value (what users expect), but this is a deliberate
+choice, not an accident — document it in the template comments.
 
-**Eenheidsstelsel**: WeeWX rekent normaal om **bij het genereren**, via
-`[[Units]]` in `skin.conf` (vast, geen runtime-toggle). Een metrisch/imperiaal
--schakelaar in de browser (zoals de designmockup suggereert) vereist dat de
-JSON-payload beide eenheden meestuurt en de browser client-side omschakelt.
-**Beslissing voor v1**: vast eenheidsstelsel via `skin.conf` (metrisch,
-zoals alle NL-skins) — géén runtime-toggle, want dat is een aparte
-architectuurlaag die nog niet nodig is. Kan later alsnog, maar dan bewust.
+**Unit system**: WeeWX normally converts **at generation time**, via
+`[[Units]]` in `skin.conf` (fixed, no runtime toggle). A metric/imperial
+switch in the browser (as the design mockup suggests) would require the JSON
+payload to carry both units and the browser to switch client-side.
+**Decision for v1**: fixed unit system via `skin.conf` (metric, like all
+NL skins) — **no** runtime toggle, since that's a separate architecture
+layer that isn't needed yet. Can still be added later, but deliberately.
 
-**Lege/onvolledige data**: een net aangesloten station heeft geen jaar-
-historie. Archief/jaargrafieken moeten een nette leeg-staat tonen ("nog
-onvoldoende data") in plaats van een kapotte/lege grafiek.
+**Empty/incomplete data**: a freshly connected station has no year of
+history. Archive/year charts must show a clean empty state ("not enough
+data yet") instead of a broken/empty chart.
 
-## Datastrategie: JSON + client-side charting (géén server-side PNG's)
+## Data strategy: JSON + client-side charting (no server-side PNGs)
 
-Oudere skins (Seasons, deels Belchertown) laten WeeWX zelf PNG's renderen via
-`ImageGenerator`. Alle moderne concurrenten doen dat niet meer: `CheetahGenerator`
-schrijft per periode een JSON-bestand weg (`data/day.json`, `data/month.json`, ...),
-en de browser rendert de grafiek. Voordelen: interactief zoomen/hoveren, geen
-font-/PNG-afhankelijkheden op de server, kleinere payload dan een PNG.
+Older skins (Seasons, partly Belchertown) let WeeWX itself render PNGs via
+`ImageGenerator`. All modern competitors no longer do that: `CheetahGenerator`
+writes out a JSON file per period (`data/day.json`, `data/month.json`, ...),
+and the browser renders the chart. Benefits: interactive zoom/hover, no
+font/PNG dependencies on the server, smaller payload than a PNG.
 
-**Besluit herzien op basis van een echte benchmark** (`design/chart-test/`,
-26-09-2026): oorspronkelijk was het plan "eigen SVG primair, uPlot alleen als
-fallback voor de Alles-periode". Gemeten build+render-tijd (zelfde
-synthetische data, beide implementaties, browser devtools):
+**Decision revisited based on an actual benchmark** (`design/chart-test/`,
+2026-09-26): originally the plan was "own SVG as primary, uPlot only as a
+fallback for the All-time period". Measured build+render time (same
+synthetic data, both implementations, browser devtools):
 
-| Punten | Eigen SVG (ms) | uPlot (ms) |
+| Points | Own SVG (ms) | uPlot (ms) |
 |---|---|---|
 | 100 | 8.8 | 8.8 |
 | 500 | 4.1 | 3.8 |
-| 2.000 | 5.2 | 4.7 |
-| 10.000 | 10.0 | 7.1 |
-| 50.000 | 23.5 | 12.5 |
-| 150.000 | 50.2 | 19.1 |
+| 2,000 | 5.2 | 4.7 |
+| 10,000 | 10.0 | 7.1 |
+| 50,000 | 23.5 | 12.5 |
+| 150,000 | 50.2 | 19.1 |
 
-**uPlot wint op elke schaal**, ook bij kleine datasets (dag/week), en loopt
-op tot >2,5x sneller bij grote datasets. Gecombineerd met het eerder genoemde
-compatibiliteitsvoordeel (uPlot heeft cross-browser-randgevallen — oude
-mobiele Safari, embedded WebViews, wall-displays — al uitgekristalliseerd;
-een handgeschreven SVG-implementatie moet dat allemaal zelf uitvogelen) is er
-geen goede reden meer om de eigen SVG-aanpak als hoofdkeuze te houden.
+**uPlot wins at every scale**, even for small datasets (day/week), and gets
+up to >2.5x faster for large datasets. Combined with the compatibility
+advantage mentioned earlier (uPlot has already ironed out cross-browser edge
+cases — old mobile Safari, embedded WebViews, wall displays — a hand-rolled
+SVG implementation would have to figure all of that out itself), there's no
+longer a good reason to keep the own-SVG approach as the primary choice.
 
-**Nieuw besluit: uPlot wordt de standaard chart-library voor alle
-tijdreeksgrafieken** (dag/week/maand/jaar/alles), niet alleen als fallback.
-~51KB is een acceptabele, eenmalige dependency gezien de meetbare winst in
-snelheid én betrouwbaarheid.
+**New decision: uPlot becomes the default chart library for all time-series
+charts** (day/week/month/year/all), not just a fallback. ~51KB is an
+acceptable, one-time dependency given the measurable gain in speed and
+reliability.
 
-Afweging t.o.v. alternatieven (waarom niet de rest):
+Trade-off against alternatives (why not the rest):
 
-| Library | Licentie | Gewicht | Gebruikt door |
+| Library | License | Weight | Used by |
 |---|---|---|---|
-| ApexCharts | MIT | middel | NeoWX Material (huidige theme) |
-| Nivo (React) | MIT, maar React-stack nodig | zwaar | weewx-wdc |
-| Highcharts | **commercieel** voor niet-persoonlijk gebruik | middel | weewx-belchertown |
-| Apache ECharts | Apache-2.0 | middel | aganetwx, weewx-jas |
-| **uPlot** | MIT | **licht (~51KB)** | "Horizon" (in ontwikkeling) — nu gekozen als standaard |
+| ApexCharts | MIT | medium | NeoWX Material (current theme) |
+| Nivo (React) | MIT, but needs a React stack | heavy | weewx-wdc |
+| Highcharts | **commercial** for non-personal use | medium | weewx-belchertown |
+| Apache ECharts | Apache-2.0 | medium | aganetwx, weewx-jas |
+| **uPlot** | MIT | **light (~51KB)** | "Horizon" (in development) — now chosen as default |
 
-**Windroos en regen-heatmap krijgen geen chart-library** (ook geen uPlot) —
-**bevestigd via onderzoek, niet alleen aangenomen**: alle bestaande
-windroos-libraries (react-windrose-chart, react-windrose, DevExtreme,
-Highcharts polar) vereisen React en/of D3; cal-heatmap (dé bekende
-kalender-heatmap-library) vereist zelfs in de nieuwste versie nog steeds
-D3.js als harde dependency. Er bestaat dus geen lichtgewicht kant-en-klaar
-alternatief — de eigen aanpak hieronder is na onderzoek de beste optie, niet
-een compromis:
+**Wind rose and rain heatmap get no chart library** (not even uPlot) —
+**confirmed through research, not just assumed**: all existing wind-rose
+libraries (react-windrose-chart, react-windrose, DevExtreme, Highcharts
+polar) require React and/or D3; cal-heatmap (the well-known calendar-heatmap
+library) still requires D3.js as a hard dependency even in its latest
+version. So there's no lightweight ready-made alternative — the own
+approach below is, after research, the best option, not a compromise:
 
-- **Windroos**: eigen lichtgewicht inline SVG-component — een kompasring
-  waarin Vanilla JS een pijl roteert (`transform: rotate(${windDir}deg)`) en
-  sectoren kleurt op basis van windkracht. **Let op**: moet echt aan
-  `windDir` gekoppeld worden — het huidige designmockup heeft dit nog hard
-  gecodeerd op 45°, zie `MOCKUP_REVIEW.md`.
-- **Regen-kalenderheatmap**: simpel CSS Grid (12×~31 blokjes) met Vanilla JS
-  die `background-color`/opacity zet op basis van neerslaghoeveelheid per dag.
-  Geen chart-library nodig.
+- **Wind rose**: own lightweight inline SVG component — a compass ring in
+  which vanilla JS rotates an arrow (`transform: rotate(${windDir}deg)`) and
+  colors sectors based on wind force. **Note**: this must actually be tied
+  to `windDir` — the current design mockup still has this hardcoded to 45°,
+  see `MOCKUP_REVIEW.md`.
+- **Rain calendar heatmap**: simple CSS Grid (12×~31 cells) with vanilla JS
+  that sets `background-color`/opacity based on rain amount per day. No
+  chart library needed.
 
-**Live-updates**: start met **polling**, niet met MQTT/websockets (zoals
-Belchertown) — te veel extra infra (broker) voor v1. WeeWX herschrijft elke
-archive-interval (2,5–5 min) `day.json`; de browser doet elke minuut een
-`fetch()`, met ETag of timestamp om onnodige re-renders te vermijden.
-**Architectuur wel MQTT-klaar houden**: de update-functie in JS ontkoppelen van
-de databron, bv. één `updateDashboard(data)`-functie die zowel door de
-`fetch()`-poller als later door een `mqtt.on('message', ...)`-callback gevoed
-kan worden. Zo kan MQTT later toegevoegd worden zonder de renderlogica opnieuw
-te bouwen.
+**Live updates**: start with **polling**, not MQTT/websockets (like
+Belchertown) — too much extra infrastructure (a broker) for v1. WeeWX
+rewrites `day.json` every archive interval (2.5–5 min); the browser does a
+`fetch()` every minute, with an ETag or timestamp to avoid unnecessary
+re-renders. **Keep the architecture MQTT-ready though**: decouple the
+update function in JS from the data source, e.g. one
+`updateDashboard(data)` function that can be fed both by the `fetch()`
+poller and later by an `mqtt.on('message', ...)` callback. That way MQTT can
+be added later without rebuilding the render logic.
 
-**MQTT-broker: geen keuze nodig, protocol is generiek** (uitgezocht, niet
-aangenomen). MQTT-over-websockets is een standaard; een browser-client
-(MQTT.js) praat tegen élke standaardconforme broker (Mosquitto, EMQX,
-HiveMQ) — en ook de serverkant (`weewx-mqtt`-extensie, publiceert via
-gewone MQTT-poort 1883) is broker-onafhankelijk via host/poort/gebruiker/
-wachtwoord. **Vane hoeft dus geen broker te kiezen**, alleen generiek
-configureerbaar te maken: `mqtt_broker_ws_url`, `mqtt_topic`, optionele
-`mqtt_username`/`mqtt_password` in `skin.conf`. De enige praktische
-voetnoot: een broker moet een websocket-listener hébben — bij Mosquitto staat
-die niet altijd standaard aan (vereist een expliciete `listener 9001`-regel
-plus `protocol websockets` in `mosquitto.conf`) — dat is een operationele
-instructie voor de gebruiker, geen keuze die in de skin-code vastligt.
+**MQTT broker: no choice needed, the protocol is generic** (researched, not
+assumed). MQTT-over-websockets is a standard; a browser client (MQTT.js)
+talks to any standards-compliant broker (Mosquitto, EMQX, HiveMQ) — and the
+server side too (the `weewx-mqtt` extension, publishes over the regular MQTT
+port 1883) is broker-independent via host/port/user/password. **Vane
+therefore doesn't need to pick a broker**, only needs to make it
+configurable: `mqtt_broker_ws_url`, `mqtt_topic`, optional
+`mqtt_username`/`mqtt_password` in `skin.conf`. The one practical footnote:
+a broker needs a websocket listener — with Mosquitto that isn't always on
+by default (requires an explicit `listener 9001` line plus
+`protocol websockets` in `mosquitto.conf`) — that's an operational
+instruction for the user, not a choice baked into the skin code.
 
-**Let op bij `data/*.json.tmpl` (Cheetah-valkuil)**: Cheetah-loops genereren
-makkelijk een trailing comma, wat `JSON.parse()` in de browser direct laat
-breken. Patroon om aan te houden:
+**Watch out for `data/*.json.tmpl` (a Cheetah pitfall)**: Cheetah loops
+easily produce a trailing comma, which makes the browser's `JSON.parse()`
+fail immediately. Pattern to follow:
 
 ```
 [
@@ -205,110 +204,110 @@ breken. Patroon om aan te houden:
 ]
 ```
 
-## Downsampling-strategie (hoeveel punten per periode)
+## Downsampling strategy (how many points per period)
 
-Losstaand van de chart-benchmark (die ging over hoe snel uPlot punten
-*rendert*): hier gaat het over hoeveel punten de JSON-generator daadwerkelijk
-**wegschrijft**, want dat bepaalt payload-grootte, niet alleen rendertijd. Een
-station met jaren aan 5-minuten-archiefdata mag nooit ruwe records voor
-"Alles" naar de browser sturen.
+Separate from the chart benchmark above (which was about how fast uPlot
+*renders* points): this is about how many points the JSON generator
+actually **writes out**, since that determines payload size, not just render
+time. A station with years of 5-minute archive data must never send raw
+records for the "All" period to the browser.
 
-**WeeWX kan dit al zelf** via de `.series()`-tag met `aggregate_type`/
-`aggregate_interval`, geen eigen aggregatielogica nodig:
+**WeeWX can already do this itself** via the `.series()` tag with
+`aggregate_type`/`aggregate_interval`, no custom aggregation logic needed:
 
 ```
 $month.outTemp.series(aggregate_type='max', aggregate_interval='day').json(time_series='start')
 ```
 
-`.round(ndigits)` toevoegen voor compactere JSON (minder decimalen).
+Add `.round(ndigits)` for a more compact JSON (fewer decimals).
 
-**Aggregatieregels per periode** (vast te leggen in `data/*.json.tmpl`):
+**Aggregation rules per period** (to fix in `data/*.json.tmpl`):
 
-| Periode | Bron | Aggregatie | Circa aantal punten |
+| Period | Source | Aggregation | Approx. point count |
 |---|---|---|---|
-| Dag | ruwe archiefrecords (5 min) | geen | ~288 |
-| Week | ruwe records óf uur-aggregatie | `aggregate_interval=hour` | ~168–2000 |
-| Maand | uur-aggregatie | `aggregate_interval=hour` | ~720 |
-| Jaar | dag-aggregatie | `aggregate_interval=day` | ~365 |
-| Alles | dag- of week-aggregatie, afhankelijk van tijdspanne | `aggregate_interval=day` (of `week` bij >5 jaar) | ~365–3650 |
+| Day | raw archive records (5 min) | none | ~288 |
+| Week | raw records or hourly aggregation | `aggregate_interval=hour` | ~168–2,000 |
+| Month | hourly aggregation | `aggregate_interval=hour` | ~720 |
+| Year | daily aggregation | `aggregate_interval=day` | ~365 |
+| All | daily or weekly aggregation, depending on timespan | `aggregate_interval=day` (or `week` for >5 years) | ~365–3,650 |
 
-Zo blijft élke periode ruim onder de aantallen die in de uPlot-benchmark al
-snel bleken (tienduizenden+), ongeacht hoeveel jaar historie een station
-heeft — de benchmark-resultaten worden dus een marge, niet een aanname die
-je moet opzoeken bij elk nieuw station.
+This keeps every period comfortably below the counts that already showed up
+quickly in the uPlot benchmark (tens of thousands+), regardless of how many
+years of history a station has — so the benchmark results become a margin,
+not an assumption you need to look up for every new station.
 
-## Dev/test-workflow (WSL Ubuntu, geen FTP nodig tijdens bouwen)
+## Dev/test workflow (WSL Ubuntu, no FTP needed while building)
 
-Itereren op de skin hoeft niet via de live server. WeeWX draait volledig
-binnen WSL Ubuntu met de ingebouwde **`Simulator`**-driver (`weewx.drivers.
-simulator`, staat al als voorbeeld in `weewx.conf`) — genereert nepweerdata
-zonder echte hardware:
+Iterating on the skin doesn't need to go through the live server. WeeWX runs
+entirely inside WSL Ubuntu using the built-in **`Simulator`** driver
+(`weewx.drivers.simulator`, already in `weewx.conf` as an example) —
+generates fake weather data without real hardware:
 
-- **`mode = generator`**: stoot LOOP-pakketten zo snel mogelijk uit (i.p.v.
-  te wachten op het echte interval) — vult een testdatabase met maanden/jaren
-  aan data binnen minuten, ideaal om de downsampling-aggregaties en
-  "Alles"-periode meteen met realistische volumes te testen.
-- **`mode = simulator`**: realtime tempo, handiger om live-updates/polling
-  te testen zoals het in productie aanvoelt.
-- Installatie via WeeWX's eigen apt-repository (`weewx.com/apt/`) — een
-  losstaande WeeWX-installatie in WSL, los van de productie-installatie op
-  de live server, dus niets kan daar per ongeluk overschrijven.
-- Gegenereerde HTML bekijken: simpelweg `python3 -m http.server` in de
-  `HTML_ROOT`-map van de WSL-testinstallatie, of direct het bestand openen —
-  geen FTP nodig totdat je daadwerkelijk naar productie deployt.
+- **`mode = generator`**: pushes out LOOP packets as fast as possible
+  (instead of waiting for the real interval) — fills a test database with
+  months/years of data within minutes, ideal for testing the downsampling
+  aggregations and the "All" period straight away with realistic volumes.
+- **`mode = simulator`**: real-time pace, more useful for testing live
+  updates/polling the way it feels in production.
+- Installed via WeeWX's own apt repository (`weewx.com/apt/`) — a standalone
+  WeeWX install in WSL, separate from the production install on the live
+  server, so nothing there can accidentally get overwritten.
+- Viewing the generated HTML: simply `python3 -m http.server` in the
+  `HTML_ROOT` directory of the WSL test install, or open the file directly —
+  no FTP needed until you actually deploy to production.
 
-## `#errorCatcher Echo` is verplicht, geen debug-restant (in de praktijk ontdekt)
+## `#errorCatcher Echo` is required, not a leftover debug flag (discovered in practice)
 
-Zonder `#errorCatcher Echo` bovenaan het template faalt Cheetah's
-**compile-time** naamresolutie met `Reason: cannot find 'format'` zodra een
-template dynamische/optionele constructies bevat — in Vane's geval de
-`has_data`-checks op niet-overal-aanwezige observaties (`luminosity`,
-`lightning_strikes`) en de Python-helperaanroepen (`$vane_sparkline_path()`).
-Dit is geen bug in onze code: Cheetah's standaard NameMapper probeert zulke
-ketens vooraf statisch te verifiëren en geeft daar soms terecht/onterecht
-foutmeldingen op, en de officiële foutmelding zelf verwijst naar deze
-directive als oplossing. **Geverifieerd** (WSL-testinstallatie): met
-`#errorCatcher Echo` genereert de pagina foutloos — de output is doorzocht op
-ingebedde foutteksten (`error`/`exception`/`traceback`/`cannot find`), geen
-treffers. Blijft dus permanent in élk Vane-template, niet alleen tijdens
-ontwikkelen.
+Without `#errorCatcher Echo` at the top of the template, Cheetah's
+**compile-time** name resolution fails with `Reason: cannot find 'format'`
+as soon as a template contains dynamic/optional constructs — in Vane's case
+the `has_data` checks on observations that aren't always present
+(`luminosity`, `lightning_strikes`) and the Python helper calls
+(`$vane_sparkline_path()`). This is not a bug in our own code: Cheetah's
+default NameMapper tries to statically verify such chains upfront and
+sometimes rightly/wrongly throws errors about it, and the official error
+message itself points to this directive as the fix. **Verified** (WSL test
+install): with `#errorCatcher Echo` the page generates error-free — the
+output was searched for embedded error text (`error`/`exception`/
+`traceback`/`cannot find`), no hits. So this stays permanently in every
+Vane template, not just during development.
 
 ## Front-end stack
 
-- **Geen build-stap, geen framework** — vanilla JS + CSS custom properties.
-  Past bij hoe WeeWX zelf werkt (static generatie) en scheelt onderhoud.
-- CSS: custom properties voor het kleursysteem uit `DESIGN_PLAN.md`,
-  `prefers-color-scheme` + handmatige toggle, `localStorage` voor voorkeur.
-- JS: kleine modules — theme-toggle, taal-toggle, uPlot-wrapper per
-  grafiektype, JSON-poller voor live-data.
+- **No build step, no framework** — vanilla JS + CSS custom properties.
+  Fits how WeeWX itself works (static generation) and saves on maintenance.
+- CSS: custom properties for the color system from `DESIGN_PLAN.md`,
+  `prefers-color-scheme` + manual toggle, `localStorage` for the preference.
+- JS: small modules — theme toggle, language toggle, uPlot wrapper per
+  chart type, JSON poller for live data.
 
-## PWA/favicon-set (minimale, actuele set — 2026-praktijk)
+## PWA/favicon set (minimal, current — 2026 practice)
 
-Geen 8+ losse PNG-formaten meer nodig zoals oude checklists suggereren.
-Concreet benodigd:
+No longer need 8+ separate PNG formats like old checklists suggest.
+Concretely needed:
 
-- **`favicon.svg`** — schaalt oneindig, werkt in alle moderne browsers.
-  Kies een neutrale basiskleur die op zowel licht als donker afsteekt
-  (Safari negeert dark-mode media queries in SVG-favicons).
-- **`favicon.ico`** — multi-size fallback-container, voor oudere/overige
-  browsers die geen SVG-favicon ondersteunen.
-- **`apple-touch-icon.png`** (180×180) — vereist voor iOS-homescreen;
-  zonder deze specifieke tag krijgt een toegevoegde bookmark een generieke
-  schermafbeelding i.p.v. het logo.
-- **`manifest.json`** met **192×192 en 512×512 PNG** (geen SVG — Android
-  vereist raster-afbeeldingen voor manifest-iconen) + een **maskable**
-  variant: extra padding rond het icoon zodat launchers 'm veilig cirkelvormig
-  kunnen bijsnijden (veilige kernzone: cirkel van 409×409 binnen het 512-canvas).
+- **`favicon.svg`** — scales infinitely, works in all modern browsers.
+  Choose a neutral base color that stands out on both light and dark
+  (Safari ignores dark-mode media queries in SVG favicons).
+- **`favicon.ico`** — multi-size fallback container, for older/other
+  browsers that don't support SVG favicons.
+- **`apple-touch-icon.png`** (180×180) — required for iOS home screen;
+  without this specific tag, an added bookmark gets a generic screenshot
+  instead of the logo.
+- **`manifest.json`** with **192×192 and 512×512 PNG** (no SVG — Android
+  requires raster images for manifest icons) + a **maskable** variant: extra
+  padding around the icon so launchers can safely crop it into a circle
+  (safe core zone: a circle of 409×409 within the 512 canvas).
 
-## Toegankelijkheid: focus-indicator (design-token, niet optioneel)
+## Accessibility: focus indicator (a design token, not optional)
 
-Uit `MOCKUP_REVIEW.md`: de `all:unset`-knoppen in het designmockup hebben
-geen zichtbare focus-state. WCAG 2.2 (Focus Appearance, SC 2.4.13) geeft
-concrete minimumeisen: een focus-indicator van minstens 2 CSS-pixels dik,
-met een contrastverhouding van minstens 3:1 t.o.v. zowel de niet-gefocuste
-component als de achtergrond. Vast te leggen als CSS-variabele in
-`DESIGN_PLAN.md`, toegepast via `:focus-visible` (niet `:focus`, dat toont
-ook een ring bij een muisklik — niet gewenst):
+From `MOCKUP_REVIEW.md`: the `all:unset` buttons in the design mockup have
+no visible focus state. WCAG 2.2 (Focus Appearance, SC 2.4.13) gives
+concrete minimum requirements: a focus indicator at least 2 CSS pixels
+thick, with a contrast ratio of at least 3:1 against both the unfocused
+component and the background. To be fixed as a CSS variable in
+`DESIGN_PLAN.md`, applied via `:focus-visible` (not `:focus`, which also
+shows a ring on a mouse click — not wanted):
 
 ```css
 :focus-visible {
@@ -317,35 +316,37 @@ ook een ring bij een muisklik — niet gewenst):
 }
 ```
 
-## Meertaligheid (i18n)
+## Multilingual (i18n)
 
-WeeWX heeft dit ingebouwd, geen gettext/PO nodig:
-- `lang/en.conf` als basis, `lang/nl.conf` etc. met een `[Texts]`-sectie
-  (key → vertaling)
-- Taalkeuze via `lang = nl` in `[StdReport]` in `weewx.conf`
-- Bron: [Localization - WeeWX 5.3](https://www.weewx.com/docs/5.3/custom/localization/)
+WeeWX has this built in, no gettext/PO needed:
+- `lang/en.conf` as the base, `lang/nl.conf` etc. with a `[Texts]` section
+  (key → translation)
+- Language selection via `lang = nl` in `[StdReport]` in `weewx.conf`
+- Source: [Localization - WeeWX 5.3](https://www.weewx.com/docs/5.3/custom/localization/)
 
-Starttalen: **NL** (primair), **EN** (voor eventueel delen/publiceren).
+Starting languages: **NL** (primary), **EN** (for eventual sharing/
+publishing).
 
-## Dark/light + accentkleur
+## Dark/light + accent color
 
-- Basis: 1 systeem, automatisch via `prefers-color-scheme`, override via
-  data-attribute + localStorage (zie `DESIGN_PLAN.md`)
-- Instelbare accentkleur via een `skin.conf`-optie (bv. `accent_color = #2f8bff`)
-  die bij het genereren in een `:root { --accent-primary: ... }`-regel wordt
-  geschreven — géén 19 losse vooraf gebakken thema's zoals NeoWX.
+- Base: 1 system, automatic via `prefers-color-scheme`, override via a
+  data attribute + localStorage (see `DESIGN_PLAN.md`)
+- Configurable accent color via a `skin.conf` option (e.g.
+  `accent_color = #2f8bff`) that gets written into a
+  `:root { --accent-primary: ... }` rule at generation time — not 19
+  separate pre-baked themes like NeoWX.
 
-## Mapstructuur (geverifieerd tegen een echte WeeWX-run, WSL)
+## Directory structure (verified against a real WeeWX run, WSL)
 
-**Belangrijke, in de praktijk ontdekte regel**: WeeWX's `CheetahGenerator`
-spiegelt het pad van een template 1-op-1 naar de output-locatie onder
-`HTML_ROOT` (`D/F.E.tmpl` → `HTML_ROOT/D/F.E`, letterlijk zoals de officiële
-docs het ook zeggen). Een `templates/`-submap voor overzicht leek logisch,
-maar zorgt er zo voor dat elke pagina op `HTML_ROOT/templates/index.html`
-uitkomt i.p.v. `HTML_ROOT/index.html` — dus **pagina-templates staan plat in
-de skin-root** (zelfde patroon als NeoWX Material in `reference/`), een
-submap wordt alleen gebruikt waar de output-URL die submap ook echt hoort te
-hebben (bv. `data/` voor de JSON-bestanden, dat is bewust wel gewenst).
+**Important, practically-discovered rule**: WeeWX's `CheetahGenerator`
+mirrors a template's path 1:1 to the output location under `HTML_ROOT`
+(`D/F.E.tmpl` → `HTML_ROOT/D/F.E`, literally as the official docs also say).
+A `templates/` subfolder for organization seemed logical, but that means
+every page ends up at `HTML_ROOT/templates/index.html` instead of
+`HTML_ROOT/index.html` — so **page templates sit flat in the skin root**
+(same pattern as NeoWX Material in `reference/`), a subfolder is only used
+where the output URL actually should have that subfolder too (e.g. `data/`
+for the JSON files, that's deliberately wanted there).
 
 ```
 D:\Weewx_Theme\
@@ -353,17 +354,17 @@ D:\Weewx_Theme\
   docs\
     DESIGN_PLAN.md
     THEME_PLAN.md
-  skin\                      <- de daadwerkelijke WeeWX-skin
+  skin\                      <- the actual WeeWX skin
     skin.conf
-    index.html.tmpl          <- plat in de root, niet in templates\
+    index.html.tmpl          <- flat in the root, not in templates\
     lang\
       en.conf
       nl.conf
-    data\                    <- submap is hier wel bewust (HTML_ROOT/data/*.json)
+    data\                    <- a subfolder is deliberate here (HTML_ROOT/data/*.json)
       day.json.tmpl
       month.json.tmpl
       year.json.tmpl
-    plugins\                 <- #include-only, nooit als eigen [[[naam]]] pagina
+    plugins\                 <- #include-only, never as its own [[[name]]] page
     static\
       css\
       js\
@@ -372,20 +373,20 @@ D:\Weewx_Theme\
           uPlot.min.css
       img\
   bin\user\
-    vane_extras.py            <- search-list-extension
+    vane_extras.py            <- search-list extension
   install.py                 <- ExtensionInstaller
 ```
 
-## Pagina's/generators (koppeling met skin.conf)
+## Pages/generators (mapping to skin.conf)
 
-| Pagina | Template | Generator | Databehoefte |
+| Page | Template | Generator | Data needs |
 |---|---|---|---|
-| Dashboard | `index.html.tmpl` | CheetahGenerator | `$current`, `$day`, + `has_data`-check per tile |
-| Grafieken | `graphs.html.tmpl` + `data/*.json.tmpl` | CheetahGenerator | tijdreeksen per periode, per beschikbare observatie |
-| Archief | `archive.html.tmpl` | CheetahGenerator | `$month`, `$year`, NOAA-teksten |
-| Telemetrie | `telemetry.html.tmpl` | CheetahGenerator | batterij/signaal-observaties, **per stationstype anders** (zie sensor-agnostische architectuur) |
+| Dashboard | `index.html.tmpl` | CheetahGenerator | `$current`, `$day`, + `has_data` check per tile |
+| Graphs | `graphs.html.tmpl` + `data/*.json.tmpl` | CheetahGenerator | time series per period, per available observation |
+| Archive | `archive.html.tmpl` | CheetahGenerator | `$month`, `$year`, NOAA texts |
+| Telemetry | `telemetry.html.tmpl` | CheetahGenerator | battery/signal observations, **differs per station type** (see sensor-agnostic architecture) |
 
-**`skin.conf` bevat de CORE-configuratie**, niet de templates. Voorstel:
+**`skin.conf` holds the CORE configuration**, not the templates. Proposal:
 
 ```ini
 [Vane]
@@ -395,62 +396,63 @@ D:\Weewx_Theme\
     [[Lightning]]
         source = ontladingen        # ontladingen | tempest | none
     [[ExtraSensors]]
-        # automatisch gevuld door bin/user/vane_extras.py — dit blok is alleen
-        # voor overrides (bv. een kolom bewust uitsluiten)
+        # filled automatically by bin/user/vane_extras.py — this block is
+        # only for overrides (e.g. deliberately excluding a column)
         exclude =
 ```
 
-Elke CORE-tile wordt getoetst met `has_data` voordat hij rendert — ontbreekt
-een observatie (bv. geen UV-sensor), dan verschijnt de tile simpelweg niet.
-Alles wat *niet* in de CORE-lijst staat maar wel data heeft, komt automatisch
-in het "Extra sensoren"-paneel via de search-list-extension (zie hierboven).
-Zo werkt dezelfde skin ongewijzigd bij een overstap van Tempest naar Ecowitt,
-zonder dat `skin.conf` handmatig bijgewerkt hoeft te worden.
+Every CORE tile is checked with `has_data` before rendering — if an
+observation is missing (e.g. no UV sensor), the tile simply doesn't appear.
+Everything *not* in the CORE list but that does have data automatically ends
+up in the "Extra sensors" panel via the search-list extension (see above).
+That way the same skin works unchanged when switching from Tempest to
+Ecowitt, without `skin.conf` needing to be manually updated.
 
-## Distributie
+## Distribution
 
-- Verpakken als WeeWX-extensie (`ExtensionInstaller` in `install.py`),
-  installeerbaar via `weectl extension install`.
-- Licentie: voorstel MIT (aansluitend bij de meeste referentie-skins).
+- Packaged as a WeeWX extension (`ExtensionInstaller` in `install.py`),
+  installable via `weectl extension install`.
+- License: proposal MIT (in line with most reference skins).
 
-## Openstaande beslissingen
+## Open decisions
 
-- [x] Windroos/regen-heatmap: eigen inline SVG + CSS Grid, geen ECharts nodig
-- [x] Live-updates v1: polling (`data/current.json.tmpl` + `static/js/
-      dashboard-live.js`, elke 60s), **MQTT nu ook volledig gebouwd**
-      (niet alleen "klaar gehouden") — opt-in via `[Vane][[MQTT]]`,
-      zelfde `updateDashboard(data)`-functie voor beide paden. Getest
-      met een echte lokale broker (amqtt, TCP+websocket-listener) en een
-      echte Chromium-browser (Playwright): bericht gepubliceerd over
-      MQTT → via websockets ontvangen door de gevendorde `mqtt.min.js`
-      → DOM daadwerkelijk bijgewerkt, geen console-errors. Polling-pad
-      apart bevestigd (JSON overschreven, browser haalt 'm opnieuw op).
-      Uit-by-default, dus geen impact voor wie het niet gebruikt.
-- [x] Naam van het theme: **Vane**
-- [x] Licentie: **MIT** (zie `LICENSE`)
-- [x] Charting-strategie: **herzien na benchmark** (`design/chart-test/`) —
-      uPlot wint op elke schaal + is compatibeler, wordt standaard voor alle
-      tijdreeksgrafieken (niet alleen als fallback). Windroos/regen-heatmap
-      blijven wel eigen SVG/CSS Grid (geen tijdreeks-charts).
-- [x] Sensor-afhankelijkheid: **curated CORE-tiles** (`[[Tiles]]` +
-      `has_data`-check) + **automatisch ontdekte extra sensoren** via een
-      eigen search-list-extension (`bin/user/vane_extras.py`, patroon
-      geïnspireerd op aganetwx, niet hun code — GPLv3) — geen `skin.conf`-
-      aanpassing nodig bij stationswissel
-- [x] Eenheidsstelsel v1: vast via `skin.conf` `[[Units]]`, geen runtime-toggle
-- [x] Windroos/regen-heatmap: **onderzoek bevestigt** geen lichtgewicht
-      kant-en-klare library bestaat (alles vereist React/D3) — eigen
-      SVG/CSS Grid is de beste optie, niet een compromis
-- [x] MQTT-broker: **geen keuze nodig** — protocol is generiek
-      (websockets-standaard), Vane maakt het configureerbaar
-      (`mqtt_broker_ws_url`/`mqtt_topic`/credentials), geen vaste broker in
-      de skin-code. Enige operationele check bij invoering: heeft de
-      gebruikte broker (bv. grandmasg.nl-infra) een websocket-listener aan?
-- [x] Scope Tempest-bliksemdata vs. ontladingen.nl: **herzien, slimmer
-      gemaakt** — `[Vane][[Lightning]] source = auto` probeert eerst
-      lokale archiefdata (elke sensor die `lightning_strikes` vult, niet
-      per se Tempest), valt anders terug op een generiek geconfigureerde
-      `api_url` (vast JSON-contract, geen ontladingen.nl-kennis in de
-      core — zie "Persoonlijke integraties" hierboven). Getest: lokaal
-      pad (kolom ontbreekt in test-db → nette fallback), API-pad (nep-
-      server → tegel toont de opgehaalde waarden correct).
+- [x] Wind rose/rain heatmap: own inline SVG + CSS Grid, no ECharts needed
+- [x] Live updates v1: polling (`data/current.json.tmpl` + `static/js/
+      dashboard-live.js`, every 60s), **MQTT is now also fully built**
+      (not just "kept ready") — opt-in via `[Vane][[MQTT]]`, the same
+      `updateDashboard(data)` function for both paths. Tested with a real
+      local broker (amqtt, TCP+websocket listener) and a real Chromium
+      browser (Playwright): message published over MQTT → received via
+      websockets by the vendored `mqtt.min.js` → DOM actually updated, no
+      console errors. Polling path confirmed separately (JSON overwritten,
+      browser fetches it again). Off by default, so no impact for anyone
+      not using it.
+- [x] Theme name: **Vane**
+- [x] License: **MIT** (see `LICENSE`)
+- [x] Charting strategy: **revisited after benchmark** (`design/chart-test/`)
+      — uPlot wins at every scale + is more compatible, becomes the default
+      for all time-series charts (not just as a fallback). Wind rose/rain
+      heatmap remain their own SVG/CSS Grid (not time-series charts).
+- [x] Sensor dependency: **curated CORE tiles** (`[[Tiles]]` +
+      `has_data` check) + **auto-discovered extra sensors** via a custom
+      search-list extension (`bin/user/vane_extras.py`, pattern inspired by
+      aganetwx, not their code — GPLv3) — no `skin.conf` change needed when
+      switching stations
+- [x] Unit system v1: fixed via `skin.conf` `[[Units]]`, no runtime toggle
+- [x] Wind rose/rain heatmap: **research confirms** no lightweight
+      ready-made library exists (everything requires React/D3) — own
+      SVG/CSS Grid is the best option, not a compromise
+- [x] MQTT broker: **no choice needed** — the protocol is generic
+      (websockets is a standard), Vane makes it configurable
+      (`mqtt_broker_ws_url`/`mqtt_topic`/credentials), no fixed broker in
+      the skin code. The only operational check when introducing it: does
+      the broker in use (e.g. grandmasg.nl infra) have a websocket listener
+      turned on?
+- [x] Scope of Tempest lightning data vs. ontladingen.nl: **revisited,
+      made smarter** — `[Vane][[Lightning]] source = auto` first tries
+      local archive data (any sensor that fills `lightning_strikes`, not
+      necessarily Tempest), otherwise falls back to a generically
+      configured `api_url` (a fixed JSON contract, no ontladingen.nl
+      knowledge in core — see "Personal integrations" above). Tested: local
+      path (column missing in test db → clean fallback), API path (fake
+      server → tile correctly shows the fetched values).
