@@ -177,10 +177,20 @@
             #end if
 
             #if $day.outHumidity.has_data
+            #set $hum_gauge = $vane_gauge_arc($current.outHumidity.raw, 0, 100)
             <div class="tile">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/humidity.svg" alt="">$gettext("Humidity")</span>
               <div class="tile-value"><span class="num" data-live="outHumidity">$current.outHumidity.format(add_label=False, format_string="%.0f")</span><span class="unit">%</span></div>
-              <div class="tile-bar"><span style="width:$current.outHumidity.format(add_label=False, format_string='%.0f')%;background:var(--accent-primary)"></span></div>
+              #*
+                Semicircular gauge (see vane_extras.py _gauge_arc) — same
+                info a straight tile-bar gave, just a shape more suited to a
+                0-100% range. Background track is a fixed path (radius
+                never changes), only the colored value arc is computed.
+              *#
+              <svg class="gauge-svg" viewBox="0 0 120 70">
+                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
+                <path class="gauge-value" d="$hum_gauge[0]" stroke="var(--accent-primary)"></path>
+              </svg>
               <div class="tile-range">
                 <span>$gettext("Min") $day.outHumidity.min.format(add_label=False, format_string="%.0f")%</span>
                 <span>$gettext("Max") $day.outHumidity.max.format(add_label=False, format_string="%.0f")%</span>
