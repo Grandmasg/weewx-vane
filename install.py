@@ -14,7 +14,7 @@ def loader():
 class VaneInstaller(ExtensionInstaller):
     def __init__(self):
         super(VaneInstaller, self).__init__(
-            version="0.3.2",
+            version="0.3.3",
             name="Vane",
             description="Modern, sensor-agnostic WeeWX dashboard theme.",
             author="Grandmasg",
