@@ -195,6 +195,9 @@ a:hover {
 .period-btn {
   color: var(--text-muted);
 }
+.period-btn:hover {
+  text-decoration: none;
+}
 .period-btn.active {
   background: var(--accent-primary);
   color: #fff;
