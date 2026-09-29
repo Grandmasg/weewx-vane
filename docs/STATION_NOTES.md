@@ -1,78 +1,80 @@
-# Station Notes — bevindingen uit het echte `weewx.conf`
+# Station Notes — findings from the real `weewx.conf`
 
-Gebaseerd op `reference/weewx-conf/weewx.conf` (actief, WeatherFlow Tempest) en
-`reference/neowx-material/skin.conf`. Doel: Vane's `[[Tiles]]`-config en
-templates baseren op wat er *echt* binnenkomt, niet op aannames uit de
-designmockup (die op een Davis Vantage-vocabulaire lijkt te zijn gebaseerd).
+Based on `reference/weewx-conf/weewx.conf` (live, WeatherFlow Tempest) and
+`reference/neowx-material/skin.conf`. Goal: base Vane's `[[Tiles]]` config and
+templates on what actually comes in, not on assumptions from the design
+mockup (which appears to be based on Davis Vantage vocabulary).
 
-## Opgehelderd via de officiële [Tempest UDP API](https://weatherflow.github.io/Tempest/api/udp/v143/)
+## Clarified via the official [Tempest UDP API](https://weatherflow.github.io/Tempest/api/udp/v143/)
 
-Het `obs_st`-pakket bevat 18 velden in vaste volgorde, o.a.: wind lull, wind
-avg, **wind gust**, wind direction (één, niet apart voor gust), station
+The `obs_st` packet contains 18 fields in a fixed order, including: wind lull,
+wind avg, **wind gust**, wind direction (one, not separate for gust), station
 pressure, air temp, humidity, **illuminance**, UV, solar radiation, rain/min,
-precipitatietype, lightning avg distance, lightning count, battery, report
+precipitation type, lightning avg distance, lightning count, battery, report
 interval.
 
-1. **`luxXXX = illuminance.ST-00018664.obs_st`** — het brondata-pad
-   (`illuminance...`) is correct en bestaat echt in `obs_st` (veld 10/18).
-   Alleen de WeeWX-kant naam `luxXXX` is een ongebruikte placeholder —
-   voorstel: hernoemen naar `luminosity` of `illuminance`.
-2. **`windGust` ontbreekt, maar is wel beschikbaar** (veld 4/18). Vermoedelijke
-   toe te voegen regel, naar analogie van de bestaande `wind_speed`/
-   `wind_direction`-namen uit `rapid_wind`:
+1. **`luxXXX = illuminance.ST-00018664.obs_st`** — the source-data path
+   (`illuminance...`) is correct and genuinely exists in `obs_st` (field
+   10/18). Only the WeeWX-side name `luxXXX` is an unused placeholder —
+   suggestion: rename to `luminosity` or `illuminance`.
+2. **`windGust` is missing, but is available** (field 4/18). Likely line to
+   add, by analogy with the existing `wind_speed`/`wind_direction` names from
+   `rapid_wind`:
 
    ```ini
    windGust = wind_gust.ST-00018664.obs_st
    ```
 
-   Verifieer het exacte veldpad in de weewx-log (`log_raw_packets = True`
-   staat al aan) voordat je 'm vastzet.
-3. **`windGustDir` bestaat niet apart bij Tempest** — er is maar één
-   winddichting-veld per `obs_st`-rapport (geen aparte gust-richting zoals bij
-   Davis). Het designmockup toont dit gescheiden; voor Tempest-stations laat
-   Vane deze widget dus gewoon weg i.p.v. 'm te vervalsen met dezelfde waarde
-   als `windDir`.
+   Verify the exact field path in the weewx log (`log_raw_packets = True` is
+   already on) before locking it in.
+3. **`windGustDir` doesn't exist separately for Tempest** — there's only one
+   wind-direction field per `obs_st` report (no separate gust direction like
+   Davis has). The design mockup shows this as separate; for Tempest
+   stations, Vane therefore simply omits this widget instead of faking it
+   with the same value as `windDir`.
 
-## Wat dit betekent voor Vane's tegel-configuratie
+## What this means for Vane's tile configuration
 
-- **`pressure` wordt geleverd, `barometer` niet direct** — maar
-  `StdWXCalculate` staat op `prefer_hardware` voor `barometer`, dus WeeWX
-  berekent 'm zelf in software. `$current.barometer` werkt dus gewoon, geen
-  actie nodig.
-- **Alle "gevoelstemperatuur"-afgeleiden werken al**: `dewpoint`, `windchill`,
-  `heatindex`, `appTemp`, `cloudbase`, `ET` staan allemaal op
-  `prefer_hardware` in `[StdWXCalculate]` → software-fallback actief. Dus de
-  in `MOCKUP_REVIEW.md` genoemde windchill/heatindex-splitsing kan gewoon.
-- **Bliksem wordt al opgevangen**: `lightning_strikes` en `avg_distance` zijn
-  gemapt vanuit de Tempest zelf (naast de aparte ontladingen.nl-bron uit
-  `THEME_PLAN.md`). **Nog te verifiëren**: dit zijn geen standaard
-  WeeWX-kolomnamen uit `schemas.wview_extended` — check of ze daadwerkelijk in
-  `weewx.sdb` belanden, anders moet het schema hiervoor uitgebreid worden.
-- **Eén batterij, niet twee**: `outTempBatteryStatus` én `windBatteryStatus`
-  wijzen naar hetzelfde Tempest-batterijveld (één geïntegreerde sensorunit).
-  De Telemetrie-tegels uit het mockup ("Zenderbatterij" + "Consolebatterij"
-  apart) zijn Davis-specifiek — voor dit station wordt dat één "Batterij
-  buitenunit"-tegel.
-- **Geen signaal-/ontvangstpercentage gemapt** — het mockup toont
-  "Ontvangst 98,4%" (Davis' `rxCheckPercent`), maar daar is voor deze
-  WeatherFlow-config geen equivalent voor. Telemetrie-pagina toont deze tegel
-  dus niet voor dit station (bevestigt de sensor-agnostische aanpak uit
-  `THEME_PLAN.md` — dit is precies zo'n geval).
+- **`pressure` is provided, `barometer` isn't directly** — but
+  `StdWXCalculate` is set to `prefer_hardware` for `barometer`, so WeeWX
+  computes it itself in software. `$current.barometer` therefore just works,
+  no action needed.
+- **All "feels-like temperature" derivatives already work**: `dewpoint`,
+  `windchill`, `heatindex`, `appTemp`, `cloudbase`, `ET` are all set to
+  `prefer_hardware` in `[StdWXCalculate]` → software fallback active. So the
+  windchill/heatindex split mentioned in `MOCKUP_REVIEW.md` is simply
+  possible.
+- **Lightning is already captured**: `lightning_strikes` and `avg_distance`
+  are mapped straight from the Tempest itself (alongside the separate
+  ontladingen.nl source from `THEME_PLAN.md`). **Still to verify**: these
+  aren't standard WeeWX column names from `schemas.wview_extended` — check
+  whether they actually end up in `weewx.sdb`, otherwise the schema needs to
+  be extended for this.
+- **One battery, not two**: `outTempBatteryStatus` and `windBatteryStatus`
+  both point to the same Tempest battery field (one integrated sensor unit).
+  The Telemetry tiles from the mockup ("Transmitter battery" + "Console
+  battery" separately) are Davis-specific — for this station that becomes one
+  "Outdoor unit battery" tile.
+- **No signal/reception percentage mapped** — the mockup shows "Reception
+  98.4%" (Davis' `rxCheckPercent`), but there's no equivalent for this
+  WeatherFlow config. The Telemetry page therefore doesn't show this tile for
+  this station (confirms the sensor-agnostic approach from `THEME_PLAN.md` —
+  this is exactly such a case).
 
-## Wat bevestigd is (geen wijziging nodig)
+## What's confirmed (no change needed)
 
-- `unit_system = metric` en `lang = nl` staan al goed in `weewx.conf`,
-  overeenkomstig `THEME_PLAN.md`'s keuze voor een vast eenheidsstelsel.
+- `unit_system = metric` and `lang = nl` are already set correctly in
+  `weewx.conf`, matching `THEME_PLAN.md`'s choice of a fixed unit system.
 - Database: single-station SQLite (`weewx.sdb`), schema `wview_extended`.
-- Deploy-pad is al ingericht: FTPS naar `weerstationlangezwaag.nl` (zie
-  `[[FTP]]` in `weewx.conf`) — Vane hoeft dus geen nieuwe deploy-methode te
-  verzinnen, alleen straks als extra/vervangende `[[VaneReport]]`-stanza in
-  `[StdReport]` worden toegevoegd naast (of i.p.v.) `StandardReport`.
-- **NeoWX Material doet géén sensor-detectie** — het `[Extras]`-blok in
-  `skin.conf` is puur handmatige yes/no-toggles (bv. `show_almanac = yes`),
-  geen `has_data`-check. Bevestigt dat Vane's `has_data`-gedreven
-  `[[Tiles]]`-aanpak een echte verbetering is, niet iets dat al elders is
-  opgelost.
-- Geen `ImageGenerator` in NeoWX's `skin.conf` — bevestigt dat ook het huidige
-  theme al puur client-side rendert, geen server-PNG's. Sluit aan bij Vane's
-  eigen datastrategie.
+- The deploy path is already set up: FTPS to `weerstationlangezwaag.nl` (see
+  `[[FTP]]` in `weewx.conf`) — Vane therefore doesn't need to invent a new
+  deploy method, just needs to be added later as an extra/replacement
+  `[[VaneReport]]` stanza in `[StdReport]` alongside (or instead of)
+  `StandardReport`.
+- **NeoWX Material does no sensor detection** — the `[Extras]` block in
+  `skin.conf` is purely manual yes/no toggles (e.g. `show_almanac = yes`),
+  no `has_data` check. Confirms that Vane's `has_data`-driven `[[Tiles]]`
+  approach is a real improvement, not something already solved elsewhere.
+- No `ImageGenerator` in NeoWX's `skin.conf` — confirms that the current
+  theme already renders purely client-side too, no server-side PNGs. Aligns
+  with Vane's own data strategy.

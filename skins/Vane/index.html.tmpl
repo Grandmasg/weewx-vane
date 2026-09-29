@@ -292,13 +292,13 @@
         </div>
 
         #*
-          Compact windroos/regenkalender — hergebruik van de Archief-pagina's
-          $vane_windrose (al berekend per pagina-generatie, geen extra query)
-          en $vane_rain_color/.cal-grid CSS. $vane_windrose is hier all-time
-          (zelfde [[ToDate]]-timespan als deze pagina, zie skin.conf
-          [CheetahGenerator]), de regenkalender is bewust beperkt tot de
-          laatste 7 dagen (i.p.v. de hele kalendermaand op Archief) om
-          compact te blijven naast de tegel-rij hierboven.
+          Compact wind rose/rain calendar — reuses the Archive page's
+          $vane_windrose (already computed per page generation, no extra
+          query) and $vane_rain_color/.cal-grid CSS. $vane_windrose here is
+          all-time (same [[ToDate]] timespan as this page, see skin.conf
+          [CheetahGenerator]); the rain calendar is deliberately limited to
+          the last 7 days (instead of the whole calendar month on Archive)
+          to stay compact next to the tile row above.
         *#
         #if $vane_windrose.has_data or $day.rain.has_data
         <div class="row-wrap">
