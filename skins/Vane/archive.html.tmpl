@@ -58,15 +58,17 @@
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <a class="pill noaa-link" href="$month.dateTime.format('NOAA/NOAA-%Y-%m.txt')">$gettext('NOAA (month)')</a>
             <a class="pill noaa-link" href="$year.dateTime.format('NOAA/NOAA-%Y.txt')">$gettext('NOAA (year)')</a>
-            <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)">
+            <select class="lang-select" title="$gettext('Switch language')" aria-label="$gettext('Switch language')">
               #for $lcode, $lsubdir in $Vane.Languages.items()
+              #set $lname = $Vane.LanguageNames.get($lcode, $lcode.upper())
               #if $lcode == $lang
-              <span class="period-btn active" style="display:inline-block;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500" aria-current="page">$lcode.upper()</span>
+              <option value="" selected>$lname</option>
               #else
               #set $lseg = $lsubdir + '/' if $lsubdir else ''
-              <a class="period-btn" href="${Vane.root_href}${lseg}archive.html" title="$gettext('Switch language')" style="display:inline-block;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500;text-decoration:none">$lcode.upper()</a>
+              <option value="${Vane.root_href}${lseg}archive.html">$lname</option>
               #end if
               #end for
+            </select>
             </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
               <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
@@ -271,6 +273,7 @@
 </dialog>
 
 <script src="static/js/theme-toggle.js"></script>
+<script src="static/js/lang-select.js"></script>
 <script src="static/js/chart-tooltip.js"></script>
 <script src="static/js/sortable-table.js"></script>
 <script src="static/js/noaa-modal.js"></script>
