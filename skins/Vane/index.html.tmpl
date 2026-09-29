@@ -143,16 +143,18 @@
             </div>
             #set $temps = [$r.outTemp.raw for $r in $span(hour_delta=24).records if $r.outTemp.raw is not None]
             #*
-              Taller than the tile sparklines (150 vs 28-64px) — the
+              Taller than the tile sparklines (110 vs 28-64px) — the
               hero-card's height is dictated by the tiles-grid next to it
               (3 rows of tiles), which leaves a lot of vertical room here;
               a bigger, more readable trend chart fills it with actual
-              signal instead of blank space.
+              signal instead of blank space. A second, smaller UV-index
+              chart below it (same "vertelt weinig" fix) uses the rest of
+              that room instead of leaving it empty.
             *#
-            #set $spark = $vane_sparkline_path($temps, 300, 150)
+            #set $spark = $vane_sparkline_path($temps, 300, 110)
             #if $spark[0]
             <div style="display:flex;flex-direction:column;gap:6px">
-              <svg viewBox="0 0 300 150" preserveAspectRatio="none" style="width:100%;height:150px;display:block;overflow:visible">
+              <svg viewBox="0 0 300 110" preserveAspectRatio="none" style="width:100%;height:110px;display:block;overflow:visible">
                 <path d="$spark[1]" fill="var(--accent-primary)" opacity="0.18"></path>
                 <path d="$spark[0]" style="fill:none;stroke:var(--accent-primary);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
               </svg>
@@ -162,12 +164,116 @@
               </div>
             </div>
             #end if
+            #if $day.UV.has_data
+            #set $uv_vals = [$r.UV.raw for $r in $span(hour_delta=24).records if $r.UV.raw is not None]
+            #set $uv_spark = $vane_sparkline_path($uv_vals, 300, 60)
+            #if $uv_spark[0]
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:16px">
+              <span class="uppercase-label">$gettext("UV index") &middot; $gettext("Last 24 hours")</span>
+              <svg viewBox="0 0 300 60" preserveAspectRatio="none" style="width:100%;height:60px;display:block;overflow:visible">
+                <path d="$uv_spark[1]" fill="var(--accent-wind)" opacity="0.18"></path>
+                <path d="$uv_spark[0]" style="fill:none;stroke:var(--accent-wind);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
+              </svg>
+            </div>
+            #end if
+            #end if
             #else
             <div class="empty-state">$gettext("Not enough data yet for this view")</div>
             #end if
           </section>
 
           <div class="tiles-grid">
+
+            #if $day.outHumidity.has_data
+            #*
+              Fixed 0-100 scale (the gray track = full possible range).
+              The blue band marks where TODAY's min-max sits within it
+              (vane_gauge_range_band); the red tick marks the current
+              value (vane_gauge_tick) — three pieces of information at
+              once: absolute context, today's actual spread, and now.
+            *#
+            #set $hum_band = $vane_gauge_range_band($day.outHumidity.min.raw, $day.outHumidity.max.raw, 0, 100)
+            #set $hum_gauge = $vane_gauge_tick($current.outHumidity.raw, 0, 100)
+            <div class="tile">
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/humidity.svg" alt="">$gettext("Humidity")</span>
+              <div class="tile-value"><span class="num" data-live="outHumidity">$current.outHumidity.format(add_label=False, format_string="%.0f")</span><span class="unit">%</span></div>
+              #* Empty placeholder sub-line — Luchtdruk/UV both have one
+                 line of sub-text here (trend / radiation), and without a
+                 matching reserved line here the gauge below started at a
+                 different height in this tile than its row-mates. *#
+              <span class="tile-sub">&nbsp;</span>
+              <svg class="gauge-svg" viewBox="0 0 120 70">
+                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
+                <path class="gauge-band" d="$hum_band[0]"></path>
+                <path class="gauge-tick" d="$hum_gauge[0]" stroke="var(--accent-wind)"></path>
+              </svg>
+              <div class="tile-range">
+                <span>$gettext("Min") $day.outHumidity.min.format(add_label=False, format_string="%.0f")%</span>
+                <span>$gettext("Max") $day.outHumidity.max.format(add_label=False, format_string="%.0f")%</span>
+              </div>
+            </div>
+            #end if
+
+            #if $day.barometer.has_data
+            #*
+              Fixed 950-1055 hPa scale (worldwide sea-level extremes) —
+              same three-layer pattern as the humidity gauge: gray track
+              = full context, blue band = today's min-max, red tick =
+              current value.
+            *#
+            #set $baro_band = $vane_gauge_range_band($day.barometer.min.raw, $day.barometer.max.raw, 950, 1055)
+            #set $baro_gauge = $vane_gauge_tick($current.barometer.raw, 950, 1055)
+            <div class="tile">
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/barometer.svg" alt="">$gettext("Pressure")</span>
+              <div class="tile-value"><span class="num" data-live="barometer">$current.barometer.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.barometer</span></div>
+              #set $ptrend = $trend.barometer.raw
+              <span class="tile-sub">
+                #if $ptrend is not None and $ptrend < -0.1
+                &darr; $gettext("falling")
+                #else if $ptrend is not None and $ptrend > 0.1
+                &uarr; $gettext("rising")
+                #else
+                &rarr; $gettext("steady")
+                #end if
+              </span>
+              <svg class="gauge-svg" viewBox="0 0 120 70">
+                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
+                <path class="gauge-band" d="$baro_band[0]"></path>
+                <path class="gauge-tick" d="$baro_gauge[0]" stroke="var(--accent-wind)"></path>
+              </svg>
+              <div class="tile-range">
+                <span>$gettext("Min") $day.barometer.min.format(add_label=False, format_string="%.1f")$unit.label.barometer</span>
+                <span>$gettext("Max") $day.barometer.max.format(add_label=False, format_string="%.1f")$unit.label.barometer</span>
+              </div>
+            </div>
+            #end if
+
+            #if $day.UV.has_data
+            #*
+              Same three-layer gauge as humidity/pressure: fixed 0-11 gray
+              track, blue band for today's min-max, red tick for the
+              current value — plus a Min/Max text row, consistent with
+              those two tiles.
+            *#
+            #set $uv_band = $vane_gauge_range_band($day.UV.min.raw, $day.UV.max.raw, 0, 11)
+            #set $uv_gauge = $vane_gauge_tick($current.UV.raw, 0, 11)
+            <div class="tile">
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext("UV index")</span>
+              <div class="tile-value"><span class="num" data-live="UV">$current.UV.format(add_label=False, format_string="%.0f")</span></div>
+              #if $day.radiation.has_data
+              <span class="tile-sub"><span data-live="radiation">$current.radiation.format(add_label=False, format_string="%.0f")</span> $unit.label.radiation</span>
+              #end if
+              <svg class="gauge-svg" viewBox="0 0 120 70">
+                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
+                <path class="gauge-band" d="$uv_band[0]"></path>
+                <path class="gauge-tick" d="$uv_gauge[0]" stroke="var(--accent-wind)"></path>
+              </svg>
+              <div class="tile-range">
+                <span>$gettext("Min") $day.UV.min.format(add_label=False, format_string="%.0f")</span>
+                <span>$gettext("Max") $day.UV.max.format(add_label=False, format_string="%.0f")</span>
+              </div>
+            </div>
+            #end if
 
             #if $day.windSpeed.has_data
             <div class="tile">
@@ -189,6 +295,13 @@
                 <span>$gettext("Max") $day.windSpeed.max.format(add_label=False, format_string="%.0f")$unit.label.windSpeed</span>
               </div>
               #set $wind_vals = [$r.windSpeed.raw for $r in $span(hour_delta=24).records if $r.windSpeed.raw is not None]
+              #*
+                Kept at the default tile-sparkline height (28px) —
+                auto-scaling the Y-axis to a small range (e.g. a calm
+                0-8 km/u day) means a taller chart just visually amplifies
+                minor noise into what looks like big swings, misleading
+                rather than more informative.
+              *#
               #set $wind_spark = $vane_sparkline_path($wind_vals, 120, 28)
               #if $wind_spark[0]
               <svg class="tile-spark" viewBox="0 0 120 28" preserveAspectRatio="none">
@@ -199,80 +312,12 @@
             </div>
             #end if
 
-            #if $day.outHumidity.has_data
-            #set $hum_gauge = $vane_gauge_arc($current.outHumidity.raw, 0, 100)
-            <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/humidity.svg" alt="">$gettext("Humidity")</span>
-              <div class="tile-value"><span class="num" data-live="outHumidity">$current.outHumidity.format(add_label=False, format_string="%.0f")</span><span class="unit">%</span></div>
-              #*
-                Semicircular gauge (see vane_extras.py _gauge_arc) — same
-                info a straight tile-bar gave, just a shape more suited to a
-                0-100% range. Background track is a fixed path (radius
-                never changes), only the colored value arc is computed.
-              *#
-              <svg class="gauge-svg" viewBox="0 0 120 70">
-                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
-                <path class="gauge-value" d="$hum_gauge[0]" stroke="var(--accent-primary)"></path>
-              </svg>
-              <div class="tile-range">
-                <span>$gettext("Min") $day.outHumidity.min.format(add_label=False, format_string="%.0f")%</span>
-                <span>$gettext("Max") $day.outHumidity.max.format(add_label=False, format_string="%.0f")%</span>
-              </div>
-            </div>
-            #end if
-
-            #if $day.barometer.has_data
-            #set $baro_lo = float($Vane.Gauges.get('pressure_lo_hpa', 950))
-            #set $baro_hi = float($Vane.Gauges.get('pressure_hi_hpa', 1055))
-            #set $baro_gauge = $vane_gauge_pointer_arc($current.barometer.raw, $baro_lo, $baro_hi)
-            <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/barometer.svg" alt="">$gettext("Pressure")</span>
-              <div class="tile-value"><span class="num" data-live="barometer">$current.barometer.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.barometer</span></div>
-              #set $ptrend = $trend.barometer.raw
-              <span class="tile-sub">
-                #if $ptrend is not None and $ptrend < -0.1
-                &darr; $gettext("falling")
-                #else if $ptrend is not None and $ptrend > 0.1
-                &uarr; $gettext("rising")
-                #else
-                &rarr; $gettext("steady")
-                #end if
-              </span>
-              <svg class="gauge-svg" viewBox="0 0 120 70">
-                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
-                <path class="gauge-value" d="$baro_gauge[0]" stroke="var(--accent-primary)"></path>
-              </svg>
-              <div class="tile-range">
-                <span>$gettext("Min") $day.barometer.min.format(add_label=False, format_string="%.1f")$unit.label.barometer</span>
-                <span>$gettext("Max") $day.barometer.max.format(add_label=False, format_string="%.1f")$unit.label.barometer</span>
-              </div>
-            </div>
-            #end if
-
             #if $day.rain.has_data
             <div class="tile">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext("Rain")</span>
               <div class="tile-value"><span class="num" style="color:var(--accent-storm)">$day.rain.sum.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.rain $gettext("today")</span></div>
-              <span class="tile-sub">$month.rain.sum.format(add_label=False, format_string="%.0f")$unit.label.rain $gettext("this month") &middot; $year.rain.sum.format(add_label=False, format_string="%.0f")$unit.label.rain $gettext("this year")</span>
-            </div>
-            #end if
-
-            #if $day.UV.has_data
-            #set $uv_col = $vane_uv_color($current.UV.raw)
-            #set $uv_gauge = $vane_gauge_arc($current.UV.raw, 0, 11)
-            <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext("UV index")</span>
-              <div class="tile-value"><span class="num" data-live="UV" style="color:$uv_col">$current.UV.format(add_label=False, format_string="%.0f")</span></div>
-              <span class="tile-sub">
-                $gettext("Max today") $day.UV.max.format(add_label=False, format_string="%.0f")
-                #if $day.radiation.has_data
-                &middot; <span data-live="radiation">$current.radiation.format(add_label=False, format_string="%.0f")</span> $unit.label.radiation
-                #end if
-              </span>
-              <svg class="gauge-svg" viewBox="0 0 120 70">
-                <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
-                <path class="gauge-value" d="$uv_gauge[0]" stroke="$uv_col"></path>
-              </svg>
+              <span class="tile-sub">$month.rain.sum.format(add_label=False, format_string="%.0f")$unit.label.rain $gettext("this month")</span>
+              <span class="tile-sub">$year.rain.sum.format(add_label=False, format_string="%.0f")$unit.label.rain $gettext("this year")</span>
             </div>
             #end if
 
@@ -280,6 +325,15 @@
             <div class="tile">
               <span class="tile-label"><span class="tile-dot" style="background:var(--accent-wind)"></span>$gettext("Luminosity")</span>
               <div class="tile-value"><span class="num" data-live="luminosity">$current.luminosity.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.luminosity</span></div>
+            </div>
+            #end if
+
+            #if $day.ET.has_data and $day.ET.sum.raw
+            <div class="tile">
+              <span class="tile-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext("Evapotranspiration")</span>
+              <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET $gettext("today")</span></div>
+              <span class="tile-sub">$month.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this month")</span>
+              <span class="tile-sub">$year.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this year")</span>
             </div>
             #end if
 
@@ -291,14 +345,6 @@
                 <span>$gettext("Min") $day.cloudbase.min.format(add_label=False, format_string="%.0f")$unit.label.cloudbase</span>
                 <span>$gettext("Max") $day.cloudbase.max.format(add_label=False, format_string="%.0f")$unit.label.cloudbase</span>
               </div>
-            </div>
-            #end if
-
-            #if $day.ET.has_data and $day.ET.sum.raw
-            <div class="tile">
-              <span class="tile-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext("Evapotranspiration")</span>
-              <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET $gettext("today")</span></div>
-              <span class="tile-sub">$month.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this month") &middot; $year.ET.sum.format(add_label=False, format_string="%.1f")$unit.label.ET $gettext("this year")</span>
             </div>
             #end if
 
@@ -373,7 +419,7 @@
               #for $sector in $vane_windrose.sectors
               #if $sector.freq_pct > 0
               #set $tt = "%s — %s%% · %s %s" % ($sector.label, $round($sector.freq_pct, 1), $round($sector.avg_speed, 1), $unit.label.windSpeed)
-              <path d="$sector.path_d" fill="$sector.color" opacity="0.88" data-tooltip="$tt"></path>
+              <path d="$sector.path_d" fill="var(--accent-primary)" opacity="0.88" data-tooltip="$tt"></path>
               #end if
               #end for
               #for $lp in $vane_windrose.label_points
@@ -412,38 +458,63 @@
             <span class="tile-sub">$gettext("Max"): $vane_wind_vector.scale_max $unit.label.windSpeed</span>
           </section>
           #end if
-          #if $day.rain.has_data
+          #if $day.rain.has_data or $year.outTemp.has_data
+          #*
+            One 7-column bar chart, bar + day-number stacked per column —
+            replaces the earlier separate "colored day cells" grid plus a
+            disconnected bar row below it, which read as two unrelated
+            widgets stacked with a gap, not one chart. Bar height is
+            relative to this week's own max, not a fixed scale (a 2mm week
+            shouldn't look identical to a 20mm week).
+          *#
+          #set $week_rains = [($d.rain.sum.raw or 0) for $d in $span(day_delta=6).days]
+          #set $week_max = max($week_rains)
+          #*
+            Rain-week bars and yearly records merged into one card (each
+            still individually gated by its own #if) — as two separate
+            cards they each had visible leftover space; side by side they
+            fill one card's width and height properly.
+          *#
           <section class="card" style="flex:1 1 260px;min-width:0">
-            <span class="uppercase-label">$gettext("Rain") &middot; $gettext("Last 7 days")</span>
-            <div class="cal-grid">
-              #for $d in $span(day_delta=6).days
-              #set $mm = $d.rain.sum.raw
-              #set $mm_display = $round($mm, 1) if $mm is not None else 0
-              #set $day_num = $d.dateTime.format("%d")
-              #set $is_today = $d.dateTime.format("%Y-%m-%d") == $current.dateTime.format("%Y-%m-%d")
-              #set $cell_class = "cal-cell is-today" if $is_today else "cal-cell"
-              #set $cell_text = "color:#fff;" if ($mm is not None and $mm > 0) else ""
-              <div class="$cell_class" style="${cell_text}background:$vane_rain_color($mm)" title="$day_num: $mm_display mm">$day_num</div>
-              #end for
-            </div>
-          </section>
-          #end if
-          #if $year.outTemp.has_data
-          <section class="card" style="flex:1 1 260px;min-width:0">
-            <span class="uppercase-label">$gettext("Records") &middot; $gettext("this year")</span>
-            <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-              <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span class="tile-sub">$gettext("Highest")</span>
-                <span><strong style="font-variant-numeric:tabular-nums">$year.outTemp.max.format(add_label=False, format_string="%.1f")&deg;</strong> <span class="tile-sub">$year.outTemp.maxtime.format("%d-%m")</span></span>
+            <div style="display:flex;flex-direction:column;justify-content:space-between;gap:18px;height:100%">
+              #if $day.rain.has_data
+              <div style="min-width:0">
+                <span class="uppercase-label">$gettext("Rain") &middot; $gettext("Last 7 days")</span>
+                <div style="display:flex;align-items:flex-end;gap:8px;height:90px;margin-top:8px">
+                  #for $d in $span(day_delta=6).days
+                  #set $mm = $d.rain.sum.raw
+                  #set $mm_val = $mm if $mm is not None else 0
+                  #set $bar_pct = min(100, $mm_val / $week_max * 100) if $week_max > 0 else 0
+                  #set $bar_day_num = $d.dateTime.format('%d')
+                  #set $bar_mm_display = $round($mm_val, 1)
+                  #set $is_today = $d.dateTime.format("%Y-%m-%d") == $current.dateTime.format("%Y-%m-%d")
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%" title="$bar_day_num: $bar_mm_display mm">
+                    <div style="width:100%;height:${bar_pct}%;min-height:2px;border-radius:3px 3px 0 0;background:$vane_rain_color($mm)"></div>
+                    <span class="tile-sub" style="#if $is_today#color:var(--accent-primary);font-weight:700#end if#">$bar_day_num</span>
+                  </div>
+                  #end for
+                </div>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span class="tile-sub">$gettext("Lowest")</span>
-                <span><strong style="font-variant-numeric:tabular-nums">$year.outTemp.min.format(add_label=False, format_string="%.1f")&deg;</strong> <span class="tile-sub">$year.outTemp.mintime.format("%d-%m")</span></span>
-              </div>
-              #if $year.windGust.has_data
-              <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span class="tile-sub">$gettext("gusts")</span>
-                <span><strong style="font-variant-numeric:tabular-nums">$year.windGust.max.format(add_label=False, format_string="%.0f")$unit.label.windSpeed</strong> <span class="tile-sub">$year.windGust.maxtime.format("%d-%m")</span></span>
+              #end if
+              #if $year.outTemp.has_data
+              <div style="min-width:0">
+                <span class="uppercase-label">$gettext("Records") &middot; $gettext("this year")</span>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <span class="tile-sub">$gettext("Highest")</span>
+                    <span><strong style="font-variant-numeric:tabular-nums">$year.outTemp.max.format(add_label=False, format_string="%.1f")&deg;</strong> <span class="tile-sub">$year.outTemp.maxtime.format("%d-%m")</span></span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <span class="tile-sub">$gettext("Lowest")</span>
+                    <span><strong style="font-variant-numeric:tabular-nums">$year.outTemp.min.format(add_label=False, format_string="%.1f")&deg;</strong> <span class="tile-sub">$year.outTemp.mintime.format("%d-%m")</span></span>
+                  </div>
+                  #if $year.windGust.has_data
+                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <span class="tile-sub">$gettext("gusts")</span>
+                    <span><strong style="font-variant-numeric:tabular-nums">$year.windGust.max.format(add_label=False, format_string="%.0f")$unit.label.windSpeed</strong> <span class="tile-sub">$year.windGust.maxtime.format("%d-%m")</span></span>
+                  </div>
+                  #end if
+                </div>
               </div>
               #end if
             </div>

@@ -408,6 +408,9 @@ a:hover {
    Cards & tiles
    --------------------------------------------------------------------------- */
 .card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 22px;
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -418,7 +421,6 @@ a:hover {
 .tile {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 10px;
   padding: 16px;
   border-radius: var(--radius-tile);
@@ -504,9 +506,30 @@ a:hover {
   stroke-width: 10;
   stroke-linecap: round;
 }
+/* Today's min-max band (vane_gauge_range_band) drawn as a blue segment
+   on top of the neutral gray .gauge-track — the track stays the fixed,
+   full-scale context (e.g. 0-100% humidity), the band shows where
+   today's actual range sits within it. */
+.gauge-band {
+  fill: none;
+  stroke: var(--accent-primary);
+  stroke-width: 10;
+  stroke-linecap: round;
+  opacity: .55;
+}
 .gauge-value {
   fill: none;
   stroke-width: 10;
+  stroke-linecap: round;
+  transition: d .3s ease;
+}
+
+/* Straight radial tick/needle (vane_gauge_tick) — thinner than
+   .gauge-value on purpose: a clean position marker crossing the track,
+   not a thick blob riding on top of it. */
+.gauge-tick {
+  fill: none;
+  stroke-width: 1.5;
   stroke-linecap: round;
   transition: d .3s ease;
 }
@@ -540,7 +563,7 @@ a:hover {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   gap: 18px;
 }
 
