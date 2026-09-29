@@ -62,7 +62,7 @@
             <span class="pill"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Operational')</span>
             <select class="lang-select" title="$gettext('Switch language')" aria-label="$gettext('Switch language')">
               #for $lcode, $lsubdir in $Vane.Languages.items()
-              #set $lname = $Vane.LanguageNames.get($lcode, $lcode.upper())
+              #set $lname = $vane_language_name($lcode)
               #if $lcode == $lang
               <option value="" selected>$lname</option>
               #else

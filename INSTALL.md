@@ -76,18 +76,20 @@ By default, Vane installs two reports: `[[Vane]]` (Dutch) and `[[VaneEN]]`
 "Nederlands"/"English", not codes) driven entirely by `skin.conf` — no
 template changes needed to add a language.
 
-To add a third language (e.g. German), 4 things need to agree on the same
+To add a third language (e.g. German), 3 things need to agree on the same
 code — see `docs/THEME_PLAN.md`'s "Multilingual (i18n)" section for the
 full explanation, in short:
 
-1. `skin.conf` `[Vane][[Languages]]`: add `de = de` (code → output subfolder).
-2. `skin.conf` `[Vane][[LanguageNames]]`: add `de = 🇩🇪 Deutsch` (what the
-   `<select>` shows — this is what makes the new language actually appear
-   in the switcher; adding `lang/de.conf` alone does **not** do this).
-3. `install.py`: copy the `[[VaneEN]]` `StdReport` stanza to a new
+1. `skin.conf` `[Vane][[Languages]]`: add `de = de` (code → output
+   subfolder). **This alone is enough to make it appear in the `<select>`**
+   for common languages — `bin/user/vane_extras.py` has a built-in table of
+   native names (German, French, Spanish, ...) it falls back to. Only add
+   an entry to `[Vane][[LanguageNames]]` if you want to override that name
+   or the code isn't in the built-in table at all.
+2. `install.py`: copy the `[[VaneEN]]` `StdReport` stanza to a new
    `[[VaneDE]]` (new `HTML_ROOT`, `lang`, `Vane.root_href`), then rebuild
    the zip (`python build.py`) and reinstall (see section 4 above).
-4. `lang/de.conf`: the actual translations — copy `lang/en.conf` and
+3. `lang/de.conf`: the actual translations — copy `lang/en.conf` and
    translate the `[Texts]` section (plus any locale-specific overrides,
    see `lang/nl.conf` for the pattern).
 
