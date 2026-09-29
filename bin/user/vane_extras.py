@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 # the generated HTML already has new markup, which can visibly break the
 # layout until the user hard-refreshes. Bump this alongside install.py's
 # version whenever static/css or static/js changes.
-VANE_VERSION = "0.3.4"
+VANE_VERSION = "0.3.5"
 
 
 # CORE observations get their own designed tile (see DESIGN_PLAN.md) and
