@@ -509,7 +509,14 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         a1 = math.pi - math.pi * frac
         x0, y0 = cx + r * math.cos(a0), cy - r * math.sin(a0)
         x1, y1 = cx + r * math.cos(a1), cy - r * math.sin(a1)
-        large_arc = 1 if frac > 0.5 else 0
+        # The swept angle here is always frac*180 degrees, i.e. at most
+        # 180 -- never the ">180 degree" case the SVG large-arc-flag
+        # refers to. This must stay 0 for every frac: flipping it to 1
+        # past frac=0.5 (an earlier bug) made the renderer draw the
+        # OTHER, reflex arc instead -- ballooning up and out of the
+        # semicircle's bounds and overlapping the tile-value text above
+        # it, exactly the "vocht-boog dekt het getal af" report.
+        large_arc = 0
         # A zero-length arc (frac==0) still needs a valid path so the
         # element doesn't render as a stray dot — draw an explicit
         # zero-length "line" at the start point instead of omitting it.

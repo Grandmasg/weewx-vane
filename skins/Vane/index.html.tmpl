@@ -222,7 +222,9 @@
             #end if
 
             #if $day.barometer.has_data
-            #set $baro_gauge = $vane_gauge_pointer_arc($current.barometer.raw, 970, 1040)
+            #set $baro_lo = float($Vane.Gauges.get('pressure_lo_hpa', 950))
+            #set $baro_hi = float($Vane.Gauges.get('pressure_hi_hpa', 1055))
+            #set $baro_gauge = $vane_gauge_pointer_arc($current.barometer.raw, $baro_lo, $baro_hi)
             <div class="tile">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/barometer.svg" alt="">$gettext("Pressure")</span>
               <div class="tile-value"><span class="num" data-live="barometer">$current.barometer.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.barometer</span></div>
