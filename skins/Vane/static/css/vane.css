@@ -422,6 +422,34 @@ a:hover {
   border-radius: 4px;
 }
 
+/* ---------------------------------------------------------------------------
+   Semicircular gauge (Vocht-tegel e.a.) — value arc pre-computed in
+   vane_extras.py (_gauge_arc, same "trig belongs in Python, not Cheetah"
+   principle as the windrose/wind-vector). The background track is a fixed
+   path (always the same full semicircle, radius doesn't change) so it's
+   just hardcoded in the template rather than recomputed per tile.
+   --------------------------------------------------------------------------- */
+.gauge-svg {
+  width: 100%;
+  max-width: 160px;
+  height: auto;
+  display: block;
+  margin: 2px auto -6px;
+  overflow: visible;
+}
+.gauge-track {
+  fill: none;
+  stroke: var(--surface-2);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+.gauge-value {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: d .3s ease;
+}
+
 .tile-range {
   display: flex;
   justify-content: space-between;

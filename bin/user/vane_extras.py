@@ -175,6 +175,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_lightning_api": self._vane_lightning_api,
                  "vane_dashboard_plugins_html": self._dashboard_plugins_html(),
                  "vane_language_name": self._language_name,
+                 "vane_gauge_arc": self._gauge_arc,
                  "vane_mqtt_config_json": self._mqtt_config_json(),
                  "vane_current_json": self._current_conditions_json(record),
                  "vane_sun_arc": self._sun_arc_data(timespan),
@@ -423,6 +424,34 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         x1, y1 = point(a1, r)
         return "M%.2f,%.2f L%.2f,%.2f A%.2f,%.2f 0 0,1 %.2f,%.2f Z" % (
             cx, cy, x0, y0, r, r, x1, y1)
+
+    @staticmethod
+    def _gauge_arc(value, lo, hi, cx=60.0, cy=60.0, r=50.0):
+        """SVG elliptical-arc 'd' for a semicircular gauge's colored value
+        arc — sweeps left-to-right over the top (180 deg at the left point,
+        0 deg at the right point), NOT compass-relative like _wedge_path
+        (this is a plain min..max dial, not a direction). The matching
+        background track is a static path (always the full semicircle) so
+        it's just hardcoded in the template, not computed here.
+
+        Returns (path_d, frac) — frac (0..1, clamped) is handed back so the
+        template can position the center value/percentage label without
+        re-deriving it."""
+        frac = 0.0 if hi <= lo else (value - lo) / (hi - lo)
+        frac = max(0.0, min(1.0, frac))
+
+        a0 = math.pi
+        a1 = math.pi - math.pi * frac
+        x0, y0 = cx + r * math.cos(a0), cy - r * math.sin(a0)
+        x1, y1 = cx + r * math.cos(a1), cy - r * math.sin(a1)
+        large_arc = 1 if frac > 0.5 else 0
+        # A zero-length arc (frac==0) still needs a valid path so the
+        # element doesn't render as a stray dot — draw an explicit
+        # zero-length "line" at the start point instead of omitting it.
+        if frac <= 0.0:
+            return "M%.2f,%.2f L%.2f,%.2f" % (x0, y0, x0, y0), frac
+        return ("M%.2f,%.2f A%.2f,%.2f 0 %d,1 %.2f,%.2f" %
+                (x0, y0, r, r, large_arc, x1, y1)), frac
 
     def _wind_vector_data(self, timespan, db_manager):
         """8-direction wind vector radar: average windSpeed vs average
