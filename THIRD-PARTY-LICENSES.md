@@ -23,6 +23,12 @@ notice in redistributed copies.
 - **Source**: [leeoniya/uPlot](https://github.com/leeoniya/uPlot).
 - **License**: MIT, Copyright (c) Leon Sorokin.
 
+## flag-icons (language switcher flags)
+
+- **Files**: `skins/Vane/static/img/flags/*.svg`.
+- **Source**: [lipis/flag-icons](https://github.com/lipis/flag-icons).
+- **License**: MIT, Copyright (c) 2013 Panayiotis Lipiridis.
+
 ## MQTT.js
 
 - **Files**: `skins/Vane/static/js/vendor/mqtt.min.js` — only loaded/used
