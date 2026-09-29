@@ -327,6 +327,40 @@ WeeWX has this built in, no gettext/PO needed:
 Starting languages: **NL** (primary), **EN** (for eventual sharing/
 publishing).
 
+**Adding a language end-to-end** touches 4 places, none of them templates
+(every page just loops over `$Vane.Languages`/`$Vane.LanguageNames`, see the
+`<select class="lang-select">` in each `.html.tmpl`):
+
+1. `skin.conf` `[Vane][[Languages]]` — one line, the language code mapped to
+   its output subfolder (empty for the primary/root language):
+   ```ini
+   [[Languages]]
+       nl =
+       en = en
+       de = de
+   ```
+2. `skin.conf` `[Vane][[LanguageNames]]` — the native display name shown in
+   the language `<select>` (see DESIGN_PLAN.md/UX research: native names,
+   not codes), with an optional decorative flag-emoji prefix:
+   ```ini
+   [[LanguageNames]]
+       nl = 🇳🇱 Nederlands
+       en = 🇬🇧 English
+       de = 🇩🇪 Deutsch
+   ```
+3. `install.py` — a new `[[VaneDE]]` `StdReport` stanza (copy the
+   `[[VaneEN]]` block: new `HTML_ROOT`, `lang`, and `Vane.root_href`).
+4. `lang/de.conf` — the actual translations (`[Texts]` section, copied and
+   translated from `lang/en.conf`), plus any locale-specific overrides
+   `lang/nl.conf` shows the pattern for (`[Labels]` hemisphere letters,
+   `[Units][[Ordinates]]` compass abbreviations, `[Almanac]` moon-phase
+   names).
+
+Steps 1+2 are skin-level config (apply to every install using that
+`skin.conf`); step 3 is installer-level (what `weectl extension install`
+actually writes into the end user's `weewx.conf`); step 4 is the translation
+content itself. All three need to agree on the same language code.
+
 ## Dark/light + accent color
 
 - Base: 1 system, automatic via `prefers-color-scheme`, override via a
