@@ -142,10 +142,17 @@
               #end if
             </div>
             #set $temps = [$r.outTemp.raw for $r in $span(hour_delta=24).records if $r.outTemp.raw is not None]
-            #set $spark = $vane_sparkline_path($temps)
+            #*
+              Taller than the tile sparklines (150 vs 28-64px) — the
+              hero-card's height is dictated by the tiles-grid next to it
+              (3 rows of tiles), which leaves a lot of vertical room here;
+              a bigger, more readable trend chart fills it with actual
+              signal instead of blank space.
+            *#
+            #set $spark = $vane_sparkline_path($temps, 300, 150)
             #if $spark[0]
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:auto">
-              <svg viewBox="0 0 300 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block;overflow:visible">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <svg viewBox="0 0 300 150" preserveAspectRatio="none" style="width:100%;height:150px;display:block;overflow:visible">
                 <path d="$spark[1]" fill="var(--accent-primary)" opacity="0.18"></path>
                 <path d="$spark[0]" style="fill:none;stroke:var(--accent-primary);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round"></path>
               </svg>
