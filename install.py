@@ -14,7 +14,7 @@ def loader():
 class VaneInstaller(ExtensionInstaller):
     def __init__(self):
         super(VaneInstaller, self).__init__(
-            version="0.2.0",
+            version="0.3.0",
             name="Vane",
             description="Modern, sensor-agnostic WeeWX dashboard theme.",
             author="Grandmasg",
@@ -135,6 +135,7 @@ class VaneInstaller(ExtensionInstaller):
                 ]),
                 ("skins/Vane/static/js", [
                     "skins/Vane/static/js/theme-toggle.js",
+                    "skins/Vane/static/js/lang-select.js",
                     "skins/Vane/static/js/chart-tooltip.js",
                     "skins/Vane/static/js/graphs.js",
                     "skins/Vane/static/js/sortable-table.js",
