@@ -69,12 +69,16 @@
               <svg viewBox="0 0 24 24" width="13" height="13" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>CSV
             </button>
             #end if
-            #for $lcode, $lsubdir in $Vane.Languages.items()
-            #if $lcode != $lang
-            #set $lseg = $lsubdir + '/' if $lsubdir else ''
-            <a class="pill" href="${Vane.root_href}${lseg}graphs.html" title="$gettext('Switch language')">$lcode.upper()</a>
-            #end if
-            #end for
+            <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)">
+              #for $lcode, $lsubdir in $Vane.Languages.items()
+              #if $lcode == $lang
+              <span class="period-btn active" style="display:inline-block;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500" aria-current="page">$lcode.upper()</span>
+              #else
+              #set $lseg = $lsubdir + '/' if $lsubdir else ''
+              <a class="period-btn" href="${Vane.root_href}${lseg}graphs.html" title="$gettext('Switch language')" style="display:inline-block;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500;text-decoration:none">$lcode.upper()</a>
+              #end if
+              #end for
+            </div>
             <button class="icon-btn" data-vane-theme-toggle title="$gettext('Toggle theme')" aria-label="$gettext('Toggle theme')">
               <svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
             </button>
