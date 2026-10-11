@@ -272,8 +272,21 @@
             <div class="tile" data-sensor="UV">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext("UV index")</span>
               <div class="tile-value"><span class="num" data-live="UV">$current.UV.format(add_label=False, format_string="%.0f")</span></div>
-              #if $day.radiation.has_data
-              <span class="tile-sub"><span data-live="radiation">$current.radiation.format(add_label=False, format_string="%.0f")</span> $unit.label.radiation</span>
+              #* Radiation and (Tempest etc.) illuminance share this line, so a
+                 station with a lux sensor doesn't get a 10th tile that breaks
+                 the 3x3 tile block. *#
+              #if $day.radiation.has_data or $day.luminosity.has_data
+              <span class="tile-sub">
+                #if $day.radiation.has_data
+                <span data-live="radiation">$current.radiation.format(add_label=False, format_string="%.0f")</span> $unit.label.radiation
+                #end if
+                #if $day.radiation.has_data and $day.luminosity.has_data
+                &middot;
+                #end if
+                #if $day.luminosity.has_data
+                <span data-live="luminosity">$current.luminosity.format(add_label=False, format_string="%.0f")</span> lux
+                #end if
+              </span>
               #end if
               <svg class="gauge-svg" viewBox="0 0 120 70">
                 <path class="gauge-track" d="M10,60 A50,50 0 1,1 110,60"></path>
@@ -342,14 +355,10 @@
             </div>
             #end if
 
-            #if $day.luminosity.has_data
-            <div class="tile" data-sensor="radiation">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/clear-day.svg" alt="">$gettext("Luminosity")</span>
-              <div class="tile-value"><span class="num" data-live="luminosity">$current.luminosity.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.luminosity</span></div>
-            </div>
-            #end if
 
-            #if $day.ET.has_data and $day.ET.sum.raw
+            #* has_data only (not "and sum > 0"): hiding it at 0.00 made the
+               tile count jump during the day and broke the tile block. *#
+            #if $day.ET.has_data
             <div class="tile" data-sensor="ET">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/evapotranspiration.svg" alt="">$gettext("Evapotranspiration")</span>
               <div class="tile-value"><span class="num">$day.ET.sum.format(add_label=False, format_string="%.2f")</span><span class="unit">$unit.label.ET</span></div>

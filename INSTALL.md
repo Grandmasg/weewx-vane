@@ -111,8 +111,13 @@ theme. When you're ready to make Vane your main site:
 ```bash
 sudo systemctl restart weewx
 
-# Generate immediately without waiting for the next archive interval:
-sudo weectl report run
+# Generate immediately without waiting for the next archive interval.
+# Package install: run it AS the weewx user (never plain "sudo", which
+# leaves root-owned files that weewxd can't overwrite later), from a
+# directory that user can enter:
+cd /tmp && sudo -u weewx weectl report run
+# pip/venv install: run it as the user weewxd runs as:
+#   ~/weewx-venv/bin/weectl report run
 ```
 
 
@@ -127,8 +132,8 @@ sudo weectl extension install vane-<new-version>.zip --yes
 # Restart WeeWX to load updated plugins/templates:
 sudo systemctl restart weewx
 
-# Generate immediately:
-sudo weectl report run
+# Generate immediately (package install; see section 3 for why not plain sudo):
+cd /tmp && sudo -u weewx weectl report run
 ```
 
 > [!NOTE]
@@ -138,7 +143,7 @@ sudo weectl report run
 
 > [!WARNING]
 > **PermissionError: `[Errno 1] Operation not permitted` (Actie is niet toegestaan) during CopyGenerator:**
-> If you previously ran `weectl report run` under your personal user account (e.g. `dietpi`) or `root`, files in the web destination (`/var/www/html/weewx`) will be owned by that user. When WeeWX runs as its system service user `weewx`, Linux will reject attempts to overwrite or change permissions (`copymode`) on those files, causing `CopyGenerator` to terminate abruptly and leave the update incomplete.
+> If you previously ran `weectl report run` under your personal user account (e.g. `dietpi`) or as `root` (plain `sudo weectl report run`), files in the web destination (`/var/www/html/weewx`) will be owned by that user. When WeeWX runs as its system service user `weewx`, Linux will reject attempts to overwrite or change permissions (`copymode`) on those files, causing `CopyGenerator` to terminate abruptly and leave the update incomplete.
 >
 > **Solution:**
 > ```bash
@@ -152,10 +157,14 @@ sudo weectl report run
 > # 3. Clear Python bytecode cache so updated search-list extensions load cleanly:
 > sudo rm -rf /etc/weewx/bin/user/__pycache__
 >
-> # 4. Restart WeeWX and regenerate:
+> # 4. Restart WeeWX and regenerate (as the weewx user, from a directory it can enter):
 > sudo systemctl restart weewx
-> sudo weectl report run Vane
+> cd /tmp && sudo -u weewx weectl report run
 > ```
+>
+> `PermissionError: [Errno 13] ... '/home/<you>'` from that last command
+> means it was started from your home directory, which the `weewx` user
+> can't enter — hence the `cd /tmp` first.
 
 > [!TIP]
 > **Old version still displayed in browser?**
