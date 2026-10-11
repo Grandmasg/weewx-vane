@@ -174,53 +174,79 @@ full explanation, in short:
    translate the `[Texts]` section (plus any locale-specific overrides,
    see `lang/nl.conf` / `lang/de.conf` for the pattern).
 
-## 6. Optional: Skyfield almanac (extra astronomy)
+## 6. Optional: extra astronomy (Skyfield + Skymap almanac)
 
-Vane works with WeeWX's standard almanac (PyEphem). If you also install
-[weewx-skyfield-almanac](https://github.com/roe-dl/weewx-skyfield-almanac),
-the Almanac page gets two extra cards, without any configuration:
+Vane works with WeeWX's standard almanac (PyEphem). Two optional
+extensions by the same author add more to the **Almanac** page; Vane picks
+them up automatically, without any configuration:
 
-- **Moon & Earth**: the constellation the Moon and Sun are in, distance to
-  the Moon, solar time, equation of time, the next lunar perigee/apogee
-  (with a *Supermoon* badge when a full moon is near perigee) and the
-  Earth's perihelion/aphelion.
-- **Planets**: rise/set of Mercury, Venus, Mars, Jupiter and Saturn, whether
-  each is above the horizon, and the phase of Venus and Mercury.
+- [weewx-skyfield-almanac](https://github.com/roe-dl/weewx-skyfield-almanac)
+  replaces PyEphem with up-to-date JPL data and adds:
+  - **Moon & Earth**: the constellation the Moon and Sun are in, distance
+    to the Moon, solar time, equation of time, the next lunar
+    perigee/apogee (with a *Supermoon* badge when a full moon is near
+    perigee) and the Earth's perihelion/aphelion;
+  - **Planets**: rise/set of Mercury, Venus, Mars, Jupiter and Saturn,
+    whether each is above the horizon, and the phase of Venus and Mercury.
+- [weewx-skymap-almanac](https://github.com/roe-dl/weewx-skymap-almanac)
+  (needs WeeWX 5.3+ and the Skyfield almanac) adds:
+  - **Sky now**: a live map of the sky above your station (Sun, Moon,
+    planets, and at night stars and constellations), coloured to match Vane;
+  - the Moon icon shows the real phase **and tilt** of the crescent as
+    seen from your location.
 
-Without the extension those cards simply don't appear; nothing else
-changes. Notes:
+Without them those cards simply don't appear; nothing else changes. Both
+are GPL-3.0, so they're installed separately and not bundled in the Vane
+zip — Vane contains none of their code.
 
-- It also needs `requests`, which a pip install of WeeWX doesn't include.
-  Install it **before** restarting WeeWX, or `weewxd` fails to load the
-  extension's service:
-  ```bash
-  ~/weewx-venv/bin/pip install skyfield numpy requests
-  weectl extension install weewx-skyfield-almanac.zip
-  sudo systemctl restart weewx
-  ```
-- On first start it downloads JPL ephemeris data (`de440.bsp`, ~115 MB;
-  set `ephemeris = de440s.bsp` under `[Almanac][[Skyfield]]` for a ~32 MB
-  file covering 1849–2150). The extra cards appear once that has loaded,
-  which can take a few archive intervals.
-- It is GPL-3.0 licensed, so it is installed separately and not bundled
-  in the Vane zip.
+### Installing
 
-On top of that, [weewx-skymap-almanac](https://github.com/roe-dl/weewx-skymap-almanac)
-(same author, also GPL-3.0, needs WeeWX 5.3+ and the Skyfield almanac
-above) adds:
-
-- a **Sky now** card: a live map of the sky above your station (Sun, Moon,
-  planets, and at night stars and constellations), coloured to match Vane;
-- the Moon icon on the Almanac page shows the real phase **and tilt** of
-  the crescent as seen from your location.
+**1. Python packages** — Skyfield (1.47 or newer), NumPy and `requests`.
+Install them **before** restarting WeeWX, or `weewxd` fails to load the
+extension's service (`requests` in particular is missing from a plain pip
+install of WeeWX).
 
 ```bash
-weectl extension install weewx-skymap-almanac.zip
-sudo systemctl restart weewx
+# pip/venv install
+~/weewx-venv/bin/pip install skyfield numpy requests
+
+# package install (Debian/Ubuntu/Raspberry Pi OS/DietPi/Armbian)
+sudo apt install python3-skyfield python3-numpy python3-requests
+python3 -c "import skyfield; print(skyfield.__version__)"   # must be >= 1.47
 ```
 
-Vane only uses what these extensions provide when they're present; it
-contains none of their code and works without them.
+**2. The extensions** — Skyfield first, Skymap builds on it. Use your own
+`weectl` (see section 2; `sudo weectl` for a package install):
+
+```bash
+wget -O weewx-skyfield-almanac.zip https://github.com/roe-dl/weewx-skyfield-almanac/archive/refs/heads/master.zip
+wget -O weewx-skymap-almanac.zip https://github.com/roe-dl/weewx-skymap-almanac/archive/refs/heads/master.zip
+weectl extension install weewx-skyfield-almanac.zip --yes
+weectl extension install weewx-skymap-almanac.zip --yes   # optional, needs the one above
+```
+
+**3. Restart and wait for the ephemeris**
+
+```bash
+sudo systemctl restart weewx
+sudo journalctl -u weewx -f | grep -i -E "skyfield|skymap|error"
+```
+
+On first start the Skyfield almanac downloads JPL ephemeris data into the
+database directory (`<SQLITE_ROOT>/skyfield`): `de440.bsp`, ~115 MB. On a
+small SD card you can set `ephemeris = de440s.bsp` under
+`[Almanac][[Skyfield]]` in `weewx.conf` instead (~32 MB, covers
+1849–2150). Once the log shows `successfully created Moon reference
+frame`, the extra cards appear with the next report cycle.
+
+**Notes**
+
+- On slower hardware (Raspberry Pi, Orange Pi) the first report run of
+  each day takes noticeably longer: Vane then computes the day length for
+  the whole year with Skyfield. The result is cached for the rest of the
+  day.
+- To switch the Skyfield almanac off again without uninstalling, set
+  `enable = false` under `[Almanac][[Skyfield]]` and restart WeeWX.
 
 ## 7. Personal integrations don't belong in this zip
 
