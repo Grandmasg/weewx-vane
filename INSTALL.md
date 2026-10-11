@@ -91,6 +91,17 @@ theme. When you're ready to make Vane your main site:
            root_href = ../
    ```
 
+   > [!IMPORTANT]
+   > **The rule:** every language report lives in a subfolder *of the
+   > primary report's `HTML_ROOT`*, named after the code under
+   > `[Vane][[Languages]]` in `skin.conf` (`en`, `de`), with
+   > `root_href = ../`. The language switcher links to
+   > `<primary root>/<code>/`, so `/var/www/html/weewx/vane/de` next to a
+   > primary root of `/var/www/html/weewx` gives 404s.
+   >
+   > Leave the `[[[Units]]]` blocks the installer added to each report as
+   > they are (omitted above for brevity).
+
 3. *(WeatherFlow Tempest users)* Check your `[[sensor_map]]` under `[WeatherFlowUDP]`:
    - Map `windGust`: `windGust = wind_gust.ST-XXXXX.obs_st`
    - Map `luminosity` (not `luxXXX`): `luminosity = illuminance.ST-XXXXX.obs_st`
@@ -149,6 +160,14 @@ sudo weectl report run
 > [!TIP]
 > **Old version still displayed in browser?**
 > Browsers aggressively cache CSS, JS, and HTML templates. Press **Ctrl + F5** (or **Cmd + Shift + R** on macOS) in your browser to perform a hard reload.
+
+> [!WARNING]
+> **Moved Vane to your main web directory?** When an update adds a new
+> language report (v0.4.0 added `[[VaneDE]]`), the installer gives it the
+> default `HTML_ROOT = vane/<code>`. That only matches the default layout.
+> After updating, check every `[[Vane..]]` report in `weewx.conf` and set
+> new ones next to the others, e.g. `HTML_ROOT = /var/www/html/weewx/de`
+> (see the rule in section 3). Existing reports are never changed.
 
 ## 5. Multilingual support / adding your own language
 
@@ -223,6 +242,20 @@ wget -O weewx-skyfield-almanac.zip https://github.com/roe-dl/weewx-skyfield-alma
 wget -O weewx-skymap-almanac.zip https://github.com/roe-dl/weewx-skymap-almanac/archive/refs/heads/master.zip
 weectl extension install weewx-skyfield-almanac.zip --yes
 weectl extension install weewx-skymap-almanac.zip --yes   # optional, needs the one above
+```
+
+After installing, `weewx.conf` contains an `[Almanac]` section like this
+(plus the extensions' services under `[Engine]`, which the installer adds
+for you — don't add those by hand):
+
+```ini
+[Almanac]
+    [[Skyfield]]
+        enable = true
+        ephemeris = de440.bsp     # or de440s.bsp, see below
+        # ... more options the installer adds
+    [[Skymap]]
+        enable = true
 ```
 
 **3. Restart and wait for the ephemeris**
