@@ -29,3 +29,6 @@ design/wsl-test-output/
 
 # Lokale status van de Serena-tool (AI-assistent), geen projectbroncode
 .serena/
+
+# Persoonlijke strategie-/plannotities over meerdere projecten (lokale paden)
+plan/
