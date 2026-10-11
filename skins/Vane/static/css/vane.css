@@ -1,4 +1,4 @@
-/* ===========================================================================
+﻿/* ===========================================================================
    Vane — design tokens & base styles
    Source: docs/DESIGN_PLAN.md — color system, typography, focus indicator.
    =========================================================================== */
@@ -22,11 +22,22 @@
   --grid: rgba(148, 163, 184, .12);
 
   /* Accent per data source — --accent-primary is configurable via
-     skin.conf (accent_color), the rest stays fixed (see DESIGN_PLAN.md). */
+     skin.conf (accent_color), either as a fixed color or 'season' */
   --accent-primary: #2f8bff;
   --accent-wind: #fb923c;
   --accent-storm: #7c5cff;
   --status-live: #4ade80;
+
+  /* Seasonal accent palette & ambient lighting */
+  --season-spring: #10b981;
+  --season-spring-glow: rgba(16, 185, 129, 0.22);
+  --season-summer: #f59e0b;
+  --season-summer-glow: rgba(245, 158, 11, 0.22);
+  --season-autumn: #ea580c;
+  --season-autumn-glow: rgba(234, 88, 12, 0.24);
+  --season-winter: #38bdf8;
+  --season-winter-glow: rgba(56, 189, 248, 0.22);
+  --season-glow: var(--season-autumn-glow);
 
   --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -35,6 +46,25 @@
   --radius-tile: 16px;
   --radius-pill: 999px;
 }
+
+/* Seasonal accents automatically applied when data-season is present */
+:root[data-season="spring"] { --accent-primary: var(--season-spring); --season-glow: var(--season-spring-glow); }
+:root[data-season="summer"] { --accent-primary: var(--season-summer); --season-glow: var(--season-summer-glow); }
+:root[data-season="autumn"] { --accent-primary: var(--season-autumn); --season-glow: var(--season-autumn-glow); }
+:root[data-season="winter"] { --accent-primary: var(--season-winter); --season-glow: var(--season-winter-glow); }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"])[data-season="spring"] { --accent-primary: #059669; --season-glow: rgba(5, 150, 105, 0.18); }
+  :root:not([data-theme="dark"])[data-season="summer"] { --accent-primary: #d97706; --season-glow: rgba(217, 119, 6, 0.18); }
+  :root:not([data-theme="dark"])[data-season="autumn"] { --accent-primary: #c2410c; --season-glow: rgba(194, 65, 12, 0.20); }
+  :root:not([data-theme="dark"])[data-season="winter"] { --accent-primary: #0284c7; --season-glow: rgba(2, 132, 199, 0.18); }
+}
+
+:root[data-theme="light"][data-season="spring"] { --accent-primary: #059669; --season-glow: rgba(5, 150, 105, 0.18); }
+:root[data-theme="light"][data-season="summer"] { --accent-primary: #d97706; --season-glow: rgba(217, 119, 6, 0.18); }
+:root[data-theme="light"][data-season="autumn"] { --accent-primary: #c2410c; --season-glow: rgba(194, 65, 12, 0.20); }
+:root[data-theme="light"][data-season="winter"] { --accent-primary: #0284c7; --season-glow: rgba(2, 132, 199, 0.18); }
+
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
@@ -117,8 +147,11 @@ body {
   /* Fallback for browsers without color-mix(): flat background, no
      gradient — degrades gracefully instead of breaking. */
   background: var(--bg);
-  background: radial-gradient(1100px 520px at 0% -10%, color-mix(in oklch, var(--accent-primary) 13%, transparent), transparent 65%), var(--bg);
-  transition: background-color .3s;
+  background:
+    radial-gradient(1100px 520px at 0% -10%, color-mix(in oklch, var(--accent-primary) 14%, transparent), transparent 65%),
+    radial-gradient(850px 420px at 100% 0%, var(--season-glow), transparent 65%),
+    var(--bg);
+  transition: background-color .3s, border-color .3s;
 }
 
 a {
@@ -160,11 +193,48 @@ a:hover {
   background: var(--surface);
 }
 
+.vane-sidebar .logo-link {
+  display: block;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  text-decoration: none;
+}
+.vane-sidebar .logo-link .logo {
+  margin-bottom: 0;
+}
 .vane-sidebar .logo {
   width: 40px;
   height: 40px;
   border-radius: 12px;
   margin-bottom: 18px;
+  cursor: pointer;
+  display: block;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+}
+.vane-sidebar .logo:hover,
+.vane-sidebar .logo-link:hover .logo {
+  transform: translateY(-2px) scale(1.08);
+  filter: drop-shadow(0 6px 14px rgba(248, 142, 59, 0.4));
+}
+.vane-sidebar .logo:hover .v-needle-group,
+.vane-sidebar .logo-link:hover .v-needle-group {
+  animation: vane-gust 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite alternate !important;
+  filter: drop-shadow(0 0 6px rgba(248, 142, 59, 0.7));
+}
+.vane-sidebar .logo:hover .v-lightning,
+.vane-sidebar .logo-link:hover .v-lightning {
+  animation: vane-spark 1.2s ease-in-out infinite alternate;
+}
+@keyframes vane-gust {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(18deg); }
+  50% { transform: rotate(-10deg); }
+  75% { transform: rotate(6deg); }
+  100% { transform: rotate(2deg); }
+}
+@keyframes vane-spark {
+  0%, 100% { filter: drop-shadow(0 0 0px transparent); }
+  50% { filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.85)); fill: #a78bfa; }
 }
 
 .nav-btn {
@@ -192,15 +262,170 @@ a:hover {
   font-size: 10px;
   font-weight: 500;
 }
+
+/* Nav icon micro-animations on hover / keyboard focus. Targeted by
+   data-nav, not href: the current page's own item is a <button> without
+   an href, so href selectors never animated it. */
+.nav-btn svg * {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.nav-btn:hover svg,
+.nav-btn:focus-visible svg {
+  color: var(--accent-primary);
+}
+/* Dashboard: the four panels pop one after another */
+.nav-btn[data-nav="dashboard"]:hover rect,
+.nav-btn[data-nav="dashboard"]:focus-visible rect {
+  animation: vane-nav-pop .5s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.nav-btn[data-nav="dashboard"] rect:nth-child(2) { animation-delay: .06s; }
+.nav-btn[data-nav="dashboard"] rect:nth-child(3) { animation-delay: .12s; }
+.nav-btn[data-nav="dashboard"] rect:nth-child(4) { animation-delay: .18s; }
+@keyframes vane-nav-pop {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(.72); }
+}
+/* Graphs + Telemetry: the line draws itself */
+.nav-btn[data-nav="graphs"]:hover path:nth-child(2),
+.nav-btn[data-nav="graphs"]:focus-visible path:nth-child(2),
+.nav-btn[data-nav="telemetry"]:hover path,
+.nav-btn[data-nav="telemetry"]:focus-visible path {
+  /* The paths carry pathLength="100" in the templates, so 100 is their
+     full length whatever their real length — the line draws during the
+     whole animation instead of appearing all at once near the end. */
+  stroke-dasharray: 100;
+  animation: vane-nav-draw .7s ease-out both;
+}
+/* Negative offset: both paths are drawn right-to-left in their source
+   (they start at x=19 / x=22), so a positive offset would reveal the line
+   from the right. -100 reveals it from the path's END = the left side. */
+@keyframes vane-nav-draw {
+  from { stroke-dashoffset: -100; }
+  to { stroke-dashoffset: 0; }
+}
+/* Archive: the lid lifts */
+.nav-btn[data-nav="archive"]:hover rect,
+.nav-btn[data-nav="archive"]:focus-visible rect {
+  animation: vane-nav-lid .6s ease-in-out both;
+}
+@keyframes vane-nav-lid {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-3px) rotate(-6deg); }
+}
+/* Almanac: the moon rocks */
+.nav-btn[data-nav="almanac"]:hover path,
+.nav-btn[data-nav="almanac"]:focus-visible path {
+  animation: vane-nav-rock .8s ease-in-out both;
+}
+@keyframes vane-nav-rock {
+  0%, 100% { transform: rotate(0); }
+  35% { transform: rotate(-18deg); }
+  70% { transform: rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn svg * { animation: none !important; }
+}
+/* ---------------------------------------------------------------------------
+   Segmented tabs & period selectors (Archive, Graphs)
+   --------------------------------------------------------------------------- */
+.vane-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vane-tab-btn,
 .period-btn {
+  all: unset;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-muted);
-}
-.period-btn:hover {
+  transition: all .15s ease;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   text-decoration: none;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
+
+.vane-tab-btn:hover,
+.period-btn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.vane-tab-btn.active,
 .period-btn.active {
   background: var(--accent-primary);
   color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+}
+
+/* Styled select for months and general dropdowns */
+.vane-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.vane-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  height: 34px;
+  padding: 0 32px 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.vane-select:hover {
+  border-color: var(--accent-primary);
+}
+
+.vane-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+}
+
+.vane-select option {
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px 12px;
+}
+
+.vane-select-chevron {
+  position: absolute;
+  right: 11px;
+  pointer-events: none;
+  color: var(--text-muted);
+  width: 14px;
+  height: 14px;
 }
 
 .nav-btn.active {
@@ -332,7 +557,9 @@ a:hover {
   list-style: none;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  /* --surface is translucent; layer it over --bg so the tiles underneath
+     don't bleed through the open menu. */
+  background: linear-gradient(var(--surface), var(--surface)), var(--bg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
 }
 
@@ -391,6 +618,31 @@ a:hover {
   .live-dot::after { animation: none; }
 }
 
+.season-pill {
+  color: var(--accent-primary);
+  border-color: color-mix(in oklch, var(--accent-primary) 28%, var(--border));
+  background: color-mix(in oklch, var(--accent-primary) 8%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: default;
+  transition: all .25s ease;
+}
+.season-pill:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 16px var(--season-glow);
+  transform: translateY(-1px);
+}
+.season-icon {
+  display: inline-block;
+  flex: none;
+  animation: vane-breathe 3.5s ease-in-out infinite;
+}
+@keyframes vane-breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px transparent); }
+  50% { transform: scale(1.14); filter: drop-shadow(0 0 5px var(--accent-primary)); }
+}
+
 .icon-btn {
   all: unset;
   cursor: pointer;
@@ -402,6 +654,11 @@ a:hover {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
+  transition: border-color .2s ease, transform .2s ease, background-color .2s ease;
+}
+.icon-btn:hover {
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
 }
 
 /* ---------------------------------------------------------------------------
@@ -416,6 +673,11 @@ a:hover {
   background: var(--surface);
   border: 1px solid var(--border);
   backdrop-filter: blur(14px);
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+.card:hover {
+  border-color: color-mix(in oklch, var(--accent-primary) 22%, var(--border));
+  box-shadow: 0 10px 30px -10px var(--season-glow);
 }
 
 .tile {
@@ -427,6 +689,12 @@ a:hover {
   background: var(--surface);
   border: 1px solid var(--border);
   backdrop-filter: blur(14px);
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+.tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--accent-primary) 34%, var(--border));
+  box-shadow: 0 10px 24px -8px var(--season-glow);
 }
 
 .tile-label {
@@ -450,6 +718,258 @@ a:hover {
   width: 28px;
   height: 28px;
   flex: none;
+  transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), filter .3s ease;
+}
+/* Host for a Lottie animation that replaces a static icon (vane-lottie.js);
+   width/height are set inline from the icon it replaces. */
+.lottie-icon {
+  display: inline-block;
+  flex: none;
+  line-height: 0;
+  vertical-align: middle;
+}
+/* Optional weewx-skymap-almanac output (almanac.html.tmpl). */
+.vane-skymap-wrap {
+  display: flex;
+  justify-content: center;
+}
+.vane-skymap-wrap svg {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  font-family: var(--font-sans);
+}
+.vane-moon-symbol {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+.vane-moon-symbol svg {
+  width: 40px;
+  height: 40px;
+}
+
+/* The display above would otherwise beat the [hidden] attribute that
+   vane-lottie.js uses to swap between Lottie and SVG — both then showed. */
+.lottie-icon[hidden] {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Interactive Micro-Animations on Tile Hover
+   --------------------------------------------------------------------------- */
+/* Wind: rotor spins at steady 4s, accelerates on tile hover to 0.8s while mast stays fixed! */
+.wind-rotor {
+  transform-origin: 0px 0px;
+}
+.tile[data-sensor="windSpeed"]:hover .wind-rotor,
+.tile[data-sensor="wind"]:hover .wind-rotor {
+  animation: vane-rotor-fast 0.8s linear infinite !important;
+}
+@keyframes vane-rotor-fast {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Humidity & Dewpoint: droplet bounce */
+.tile[data-sensor="humidity"]:hover .tile-icon,
+.tile[data-sensor="dewpoint"]:hover .tile-icon {
+  animation: vane-droplet 1.3s ease-in-out infinite;
+}
+@keyframes vane-droplet {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  30% { transform: translateY(-4px) scale(0.92, 1.08); }
+  60% { transform: translateY(1.5px) scale(1.06, 0.94); }
+  80% { transform: translateY(0) scale(0.98, 1.02); }
+}
+
+/* Barometer: Dynamic Light / Dark Theme Adaptability */
+:root {
+  --baro-face: url(#baroFaceDark);
+  --baro-ticks: #94A3B8;
+  --baro-hub: #FFFFFF;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --baro-face: url(#baroFaceLight);
+    --baro-ticks: #64748B;
+    --baro-hub: #0F172A;
+  }
+  :root:not([data-theme="dark"]) .baro-face {
+    fill: url(#baroFaceLight) !important;
+  }
+  :root:not([data-theme="dark"]) .baro-ticks line {
+    stroke: #64748b !important;
+    opacity: 0.9 !important;
+  }
+  :root:not([data-theme="dark"]) .baro-hub {
+    fill: #0f172a !important;
+  }
+}
+
+:root[data-theme="light"] {
+  --baro-face: url(#baroFaceLight);
+  --baro-ticks: #64748B;
+  --baro-hub: #0F172A;
+}
+:root[data-theme="light"] .baro-face {
+  fill: url(#baroFaceLight) !important;
+}
+:root[data-theme="light"] .baro-ticks line {
+  stroke: #64748b !important;
+  opacity: 0.9 !important;
+}
+:root[data-theme="light"] .baro-hub {
+  fill: #0f172a !important;
+}
+
+:root[data-theme="dark"] {
+  --baro-face: url(#baroFaceDark);
+  --baro-ticks: #94A3B8;
+  --baro-hub: #FFFFFF;
+}
+:root[data-theme="dark"] .baro-face {
+  fill: url(#baroFaceDark) !important;
+}
+:root[data-theme="dark"] .baro-ticks line {
+  stroke: #94a3b8 !important;
+  opacity: 0.8 !important;
+}
+:root[data-theme="dark"] .baro-hub {
+  fill: #ffffff !important;
+}
+
+.baro-face {
+  fill: var(--baro-face, url(#baroFaceDark));
+  transition: fill .3s ease;
+}
+.baro-ticks line {
+  stroke: var(--baro-ticks, #94a3b8);
+  transition: stroke .3s ease;
+}
+.baro-hub {
+  fill: var(--baro-hub, #ffffff);
+  transition: fill .3s ease;
+}
+
+/* Barometer: only needle twitches on hover, housing and dial stay completely still! */
+.baro-needle {
+  transform-origin: 0px 0px;
+}
+.tile[data-sensor="barometer"]:hover .baro-needle,
+.tile[data-sensor="pressure"]:hover .baro-needle {
+  animation: vane-needle-fast 0.6s ease-in-out infinite !important;
+}
+@keyframes vane-needle-fast {
+  0%, 100% { transform: rotate(15deg); }
+  25% { transform: rotate(-25deg); }
+  75% { transform: rotate(35deg); }
+}
+
+/* Rain / Precipitation: accelerated rainfall flow on hover */
+.tile[data-sensor="rain"]:hover .rain-streaks line {
+  stroke-width: 3.2px;
+  filter: drop-shadow(0 0 3px #38bdf8);
+}
+
+/* Cloud base: ceilometer beam intensifies and scans on hover */
+.tile[data-sensor="cloudbase"]:hover .cb-beam {
+  filter: drop-shadow(0 0 5px #38bdf8);
+}
+
+/* Evapotranspiration: vapor accelerates upward on hover */
+.et-vapor {
+  transition: transform 0.3s ease;
+}
+.tile[data-sensor="ET"]:hover .et-vapor {
+  animation: vane-vapor-rise 0.8s ease-in-out infinite !important;
+}
+@keyframes vane-vapor-rise {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50% { transform: translateY(-4px); opacity: 1; filter: drop-shadow(0 0 4px #38bdf8); }
+}
+
+/* Rain / Precipitation: gentle drop slide */
+.tile[data-sensor="rain"]:hover .tile-icon,
+.tile[data-sensor="rainRate"]:hover .tile-icon {
+  animation: vane-rain 1s ease-in-out infinite;
+}
+@keyframes vane-rain {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px) scale(0.96, 1.04); }
+}
+
+/* Solar Radiation & UV: radiant sun pulse */
+.tile[data-sensor="radiation"]:hover .tile-icon,
+.tile[data-sensor="UV"]:hover .tile-icon {
+  animation: vane-sun-pulse 2s ease-in-out infinite;
+}
+@keyframes vane-sun-pulse {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0px transparent); }
+  50% { transform: scale(1.15) rotate(15deg); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6)); }
+}
+
+/* Lightning / Storm: rapid electrical twitch & glow */
+.tile[data-sensor="lightning"]:hover .tile-icon {
+  animation: vane-lightning 0.75s ease-in-out infinite;
+}
+@keyframes vane-lightning {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0px transparent); }
+  15% { transform: scale(1.18) rotate(-7deg); filter: drop-shadow(0 0 8px rgba(124, 92, 255, 0.8)); }
+  30% { transform: scale(1.05) rotate(5deg); }
+  45% { transform: scale(1.22) rotate(-4deg); filter: drop-shadow(0 0 10px rgba(124, 92, 255, 0.9)); }
+  60% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0px transparent); }
+}
+
+/* Sun / Sunrise: warm rising and radiant pulse */
+.tile[data-sensor="sun"]:hover .tile-icon {
+  animation: vane-sun-rise 2s ease-in-out infinite;
+}
+@keyframes vane-sun-rise {
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 0px transparent); }
+  50% { transform: translateY(-3px) scale(1.12); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5)); }
+}
+
+/* Cloudbase & ET / Fog: gentle floating drift */
+.tile[data-sensor="cloudbase"]:hover .tile-icon,
+.tile[data-sensor="ET"]:hover .tile-icon {
+  animation: vane-cloud-drift 2.4s ease-in-out infinite;
+}
+@keyframes vane-cloud-drift {
+  0%, 100% { transform: translateX(0) scale(1); }
+  50% { transform: translateX(3px) scale(1.08); }
+}
+
+/* Thermometer / Temperature: gentle pulse */
+.tile[data-sensor="outTemp"]:hover .tile-icon {
+  animation: vane-temp-pulse 1.8s ease-in-out infinite;
+}
+@keyframes vane-temp-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+/* Hero Weather Condition: floating breathing effect */
+.hero-condition-icon {
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform .4s ease;
+  animation: vane-float 4.5s ease-in-out infinite;
+}
+@keyframes vane-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile[data-sensor]:hover .tile-icon,
+  .hero-condition-icon,
+  .season-icon {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
 .tile-value {

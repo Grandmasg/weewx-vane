@@ -66,6 +66,14 @@ monochrome). Animation is embedded in the SVG itself (CSS keyframes + SVG
 transforms), no Lottie runtime or JS library needed — use the plain-SVG
 variant, not the Lottie-JSON variant.
 
+> **Update (v0.4.0):** the icon set has since been redrawn in a filled
+> style that animates on its own (SMIL). Lottie *is* used now, but only as
+> an extra on top: `tools/svg2lottie.py` generates the Lottie files from
+> those same SVGs (so the two can't drift apart in style), and
+> `vane-lottie.js` plays them on tile hover, for the current condition and
+> the season label. Without the Lottie files or with "reduce motion", the
+> SVGs are used as-is.
+
 - **Chosen style: `line`** — **correction after actually downloading**: none
   of the styles use `currentColor` (line has its own fixed colors like
   `#F8AF18` for the sun; monochrome uses `black`/`white` as a two-tone

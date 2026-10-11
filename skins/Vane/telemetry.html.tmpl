@@ -7,7 +7,7 @@
    integrations are a separate plugin"). Sections simply don't render
    when nothing is configured, no error either way. *#
 <!DOCTYPE html>
-<html lang="$lang" data-theme="">
+<html lang="$lang" data-theme="" data-season="$vane_season">
 <head>
 <script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 <meta charset="utf-8">
@@ -18,6 +18,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/vane.css?v=$vane_version">
+#if $vane_accent_style
+<style>$vane_accent_style</style>
+#end if
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -27,24 +30,26 @@
 <div class="vane-shell">
 
   <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
-    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
-    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+    <a class="logo-link" href="index.html" title="Dashboard">
+      <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    </a>
+    <a class="nav-btn" href="index.html" data-nav="dashboard" title="$gettext('Dashboard')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext('Dashboard')</span>
     </a>
-    <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+    <a class="nav-btn" href="graphs.html" data-nav="graphs" title="$gettext('Graphs')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3" pathLength="100"></path></svg>
       <span>$gettext('Graphs')</span>
     </a>
-    <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
+    <a class="nav-btn" href="archive.html" data-nav="archive" title="$gettext('Archive')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext('Archive')</span>
     </a>
-    <button class="nav-btn active" title="$gettext('Telemetry')" aria-current="page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+    <button class="nav-btn active" data-nav="telemetry" title="$gettext('Telemetry')" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2" pathLength="100"></path></svg>
       <span>$gettext('Telemetry')</span>
     </button>
-    <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
+    <a class="nav-btn" href="almanac.html" data-nav="almanac" title="$gettext('Almanac')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext('Almanac')</span>
     </a>

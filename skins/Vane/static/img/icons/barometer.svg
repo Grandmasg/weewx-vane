@@ -1,28 +1,69 @@
-<svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="barometer">
-<g id="Barometer">
-<circle id="Housing" cx="64" cy="64" r="38.5" stroke="#1E293B" stroke-width="3"/>
-<g id="Lines">
-<path id="Line 1" d="M64 33V42" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-<path id="Line 7" d="M42.0797 42.0797L48.4436 48.4436" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-<path id="Line 5" d="M85.9203 42.0797L79.5564 48.4436" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-<path id="Line 3" d="M95 64L86 64" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-<path id="Line 8" d="M79.5564 79.5564L85.9203 85.9203" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-<path id="Line 6" d="M48.4436 79.5564L42.0797 85.9203" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-<path id="Line 4" d="M42 64L33 64" stroke="#1E293B" stroke-width="2" stroke-linecap="round"/>
-</g>
-</g>
-<g id="Barometer_2">
-<g id="Pointer" clip-path="url(#clip0_2045_37754)">
-<circle id="Needle Mount" cx="64" cy="64" r="5" transform="rotate(45 64 64)" fill="#EF4444"/>
-<rect id="Needle" x="79.5564" y="45.6152" width="4" height="33" rx="2" transform="rotate(45 79.5564 45.6152)" fill="#EF4444"/>
-<circle id="Holder" cx="64" cy="64" r="3" transform="rotate(45 64 64)" fill="#475569"/>
-<animateTransform attributeName="transform" type="rotate" values="-6 64 64;6 64 64;-6 64 64" dur="3s" begin="0s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 .58 1; .42 0 .58 1"/></g>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_2045_37754">
-<rect width="10" height="48" fill="white" transform="translate(77.435 43.4939) rotate(45)"/>
-</clipPath>
-</defs>
+<svg viewBox="4 4 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Outer Sapphire Ring Gradient -->
+    <linearGradient id="baroRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <!-- Dark Mode Face Gradient -->
+    <radialGradient id="baroFaceDark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </radialGradient>
+
+    <!-- Light Mode Face Gradient -->
+    <radialGradient id="baroFaceLight" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="80%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </radialGradient>
+
+    <!-- Needle Glow Filter -->
+    <filter id="needleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#F97316" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <style>
+    :root {
+      --baro-face: url(#baroFaceDark);
+      --baro-ticks: #94A3B8;
+      --baro-hub: #FFFFFF;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --baro-face: url(#baroFaceLight);
+        --baro-ticks: #64748B;
+        --baro-hub: #0F172A;
+      }
+    }
+    .baro-face { fill: var(--baro-face, url(#baroFaceDark)); transition: fill .3s ease; }
+    .baro-ticks line { stroke: var(--baro-ticks, #94A3B8); transition: stroke .3s ease; }
+    .baro-hub { fill: var(--baro-hub, #FFFFFF); transition: fill .3s ease; }
+  </style>
+
+  <!-- Outer Ring & Adaptive Face -->
+  <circle class="baro-dial baro-face" cx="32" cy="32" r="26" stroke="url(#baroRing)" stroke-width="3"/>
+
+  <!-- Dial Ticks -->
+  <g class="baro-ticks" stroke-width="1.5" stroke-linecap="round" opacity="0.8">
+    <line x1="32" y1="10" x2="32" y2="14"/>
+    <line x1="16.5" y1="16.5" x2="19.3" y2="19.3"/>
+    <line x1="10" y1="32" x2="14" y2="32"/>
+    <line x1="16.5" y1="47.5" x2="19.3" y2="44.7"/>
+    <line x1="47.5" y1="16.5" x2="44.7" y2="19.3"/>
+    <line x1="54" y1="32" x2="50" y2="32"/>
+    <line x1="47.5" y1="47.5" x2="44.7" y2="44.7"/>
+  </g>
+
+  <!-- Animated Barometer Needle -->
+  <g transform="translate(32, 32)" filter="url(#needleGlow)">
+    <g class="baro-needle">
+      <animateTransform attributeName="transform" type="rotate" values="15; -20; 25; 15" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"/>
+      <!-- Orange Indicator Needle -->
+      <polygon points="0,-20 2.5,-3 0,0 -2.5,-3" fill="#F97316"/>
+      <circle class="baro-hub" cx="0" cy="0" r="3.5"/>
+    </g>
+  </g>
 </svg>

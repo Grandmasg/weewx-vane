@@ -4,7 +4,7 @@
    (see MOCKUP_REVIEW.md). NOAA text files are already real though (reused
    from WeeWX's own Seasons NOAA templates). *#
 <!DOCTYPE html>
-<html lang="$lang" data-theme="">
+<html lang="$lang" data-theme="" data-season="$vane_season">
 <head>
 <script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 <meta charset="utf-8">
@@ -15,6 +15,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/vane.css?v=$vane_version">
+#if $vane_accent_style
+<style>$vane_accent_style</style>
+#end if
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -24,24 +27,26 @@
 <div class="vane-shell">
 
   <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
-    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
-    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+    <a class="logo-link" href="index.html" title="Dashboard">
+      <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    </a>
+    <a class="nav-btn" href="index.html" data-nav="dashboard" title="$gettext('Dashboard')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext('Dashboard')</span>
     </a>
-    <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+    <a class="nav-btn" href="graphs.html" data-nav="graphs" title="$gettext('Graphs')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3" pathLength="100"></path></svg>
       <span>$gettext('Graphs')</span>
     </a>
-    <button class="nav-btn active" title="$gettext('Archive')" aria-current="page">
+    <button class="nav-btn active" data-nav="archive" title="$gettext('Archive')" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext('Archive')</span>
     </button>
-    <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+    <a class="nav-btn" href="telemetry.html" data-nav="telemetry" title="$gettext('Telemetry')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2" pathLength="100"></path></svg>
       <span>$gettext('Telemetry')</span>
     </a>
-    <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
+    <a class="nav-btn" href="almanac.html" data-nav="almanac" title="$gettext('Almanac')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext('Almanac')</span>
     </a>
@@ -54,9 +59,24 @@
         <header class="vane-header">
           <div>
             <h1>$gettext('Archive')</h1>
-            <span class="subtitle">$month_name $year_name</span>
+            #if $alltime.outTemp.has_data
+            <span class="subtitle">$gettext($vane_month_name($alltime.start.raw)) $alltime.start.format("%Y") &ndash; $gettext($vane_month_name($latest.dateTime.raw)) $latest.dateTime.format("%Y")</span>
+            #else
+            <span class="subtitle">$gettext($vane_month_name($month.dateTime.raw)) $month.dateTime.format("%Y")</span>
+            #end if
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="vane-select-wrap">
+              <select class="vane-select" onchange="if(this.value) window.location.href=this.value;" title="$gettext('Select month')" aria-label="$gettext('Select month')">
+                <option value="" disabled selected>$gettext('Select month')...</option>
+                #for $y in $vane_archive_history
+                  #for $m in reversed($y['months'])
+                    <option value="$m['archive_url']">$gettext($m['full_name']) $y['year']</option>
+                  #end for
+                #end for
+              </select>
+              <svg class="vane-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+            </div>
             <a class="pill noaa-link" href="$month.dateTime.format('NOAA/NOAA-%Y-%m.txt')">$gettext('NOAA (month)')</a>
             <a class="pill noaa-link" href="$year.dateTime.format('NOAA/NOAA-%Y.txt')">$gettext('NOAA (year)')</a>
             #set $cur_flag = $vane_language_flag($lang)
@@ -92,6 +112,18 @@
           </div>
         </header>
 
+        <div class="vane-tabs" id="vane-archive-tabs" role="tablist">
+          <button type="button" class="vane-tab-btn active" data-tab="view-month">$gettext('Current month')</button>
+          <button type="button" class="vane-tab-btn" data-tab="view-month-select">$gettext('Monthly archive')</button>
+          <button type="button" class="vane-tab-btn" data-tab="view-history">$gettext('Years & months')</button>
+          <button type="button" class="vane-tab-btn" data-tab="view-records">$gettext('All-time records')</button>
+        </div>
+
+        <div id="view-month" class="archive-view" style="display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <h2 style="font-size:16px;font-weight:600;margin:0">$gettext($vane_month_name($month.dateTime.raw)) $month.dateTime.format("%Y")</h2>
+            <span style="font-size:12px;color:var(--text-muted)">$gettext('Current month') &middot; $station.location</span>
+          </div>
         #if $month.outTemp.has_data
         <div class="tiles-grid" style="flex:none;width:100%">
           <div class="tile">
@@ -100,18 +132,18 @@
             <span class="tile-sub">$gettext('Temperature this month')</span>
           </div>
           <div class="tile">
-            <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer.svg" alt="">$gettext('Highest')</span>
+            <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-high.svg" alt="">$gettext('Highest')</span>
             <div class="tile-value"><span class="num">$month.outTemp.max.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
             <span class="tile-sub">$month.outTemp.maxtime.format("%d-%m")</span>
           </div>
           <div class="tile">
-            <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer.svg" alt="">$gettext('Lowest')</span>
+            <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-low.svg" alt="">$gettext('Lowest')</span>
             <div class="tile-value"><span class="num">$month.outTemp.min.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
             <span class="tile-sub">$month.outTemp.mintime.format("%d-%m")</span>
           </div>
           #if $month.rain.has_data
           <div class="tile">
-            <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Rain')</span>
+            <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext('Rain')</span>
             <div class="tile-value"><span class="num">$month.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit"> mm</span></div>
             <span class="tile-sub">$gettext('this month')</span>
           </div>
@@ -123,12 +155,12 @@
           <span class="uppercase-label">$gettext('Records') &middot; $gettext('this year')</span>
           <div class="tiles-grid" style="flex:none;width:100%;margin-top:10px">
             <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer.svg" alt="">$gettext('Highest')</span>
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-high.svg" alt="">$gettext('Highest')</span>
               <div class="tile-value"><span class="num">$year.outTemp.max.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
               <span class="tile-sub">$year.outTemp.maxtime.format("%d-%m")</span>
             </div>
             <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer.svg" alt="">$gettext('Lowest')</span>
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-low.svg" alt="">$gettext('Lowest')</span>
               <div class="tile-value"><span class="num">$year.outTemp.min.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
               <span class="tile-sub">$year.outTemp.mintime.format("%d-%m")</span>
             </div>
@@ -141,7 +173,7 @@
             #end if
             #if $year.rain.has_data
             <div class="tile">
-              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Rain')</span>
+              <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext('Rain')</span>
               <div class="tile-value"><span class="num">$year.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit"> mm</span></div>
               <span class="tile-sub">$gettext('this year')</span>
             </div>
@@ -201,7 +233,7 @@
           #end if
           #if $month.rain.has_data
           <section class="card" style="flex:1 1 300px;min-width:0">
-            <span class="uppercase-label">$gettext('Rain') &middot; $month_name</span>
+            <span class="uppercase-label">$gettext('Rain') &middot; $gettext($vane_month_name($month.dateTime.raw)) $month.dateTime.format("%Y")</span>
             <div class="cal-grid">
               <span class="cal-head">$gettext('Mo')</span>
               <span class="cal-head">$gettext('Tu')</span>
@@ -239,11 +271,6 @@
         #set $m_min = $month.outTemp.min.raw
         #set $m_max = $month.outTemp.max.raw
         #set $m_range = ($m_max - $m_min) if ($m_max is not None and $m_min is not None and $m_max > $m_min) else 1.0
-        #*
-          Color scale bounds: a manual skin.conf override wins, otherwise
-          automatically derived from this station's own $alltime record
-          (see vane_extras.py _temp_color / THEME_PLAN.md).
-        *#
         #set $cfg_cold = $Vane.TempColorScale.get('cold_c', '')
         #set $cfg_hot = $Vane.TempColorScale.get('hot_c', '')
         #if $cfg_cold and $cfg_hot
@@ -260,8 +287,8 @@
                 <th data-sort-col="0" style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Day')</th>
                 <th data-sort-col="1" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Avg')</th>
                 <th style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Min &ndash; Max</th>
-                <th data-sort-col="3" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Max')</th>
-                <th data-sort-col="4" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Min')</th>
+                <th data-sort-col="3" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Min')</th>
+                <th data-sort-col="4" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Max')</th>
                 <th data-sort-col="5" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Rain')</th>
                 <th data-sort-col="6" style="text-align:right;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Wind')</th>
                 <th data-sort-col="7" style="text-align:left;padding:12px 12px 10px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Direction')</th>
@@ -280,8 +307,8 @@
                   <td style="padding:9px 12px;border-bottom:1px solid var(--border);width:180px">
                     <div class="range-bar"><span style="left:${bar_l}%;width:${bar_w}%;background:linear-gradient(90deg,${bar_gradient})"></span></div>
                   </td>
-                  <td data-value="$d_max" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.outTemp.max.format(add_label=False, format_string="%.1f", None_string="&mdash;")&deg;</td>
                   <td data-value="$d_min" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.outTemp.min.format(add_label=False, format_string="%.1f", None_string="&mdash;")&deg;</td>
+                  <td data-value="$d_max" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.outTemp.max.format(add_label=False, format_string="%.1f", None_string="&mdash;")&deg;</td>
                   <td data-value="$d.rain.sum.raw" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.rain.sum.format(add_label=False, format_string="%.1f", None_string="0.0") mm</td>
                   <td data-value="$d.windSpeed.avg.raw" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.windSpeed.avg.format(add_label=False, format_string="%.1f", None_string="&mdash;") $unit.label.windSpeed</td>
                   <td style="padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text-muted)">
@@ -301,6 +328,226 @@
         #else
         <div class="empty-state">$gettext('Not enough data yet for this view')</div>
         #end if
+        </div>
+
+        <div id="view-month-select" class="archive-view" style="display:none;flex-direction:column;gap:18px">
+          <section class="card" style="display:flex;flex-direction:column;gap:20px;padding:22px">
+            <div>
+              <span class="uppercase-label">$gettext('Monthly archive')</span>
+              <h2 style="margin:4px 0 6px;font-size:18px;font-weight:600">$gettext('All months in archive')</h2>
+              <p style="margin:0;font-size:13px;color:var(--text-muted)">$gettext('Select a month to view its complete day table, rain calendar, and records.')</p>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:14px">
+              <label for="vane-big-month-select" style="font-size:13px;font-weight:600;color:var(--text)">$gettext('Choose month'):</label>
+              <div class="vane-select-wrap">
+                <select id="vane-big-month-select" class="vane-select" style="min-width:220px" onchange="if(this.value) window.location.href=this.value;">
+                  <option value="" disabled selected>$gettext('Select month')...</option>
+                  #for $y in $vane_archive_history
+                    #for $m in reversed($y['months'])
+                      <option value="$m['archive_url']">$gettext($m['full_name']) $y['year']</option>
+                    #end for
+                  #end for
+                </select>
+                <svg class="vane-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+              </div>
+              <button type="button" class="vane-tab-btn active" onclick="var s=document.getElementById('vane-big-month-select'); if(s.value) window.location.href=s.value;">$gettext('Open month') &rarr;</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:18px;margin-top:4px">
+              #for $y in $vane_archive_history
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="font-weight:700;font-size:15px;color:var(--text)">$y['year']</span>
+                  <a class="pill" href="$y['noaa_url']" style="height:26px;padding:0 10px;font-size:11px">NOAA $y['year']</a>
+                  #if $y['rain_sum'] is not None
+                  <span style="font-size:12px;color:var(--text-muted)">$round($y['rain_sum'], 1) mm</span>
+                  #end if
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  #for $m in reversed($y['months'])
+                  <a href="$m['archive_url']" class="vane-tab-btn" style="background:var(--surface);border:1px solid var(--border);padding:8px 16px;border-radius:12px;font-size:13px">
+                    <span style="font-weight:600">$gettext($m['full_name'])</span>
+                    #if $m['rain_sum'] is not None and $m['rain_sum'] > 0
+                    <span style="font-size:11px;color:var(--accent-primary);font-family:var(--font-mono)">$round($m['rain_sum'], 1) mm</span>
+                    #end if
+                  </a>
+                  #end for
+                </div>
+              </div>
+              #end for
+            </div>
+          </section>
+        </div>
+
+        <div id="view-history" class="archive-view" style="display:none;flex-direction:column;gap:18px">
+          #if $vane_archive_history
+            #for $yr in $vane_archive_history
+            <section class="card" style="padding:18px 22px">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+                <div>
+                  <span style="font-size:18px;font-weight:700;color:var(--text)">$yr.year</span>
+                  <span class="subtitle" style="margin-left:14px">
+                    #if $yr.temp_avg is not None
+                    $gettext('Avg'): <strong>$round($yr.temp_avg, 1)&deg;</strong> &middot;
+                    #end if
+                    #if $yr.temp_min is not None and $yr.temp_max is not None
+                    $round($yr.temp_min, 1)&deg; / $round($yr.temp_max, 1)&deg; &middot;
+                    #end if
+                    #if $yr.rain_sum is not None
+                    $gettext('Rain'): <strong>$round($yr.rain_sum, 1) mm</strong> &middot;
+                    #end if
+                    #if $yr.wind_max is not None
+                    $gettext('Gusts'): <strong>$round($yr.wind_max, 1) $unit.label.windSpeed</strong>
+                    #end if
+                  </span>
+                </div>
+                <a class="pill noaa-link" href="$yr.noaa_url">$gettext('NOAA (year)')</a>
+              </div>
+
+              <div style="overflow-x:auto">
+                <table class="sortable-table" style="width:100%;min-width:680px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums">
+                  <thead><tr>
+                    <th data-sort-col="0" style="text-align:left;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Month')</th>
+                    <th data-sort-col="1" style="text-align:right;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Avg')</th>
+                    <th data-sort-col="2" style="text-align:right;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Min')</th>
+                    <th data-sort-col="3" style="text-align:right;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Max')</th>
+                    <th data-sort-col="4" style="text-align:right;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Rain')</th>
+                    <th data-sort-col="5" style="text-align:right;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">$gettext('Gusts')</th>
+                    <th style="text-align:right;padding:8px 12px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)"></th>
+                  </tr></thead>
+                  <tbody>
+                    #for $m in $yr.months
+                    <tr>
+                      <td data-value="$m.month" style="padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600">
+                        <a href="$m.archive_url" style="color:var(--accent-primary);text-decoration:none">$m.name $yr.year</a>
+                      </td>
+                      <td data-value="$m.temp_avg" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
+                        #if $m.temp_avg is not None
+                        $round($m.temp_avg, 1)&deg;
+                        #else
+                        &mdash;
+                        #end if
+                      </td>
+                      <td data-value="$m.temp_min" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
+                        #if $m.temp_min is not None
+                        $round($m.temp_min, 1)&deg;
+                        #else
+                        &mdash;
+                        #end if
+                      </td>
+                      <td data-value="$m.temp_max" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
+                        #if $m.temp_max is not None
+                        $round($m.temp_max, 1)&deg;
+                        #else
+                        &mdash;
+                        #end if
+                      </td>
+                      <td data-value="$m.rain_sum" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
+                        #if $m.rain_sum is not None
+                        $round($m.rain_sum, 1) mm
+                        #else
+                        0.0 mm
+                        #end if
+                      </td>
+                      <td data-value="$m.wind_max" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
+                        #if $m.wind_max is not None
+                        $round($m.wind_max, 1) $unit.label.windSpeed
+                        #else
+                        &mdash;
+                        #end if
+                      </td>
+                      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
+                        <div style="display:inline-flex;gap:6px">
+                          <a href="$m.archive_url" class="pill" style="height:26px;padding:0 8px;font-size:11px">$gettext('Monthly details')</a>
+                          <a href="$m.noaa_url" class="pill noaa-link" style="height:26px;padding:0 8px;font-size:11px">NOAA</a>
+                        </div>
+                      </td>
+                    </tr>
+                    #end for
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            #end for
+          #else
+            <div class="empty-state">$gettext('Not enough data yet for this view')</div>
+          #end if
+        </div>
+
+        <div id="view-records" class="archive-view" style="display:none;flex-direction:column;gap:18px">
+          <section class="card" style="padding:22px">
+            <span class="uppercase-label">$gettext('All-time extremes recorded since station start')</span>
+            <div class="tiles-grid" style="flex:none;width:100%;margin-top:14px">
+              #if $alltime.outTemp.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-high.svg" alt="">$gettext('Highest') $gettext('Temperature')</span>
+                <div class="tile-value"><span class="num">$alltime.outTemp.max.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
+                <span class="tile-sub">$alltime.outTemp.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-low.svg" alt="">$gettext('Lowest') $gettext('Temperature')</span>
+                <div class="tile-value"><span class="num">$alltime.outTemp.min.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
+                <span class="tile-sub">$alltime.outTemp.mintime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+              #if $alltime.windGust.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/wind.svg" alt="">$gettext('Gusts')</span>
+                <div class="tile-value"><span class="num">$alltime.windGust.max.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.windSpeed</span></div>
+                <span class="tile-sub">$alltime.windGust.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+              #if $alltime.windSpeed.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/wind.svg" alt="">$gettext('Wind speed')</span>
+                <div class="tile-value"><span class="num">$alltime.windSpeed.max.format(add_label=False, format_string="%.0f")</span><span class="unit">$unit.label.windSpeed</span></div>
+                <span class="tile-sub">$alltime.windSpeed.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+              #if $alltime.rainRate.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext('Max rain rate')</span>
+                <div class="tile-value"><span class="num">$alltime.rainRate.max.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.rainRate</span></div>
+                <span class="tile-sub">$alltime.rainRate.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+              #if $alltime.rain.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext('Total rain recorded')</span>
+                <div class="tile-value"><span class="num">$alltime.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit"> mm</span></div>
+                <span class="tile-sub">$gettext('All time')</span>
+              </div>
+              #end if
+              #if $alltime.barometer.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/barometer.svg" alt="">$gettext('Highest') $gettext('Pressure')</span>
+                <div class="tile-value"><span class="num">$alltime.barometer.max.format(add_label=False, format_string="%.1f")</span><span class="unit"> $unit.label.barometer</span></div>
+                <span class="tile-sub">$alltime.barometer.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/barometer.svg" alt="">$gettext('Lowest') $gettext('Pressure')</span>
+                <div class="tile-value"><span class="num">$alltime.barometer.min.format(add_label=False, format_string="%.1f")</span><span class="unit"> $unit.label.barometer</span></div>
+                <span class="tile-sub">$alltime.barometer.mintime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+              #if $alltime.UV.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/uv-index.svg" alt="">$gettext('UV')</span>
+                <div class="tile-value"><span class="num">$alltime.UV.max.format(add_label=False, format_string="%.1f")</span></div>
+                <span class="tile-sub">$alltime.UV.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+              #if $alltime.radiation.has_data
+              <div class="tile">
+                <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/solar-radiation.svg" alt="">$gettext('Radiation')</span>
+                <div class="tile-value"><span class="num">$alltime.radiation.max.format(add_label=False, format_string="%.0f")</span><span class="unit"> W/m&sup2;</span></div>
+                <span class="tile-sub">$alltime.radiation.maxtime.format("%d-%m-%Y %H:%M")</span>
+              </div>
+              #end if
+            </div>
+          </section>
+        </div>
 
         #include "footer.inc"
 
@@ -322,5 +569,36 @@
 <script src="static/js/chart-tooltip.js?v=$vane_version"></script>
 <script src="static/js/sortable-table.js?v=$vane_version"></script>
 <script src="static/js/noaa-modal.js?v=$vane_version"></script>
-</body>
-</html>
+<script>
+(function() {
+  var btns = document.querySelectorAll("#vane-archive-tabs .vane-tab-btn");
+  function switchTab(targetId) {
+    btns.forEach(function(b) {
+      if (b.getAttribute("data-tab") === targetId) {
+        b.classList.add("active");
+      } else {
+        b.classList.remove("active");
+      }
+    });
+    document.querySelectorAll(".archive-view").forEach(function(view) {
+      view.style.display = (view.id === targetId) ? "flex" : "none";
+    });
+  }
+  btns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var targetId = btn.getAttribute("data-tab");
+      switchTab(targetId);
+      if (history.replaceState) {
+        history.replaceState(null, null, "#" + targetId.replace("view-", ""));
+      }
+    });
+  });
+  var hash = (window.location.hash || "").replace("#", "");
+  if (hash) {
+    var mapped = "view-" + hash;
+    if (document.getElementById(mapped)) {
+      switchTab(mapped);
+    }
+  }
+})();
+</script>

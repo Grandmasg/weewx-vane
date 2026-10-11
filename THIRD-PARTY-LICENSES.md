@@ -7,13 +7,15 @@ notice in redistributed copies.
 
 ## Meteocons (weather condition icons)
 
-- **Files**: `skins/Vane/static/img/icons/*.svg` (clear-day, clear-night,
-  partly-cloudy-*, cloudy, overcast, fog, drizzle, rain, thunderstorms,
-  snow, sleet, hail, sunrise, sunset, moon-*) — **not** `logo-mark.svg`,
-  `favicon.svg`, `apple-touch-icon.png` or `pwa-*.png`, which are Vane's
-  own original artwork.
-- **Source**: [basmilius/meteocons](https://github.com/basmilius/meteocons)
-  (`line` style), npm package `@meteocons/svg`.
+- **Files**: `skins/Vane/static/img/icons/*.svg` — Vane's weather icon set
+  was originally based on Meteocons (`line` style). The current set
+  (filled style, incl. `static/img/seasons/*.svg` and the Lottie files
+  generated from them in `static/lottie/`) has been redrawn for Vane; the
+  notice below is kept for the original derivation. `logo-mark.svg`,
+  `favicon.svg`, `apple-touch-icon.png` and `pwa-*.png` are Vane's own
+  original artwork.
+- **Source**: [basmilius/meteocons](https://github.com/basmilius/meteocons),
+  npm package `@meteocons/svg`.
 - **License**: MIT, Copyright (c) Bas Milius.
 
 ## uPlot
@@ -22,6 +24,13 @@ notice in redistributed copies.
   `skins/Vane/static/js/vendor/uPlot.min.css`.
 - **Source**: [leeoniya/uPlot](https://github.com/leeoniya/uPlot).
 - **License**: MIT, Copyright (c) Leon Sorokin.
+
+## lottie-web (light build)
+
+- **Files**: `skins/Vane/static/js/vendor/lottie_light.min.js` (5.13.0,
+  SVG renderer only).
+- **Source**: [airbnb/lottie-web](https://github.com/airbnb/lottie-web).
+- **License**: MIT, Copyright (c) 2015 Airbnb, Inc.
 
 ## flag-icons (language switcher flags)
 

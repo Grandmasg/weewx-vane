@@ -1,0 +1,55 @@
+<svg viewBox="1.5 -4.5 60.5 60.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="etPlantGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <linearGradient id="etVaporGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="etDropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7DD3FC"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <filter id="etGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#10B981" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Ground / Soil Curve -->
+  <path d="M10 54 Q32 50 54 54" stroke="#64748B" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Growing Plant / Sprout -->
+  <g class="et-plant" filter="url(#etGlow)">
+    <!-- Stem -->
+    <path d="M32 53 Q32 40 31 34" stroke="url(#etPlantGrad)" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Left Leaf -->
+    <path d="M31 43 C23 43 20 37 18 33 C25 32 30 36 31 42 Z" fill="url(#etPlantGrad)"/>
+    <!-- Right Leaf -->
+    <path d="M32 38 C40 37 43 31 45 27 C38 27 33 32 32 37 Z" fill="url(#etPlantGrad)"/>
+    <!-- Tiny Top Bud -->
+    <circle cx="31" cy="33" r="2" fill="#34D399"/>
+  </g>
+
+  <!-- Water Drop at Base -->
+  <path d="M32 48 C30 48 29 49.5 29 51 C29 52.5 30.5 53.5 32 53.5 C33.5 53.5 35 52.5 35 51 C35 49.5 34 48 32 48 Z" fill="url(#etDropGrad)"/>
+
+  <!-- Rising Evapotranspiration Vapor Waves -->
+  <g class="et-vapor">
+    <!-- Vapor Wave Left -->
+    <path d="M21 28 Q18 20 22 13 Q25 8 22 4" stroke="url(#etVaporGrad)" stroke-width="2" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,4; 0,-4; 0,4" dur="2.6s" repeatCount="indefinite"/>
+    </path>
+    <!-- Vapor Wave Center -->
+    <path d="M32 24 Q35 17 32 10 Q29 5 32 2" stroke="url(#etVaporGrad)" stroke-width="2.2" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,3; 0,-5; 0,3" dur="2.1s" repeatCount="indefinite"/>
+    </path>
+    <!-- Vapor Wave Right -->
+    <path d="M43 26 Q46 19 42 12 Q39 7 42 3" stroke="url(#etVaporGrad)" stroke-width="2" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,5; 0,-3; 0,5" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+  </g>
+</svg>

@@ -26,3 +26,6 @@ design/wsl-test-output/
 
 # Lokale Claude Code-status (sessiedata, geen projectbroncode)
 .claude/
+
+# Lokale status van de Serena-tool (AI-assistent), geen projectbroncode
+.serena/

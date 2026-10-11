@@ -1,12 +1,24 @@
-<svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="moon-full" clip-path="url(#clip0_2049_4415)">
-<g id="Moon Phase">
-<circle id="Moon" cx="64" cy="64" r="30.5" stroke="#72B9D5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><animateTransform attributeName="transform" type="rotate" values="-6 64.0 64.0;6 64.0 64.0;-6 64.0 64.0" dur="3s" begin="0s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 .58 1; .42 0 .58 1"/></circle>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_2049_4415">
-<rect width="128" height="128" fill="white"/>
-</clipPath>
-</defs>
+<svg viewBox="9 8.5 45.5 45.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="moonfullLitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF9C3"/>
+      <stop offset="60%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#EAB308"/>
+    </linearGradient>
+    <linearGradient id="moonfullDarkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <filter id="moonfullGlow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#FACC15" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Moon with a slow, gentle float -->
+  <g filter="url(#moonfullGlow)">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-1.5; 0,0" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    <!-- Unlit disc, always visible so every phase reads as a whole moon -->
+    <circle cx="32" cy="32" r="20" fill="url(#moonfullDarkGrad)" stroke="#94A3B8" stroke-width="1" stroke-opacity="0.45"/>
+    <circle cx="32" cy="32" r="20" fill="url(#moonfullLitGrad)"/>
+  </g>
 </svg>

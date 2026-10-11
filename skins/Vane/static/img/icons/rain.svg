@@ -1,23 +1,49 @@
-<svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="rain" clip-path="url(#clip0_2045_28840)">
-<g id="Sky">
-<g id="Clouds">
-<g id="Cloud">
-<path id="Cloud_2" fill-rule="evenodd" clip-rule="evenodd" d="M54.8371 48.2115C59.8274 40.138 70.2648 36.824 79.0085 40.4823C87.7416 44.136 92.6836 53.8827 90.3886 63.0856C97.6828 62.7671 104 68.7067 104 76.0281C104 83.1158 98.0476 89 90.9767 89C89.8721 89 88.9767 88.104 88.9767 86.9986C88.9767 85.8933 89.8721 84.9973 90.9767 84.9973C95.8637 84.9973 100 80.8799 100 76.0281C100 71.0262 95.6222 66.8637 90.5629 67.0846L87.8866 67.2014C87.2562 67.229 86.6497 66.9571 86.2505 66.4681C85.8513 65.979 85.7062 65.3301 85.859 64.7174L86.5076 62.1165C88.3201 54.8484 84.391 47.0727 77.4656 44.1752C70.5248 41.2713 62.1886 43.9272 58.239 50.3171L57.2003 51.9975C56.6245 52.9291 55.4074 53.2244 54.4692 52.6602L52.7767 51.6424C49.8116 49.8592 45.9319 49.9664 43.071 51.9105C40.2208 53.8474 38.7096 57.3922 39.2918 60.7745L39.6259 62.7154C39.8113 63.7924 39.0991 64.819 38.026 65.0218L36.092 65.3872C31.1421 66.3225 27.5723 71.0441 28.0437 76.0307C28.5153 81.0207 32.91 84.9983 37.9519 84.9973C39.0565 84.997 39.9521 85.8929 39.9524 86.9982C39.9526 88.1035 39.0573 88.9998 37.9528 89C30.8695 89.0015 24.7294 83.4755 24.0614 76.4076C23.3936 69.3412 28.3907 62.7689 35.3499 61.454C34.4997 56.5148 36.6828 51.4131 40.8239 48.5991C44.9752 45.7781 50.5363 45.625 54.8371 48.2115Z" fill="#E6EFFC"/>
-</g>
-<animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="3s" begin="0s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 .58 1; .42 0 .58 1"/></g>
-</g>
-<g id="Precipitation">
-<g id="Raindrops">
-<path id="Raindrop 1" d="M52 83V95" stroke="#0A5AD4" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="translate" values="0 0;0 20" dur="1s" begin="0s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 1 1"/><animate attributeName="opacity" values="0;1;1;0" dur="1s" begin="0s" repeatCount="indefinite" keyTimes="0;0.15;0.85;1"/></path>
-<path id="Raindrop 2" d="M64 83V95" stroke="#0A5AD4" stroke-width="4" stroke-linecap="round" opacity="0"><animateTransform attributeName="transform" type="translate" values="0 0;0 20" dur="1s" begin="0.4s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 1 1"/><animate attributeName="opacity" values="0;1;1;0" dur="1s" begin="0.4s" repeatCount="indefinite" keyTimes="0;0.15;0.85;1"/></path>
-<path id="Raindrop 3" d="M76 83V95" stroke="#0A5AD4" stroke-width="4" stroke-linecap="round" opacity="0"><animateTransform attributeName="transform" type="translate" values="0 0;0 20" dur="1s" begin="0.8s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 1 1"/><animate attributeName="opacity" values="0;1;1;0" dur="1s" begin="0.8s" repeatCount="indefinite" keyTimes="0;0.15;0.85;1"/></path>
-</g>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_2045_28840">
-<rect width="128" height="128" fill="white"/>
-</clipPath>
-</defs>
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="rainCloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#64748B"/>
+    </linearGradient>
+    <linearGradient id="rainStreakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.2"/>
+      <stop offset="60%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+    <filter id="rainGlow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Continuous Smooth Falling Rain Streaks (Natural Precipitation Flow) -->
+  <g class="rain-streaks">
+    <!-- Streak 1 -->
+    <line x1="20" y1="41" x2="17" y2="50" stroke="url(#rainStreakGrad)" stroke-width="2.2" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,0; -2,10; -4,20" dur="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.1; 1; 0" dur="0.8s" repeatCount="indefinite"/>
+    </line>
+    <!-- Streak 2 -->
+    <line x1="29" y1="42" x2="26" y2="52" stroke="url(#rainStreakGrad)" stroke-width="2.5" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,0; -2,10; -4,20" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.1; 1; 0" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+    </line>
+    <!-- Streak 3 -->
+    <line x1="38" y1="41" x2="35" y2="51" stroke="url(#rainStreakGrad)" stroke-width="2.5" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,0; -2,10; -4,20" dur="0.8s" begin="0.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.1; 1; 0" dur="0.8s" begin="0.4s" repeatCount="indefinite"/>
+    </line>
+    <!-- Streak 4 -->
+    <line x1="46" y1="43" x2="43" y2="51" stroke="url(#rainStreakGrad)" stroke-width="2" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" values="0,0; -2,10; -4,20" dur="0.8s" begin="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.1; 1; 0" dur="0.8s" begin="0.6s" repeatCount="indefinite"/>
+    </line>
+  </g>
+
+  <!-- Rain Cloud with gentle float -->
+  <g class="rain-cloud" filter="url(#rainGlow)">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-1.5; 0,0" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    <path d="M18 41 C13 41 9 37 9 32 C9 27.5 12.4 23.8 16.8 23.1 C18.3 16.5 24 11.5 31 11.5 C39 11.5 45.4 17.5 46.5 25 C50 26 52.5 29 52.5 33 C52.5 37.5 49 41 44.5 41 Z" fill="url(#rainCloudGrad)"/>
+    <!-- Bottom Rim Rain Tint -->
+    <path d="M12 37 C15 41 40 41 49 37" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+  </g>
 </svg>

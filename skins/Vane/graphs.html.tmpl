@@ -1,7 +1,7 @@
 #encoding UTF-8
 #errorCatcher Echo
 <!DOCTYPE html>
-<html lang="$lang" data-theme="">
+<html lang="$lang" data-theme="" data-season="$vane_season">
 <head>
 <script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 <meta charset="utf-8">
@@ -12,6 +12,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/vane.css?v=$vane_version">
+#if $vane_accent_style
+<style>$vane_accent_style</style>
+#end if
 <link rel="stylesheet" href="static/js/vendor/uPlot.min.css">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -22,24 +25,26 @@
 <div class="vane-shell">
 
   <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
-    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
-    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+    <a class="logo-link" href="index.html" title="Dashboard">
+      <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    </a>
+    <a class="nav-btn" href="index.html" data-nav="dashboard" title="$gettext('Dashboard')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext('Dashboard')</span>
     </a>
-    <button class="nav-btn active" title="$gettext('Graphs')" aria-current="page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+    <button class="nav-btn active" data-nav="graphs" title="$gettext('Graphs')" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3" pathLength="100"></path></svg>
       <span>$gettext('Graphs')</span>
     </button>
-    <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
+    <a class="nav-btn" href="archive.html" data-nav="archive" title="$gettext('Archive')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext('Archive')</span>
     </a>
-    <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+    <a class="nav-btn" href="telemetry.html" data-nav="telemetry" title="$gettext('Telemetry')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2" pathLength="100"></path></svg>
       <span>$gettext('Telemetry')</span>
     </a>
-    <a class="nav-btn" href="almanac.html" title="$gettext('Almanac')">
+    <a class="nav-btn" href="almanac.html" data-nav="almanac" title="$gettext('Almanac')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext('Almanac')</span>
     </a>
@@ -55,12 +60,12 @@
             <span class="subtitle">$station.location</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div style="display:flex;padding:3px;border-radius:10px;background:var(--surface-2)" id="vane-period-selector" role="group" aria-label="$gettext('Time period')">
-              <button class="period-btn active" data-period="day" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Day')</button>
-              <button class="period-btn" data-period="week" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Week')</button>
-              <button class="period-btn" data-period="month" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Month')</button>
-              <button class="period-btn" data-period="year" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('Year')</button>
-              <button class="period-btn" data-period="all" style="all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500">$gettext('All')</button>
+            <div class="vane-tabs" id="vane-period-selector" role="group" aria-label="$gettext('Time period')">
+              <button class="period-btn active" data-period="day">$gettext('Day')</button>
+              <button class="period-btn" data-period="week">$gettext('Week')</button>
+              <button class="period-btn" data-period="month">$gettext('Month')</button>
+              <button class="period-btn" data-period="year">$gettext('Year')</button>
+              <button class="period-btn" data-period="all">$gettext('All')</button>
             </div>
             #if str($Vane.Features.get('date_picker', 'false')).lower() == 'true'
             <input type="month" id="vane-month-picker" aria-label="$gettext('Select month')" style="height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 8px;font-size:12px;font-family:inherit">
@@ -123,7 +128,7 @@
         </div>
 
         <section class="card" style="display:flex;flex-direction:column;gap:14px">
-          <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/raindrops.svg" alt="">$gettext('Rain')</span>
+          <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext('Rain')</span>
           <div id="vane-rain-chart" style="width:100%"></div>
         </section>
 
@@ -145,7 +150,7 @@
 
         <div class="row-wrap">
           <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">
-            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/cloudy.svg" alt="">$gettext('Cloud base')</span>
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/cloudbase.svg" alt="">$gettext('Cloud base')</span>
             <div id="vane-cloudbase-chart" style="width:100%"></div>
           </section>
           <section class="card" style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:14px">

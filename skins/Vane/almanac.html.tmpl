@@ -4,7 +4,7 @@
    year chart from the design mockup are still to follow during the visual
    polish round, see MOCKUP_REVIEW.md. *#
 <!DOCTYPE html>
-<html lang="$lang" data-theme="">
+<html lang="$lang" data-theme="" data-season="$vane_season">
 <head>
 <script>(function(){try{var t=localStorage.getItem("vane-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 <meta charset="utf-8">
@@ -15,6 +15,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/vane.css?v=$vane_version">
+#if $vane_accent_style
+<style>$vane_accent_style</style>
+#end if
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -24,24 +27,26 @@
 <div class="vane-shell">
 
   <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
-    <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
-    <a class="nav-btn" href="index.html" title="$gettext('Dashboard')">
+    <a class="logo-link" href="index.html" title="Dashboard">
+      <img class="logo" src="static/img/logo-mark.svg" width="40" height="40" alt="Vane">
+    </a>
+    <a class="nav-btn" href="index.html" data-nav="dashboard" title="$gettext('Dashboard')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
       <span>$gettext('Dashboard')</span>
     </a>
-    <a class="nav-btn" href="graphs.html" title="$gettext('Graphs')">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+    <a class="nav-btn" href="graphs.html" data-nav="graphs" title="$gettext('Graphs')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3" pathLength="100"></path></svg>
       <span>$gettext('Graphs')</span>
     </a>
-    <a class="nav-btn" href="archive.html" title="$gettext('Archive')">
+    <a class="nav-btn" href="archive.html" data-nav="archive" title="$gettext('Archive')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
       <span>$gettext('Archive')</span>
     </a>
-    <a class="nav-btn" href="telemetry.html" title="$gettext('Telemetry')">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+    <a class="nav-btn" href="telemetry.html" data-nav="telemetry" title="$gettext('Telemetry')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2" pathLength="100"></path></svg>
       <span>$gettext('Telemetry')</span>
     </a>
-    <button class="nav-btn active" title="$gettext('Almanac')" aria-current="page">
+    <button class="nav-btn active" data-nav="almanac" title="$gettext('Almanac')" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
       <span>$gettext('Almanac')</span>
     </button>
@@ -140,7 +145,13 @@
           <section class="card" style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:14px">
             <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/moon-full.svg" alt="">$gettext('Moon')</span>
             <div class="hero-value" style="align-items:center;gap:12px">
+              #if $vane_skyfield and $vane_skyfield.skymap
+              #* weewx-skymap-almanac installed: the real phase AND tilt of
+                 the crescent as seen from this station right now. *#
+              <span class="vane-moon-symbol">$almanac.moon_symbol(width=40, with_tilt=True)</span>
+              #else
               <img src="static/img/icons/${moon_icon}.svg" width="40" height="40" alt="">
+              #end if
               <span class="num" style="font-size:28px">$almanac.moon_fullness</span>
               <span class="unit">% $gettext('illuminated') &middot; $almanac.moon_phase</span>
             </div>
@@ -200,6 +211,88 @@
           </div>
           #end if
         </section>
+
+        #*
+          Optional extra: only rendered when the weewx-skyfield-almanac
+          extension is installed and has loaded its ephemeris (see
+          vane_extras._skyfield_extras). Without it this whole block is
+          skipped — Vane never depends on it.
+        *#
+        #if $vane_skyfield
+        #set $sky = $vane_skyfield
+        #set $day_fmt = $Vane.DateFormats.archive_day
+        <div class="row-wrap">
+          <section class="card" style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/moon-waxing-gibbous.svg" alt="">$gettext('Moon & Earth')</span>
+              #if $sky.supermoon
+              <span class="pill" style="height:26px;font-size:12px;color:var(--accent-primary)">$gettext('Supermoon') &middot; $vane_fmt_ts($sky.supermoon_ts, $day_fmt)</span>
+              #end if
+            </div>
+            <div class="hero-meta" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
+              #if $sky.moon_constellation
+              <div><div class="k">$gettext('Moon in')</div><div class="v">$gettext($sky.moon_constellation)</div></div>
+              #end if
+              #if $sky.moon_distance_km
+              <div><div class="k">$gettext('Moon distance')</div><div class="v">$sky.moon_distance_km km</div></div>
+              #end if
+              #if $sky.sun_constellation
+              <div><div class="k">$gettext('Sun in')</div><div class="v">$gettext($sky.sun_constellation)</div></div>
+              #end if
+              #if $sky.solar_time
+              <div><div class="k">$gettext('Solar time')</div><div class="v">$sky.solar_time</div></div>
+              #end if
+              #if $sky.equation_of_time
+              <div><div class="k">$gettext('Equation of time')</div><div class="v">$sky.equation_of_time</div></div>
+              #end if
+            </div>
+            #if $sky.events
+            <div style="display:flex;flex-direction:column;border-top:1px solid var(--border);padding-top:8px;margin-top:auto">
+              #for $ev in $sky.events
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:4px 0">
+                <span>$gettext($ev.label)</span>
+                <span style="color:var(--text-muted);white-space:nowrap">$vane_fmt_ts($ev.ts, $day_fmt + "-%Y &middot; %H:%M")</span>
+              </div>
+              #end for
+            </div>
+            #end if
+          </section>
+
+          <section class="card" style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:12px">
+            <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/clear-night.svg" alt="">$gettext('Planets')</span>
+            <div style="display:flex;flex-direction:column">
+              <div style="display:grid;grid-template-columns:1fr auto auto;gap:4px 18px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding-bottom:6px;border-bottom:1px solid var(--border)">
+                <span></span><span>$gettext('Rise')</span><span>$gettext('Set')</span>
+              </div>
+              #for $p in $sky.planets
+              <div style="display:grid;grid-template-columns:1fr auto auto;gap:4px 18px;align-items:center;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <span style="display:flex;align-items:center;gap:8px;min-width:0">
+                  <span title="#if $p.up then $gettext('Above the horizon') else $gettext('Below the horizon')#" style="width:7px;height:7px;flex:none;border-radius:50%;background:#if $p.up then 'var(--status-live)' else 'var(--border)'#"></span>
+                  <span>$gettext($p.label)</span>
+                  #if $p.phase
+                  <span style="color:var(--text-muted);font-size:12px;white-space:nowrap">$gettext($p.phase) &middot; $p.fullness%</span>
+                  #end if
+                </span>
+                <span style="font-variant-numeric:tabular-nums">$vane_fmt_ts($p.rise)</span>
+                <span style="font-variant-numeric:tabular-nums">$vane_fmt_ts($p.set)</span>
+              </div>
+              #end for
+            </div>
+          </section>
+        </div>
+
+        #if $sky.skymap
+        #* weewx-skymap-almanac installed: live sky map of this station.
+           Sky colours tuned to Vane's palette (RGB tuples, see the
+           extension's SkymapBinder); the sky itself follows day/night. *#
+        <section class="card" style="display:flex;flex-direction:column;gap:10px">
+          <span class="uppercase-label" style="display:flex;align-items:center;gap:8px"><img class="tile-icon" width="28" height="28" src="static/img/icons/clear-night.svg" alt="">$gettext('Sky now')</span>
+          <div class="vane-skymap-wrap">
+            $almanac.skymap(width='100%', max_width=620, html_class='vane-skymap', show_timestamp=False, show_location=False, night_color=(8, 14, 35), horizon_night_color=(30, 41, 59), day_color=(59, 91, 140), horizon_day_color=(36, 52, 71))
+          </div>
+        </section>
+        #end if
+        #end if
 
         #include "footer.inc"
 

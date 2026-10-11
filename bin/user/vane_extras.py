@@ -20,9 +20,11 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 import urllib.request
 
+import weeutil.weeutil
 import weewx.almanac
 import weewx.cheetahgenerator
 import weewx.units
@@ -35,7 +37,18 @@ log = logging.getLogger(__name__)
 # the generated HTML already has new markup, which can visibly break the
 # layout until the user hard-refreshes. Bump this alongside install.py's
 # version whenever static/css or static/js changes.
-VANE_VERSION = "0.3.6"
+VANE_VERSION = "0.4.0"
+
+# Module-level so it survives between report runs inside weewxd; see
+# VaneExtras._day_length_year_data.
+_DAY_LENGTH_CACHE = {}
+
+# Untranslated on purpose: templates pass these through $gettext(), and
+# lang/*.conf [Texts] holds the per-language names.
+MONTH_FULL_NAMES = {
+    1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+    7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December",
+}
 
 
 # CORE observations get their own designed tile (see DESIGN_PLAN.md) and
@@ -204,7 +217,20 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         # you get 'cannot find Vane' the moment a template uses it.
         vane_config = self.generator.skin_dict.get("Vane", {})
 
+        # The season is site-wide: it follows the latest data, NOT the
+        # period of the page being generated — otherwise e.g. the archive
+        # page for July would render in summer colors in October.
+        lat = getattr(self.generator.stn_info, "latitude_f", 52.0)
+        now_stamp = self._latest_stamp(db_manager, timespan)
+        season = self._current_season(now_stamp, lat)
+        astro = self._astro_data(now_stamp)
+        season_title = season.capitalize()
+        accent_style = self._accent_style(season)
+
         return [{"Vane": vane_config,
+                 "vane_season": season,
+                 "vane_season_title": season_title,
+                 "vane_accent_style": accent_style,
                  "vane_extra_sensors": extra_sensors,
                  "vane_sparkline_path": self._sparkline_path,
                  "vane_condition_icon": self._condition_icon,
@@ -215,6 +241,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_wind_vector": self._wind_vector_data(timespan, db_manager),
                  "vane_rain_color": self._rain_color,
                  "vane_weekday": self._weekday_iso,
+                 "vane_month_name": self._month_name,
                  "vane_lightning_mode": self._lightning_mode(timespan, db_manager),
                  "vane_lightning_api": self._vane_lightning_api,
                  "vane_dashboard_plugins_html": self._dashboard_plugins_html(),
@@ -225,13 +252,100 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_gauge_range_band": self._gauge_range_band,
                  "vane_mqtt_config_json": self._mqtt_config_json(),
                  "vane_current_json": self._current_conditions_json(record),
-                 "vane_sun_arc": self._sun_arc_data(timespan),
-                 "vane_season_events": self._season_events(timespan),
-                 "vane_day_length_year": self._day_length_year_data(timespan),
+                 "vane_sun_arc": astro["sun_arc"],
+                 "vane_season_events": astro["season_events"],
+                 "vane_day_length_year": astro["day_length_year"],
+                 "vane_skyfield": astro["skyfield"],
+                 "vane_fmt_ts": self._fmt_ts,
                  "vane_telemetry_services": self._telemetry_services(),
                  "vane_power_voltage": self._power_voltage(),
                  "vane_storage": self._storage_info(),
-                 "vane_record_count": self._record_count(db_manager)}]
+                 "vane_record_count": self._record_count(db_manager),
+                 "vane_archive_history": self._archive_history(db_manager)}]
+
+    def _astro_data(self, now_stamp):
+        """Sun arc, season events, day length and Skyfield extras — all
+        about NOW (the newest record), not about the period of the page
+        being generated: an archive page for September must not compute a
+        September sun arc. Cached per stamp, since get_extension_list()
+        runs once per generated file and these are the expensive calls
+        (seconds per file with the Skyfield almanac)."""
+        cached = getattr(self, "_astro_cache", None)
+        if cached and cached[0] == now_stamp:
+            return cached[1]
+        span = weeutil.weeutil.TimeSpan(now_stamp, now_stamp)
+        data = {
+            "sun_arc": self._sun_arc_data(span),
+            "season_events": self._season_events(span),
+            "day_length_year": self._day_length_year_data(span),
+            "skyfield": self._skyfield_extras(span),
+        }
+        self._astro_cache = (now_stamp, data)
+        return data
+
+    @staticmethod
+    def _latest_stamp(db_manager, timespan):
+        """Timestamp of the newest archive record, falling back to the
+        page's own timespan end if the database can't tell us."""
+        try:
+            stamp = db_manager.lastGoodStamp()
+        except Exception:
+            stamp = None
+        return stamp or timespan.stop
+
+    @staticmethod
+    def _current_season(stamp, latitude=52.0):
+        """Returns ('spring'|'summer'|'autumn'|'winter') based on the
+        meteorological season of `stamp` and station latitude.
+        Northern hemisphere:
+          - Spring: March, April, May (3, 4, 5)
+          - Summer: June, July, August (6, 7, 8)
+          - Autumn: September, October, November (9, 10, 11)
+          - Winter: December, January, February (12, 1, 2)
+        Southern hemisphere (lat < 0) has inverted seasons."""
+        month = time.localtime(stamp).tm_mon
+        if month in (3, 4, 5):
+            season = "spring"
+        elif month in (6, 7, 8):
+            season = "summer"
+        elif month in (9, 10, 11):
+            season = "autumn"
+        else:
+            season = "winter"
+
+        if latitude is not None and latitude < 0:
+            opposites = {
+                "spring": "autumn",
+                "summer": "winter",
+                "autumn": "spring",
+                "winter": "summer",
+            }
+            season = opposites.get(season, season)
+        return season
+
+    def _accent_style(self, season):
+        """Generates inline <style> rules for the accent color.
+        If accent_color is 'season' (or empty/default), user overrides in
+        [Vane][[Seasons]] are injected if present; otherwise CSS defaults handle it.
+        If accent_color is a fixed hex code (e.g. '#2f8bff'), it overrides
+        --accent-primary directly."""
+        vane_cfg = self.generator.skin_dict.get("Vane", {})
+        configured = (vane_cfg.get("accent_color") or "season").strip()
+
+        if configured.lower() in ("season", "seasonal", "auto"):
+            seasons_cfg = vane_cfg.get("Seasons", {})
+            rules = []
+            for s in ("spring", "summer", "autumn", "winter"):
+                val = seasons_cfg.get(s)
+                if val:
+                    rules.append("--season-%s: %s;" % (s, val))
+            if rules:
+                return ":root { %s }" % " ".join(rules)
+            return ""
+
+        # Fixed color override
+        return ":root { --accent-primary: %s !important; }" % configured
+
 
     @staticmethod
     def _sparkline_path(values, width=300, height=64):
@@ -636,6 +750,13 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         of Cheetah since it has no time/calendar module access."""
         return time.localtime(dt_raw).tm_wday + 1
 
+    @staticmethod
+    def _month_name(dt_raw):
+        """English full month name for a timestamp, meant to go through
+        $gettext() in the template. Not strftime('%B'): that follows the
+        server's system locale (often C/English), not the report's lang."""
+        return MONTH_FULL_NAMES[time.localtime(dt_raw).tm_mon]
+
     @classmethod
     def _rain_color(cls, mm):
         if mm is None or mm <= 0:
@@ -856,6 +977,126 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
             self.generator.stn_info.longitude_f,
             altitude=altitude_m)
 
+    # Phase index 0..7 (same order as $almanac.moon_index) -> English
+    # $gettext key, so Venus/Mercury phases translate like everything else.
+    PHASE_KEYS = ["New", "Waxing crescent", "First quarter", "Waxing gibbous",
+                  "Full", "Waning gibbous", "Last quarter", "Waning crescent"]
+    PLANETS = [("mercury", "Mercury"), ("venus", "Venus"), ("mars", "Mars"),
+               ("jupiter", "Jupiter"), ("saturn", "Saturn")]
+
+    @staticmethod
+    def _fmt_ts(ts, fmt="%H:%M"):
+        """strftime for a raw timestamp (or '–' for None) — for values that
+        come out of Python as plain numbers rather than ValueHelpers."""
+        if ts is None:
+            return "–"
+        try:
+            return time.strftime(fmt, time.localtime(float(ts)))
+        except (TypeError, ValueError, OverflowError):
+            return "–"
+
+    @staticmethod
+    def _skyfield_active():
+        """True once the optional weewx-skyfield-almanac extension is
+        installed AND has finished loading its ephemeris (that can take a
+        few archive intervals after a WeeWX start). Vane never requires it:
+        without it, the extra almanac content is simply not rendered."""
+        for alm_type in getattr(weewx.almanac, "almanacs", []):
+            if type(alm_type).__name__ == "SkyfieldAlmanacType":
+                try:
+                    return bool(alm_type.hasExtras)
+                except Exception:
+                    return False
+        return False
+
+    @classmethod
+    def _skymap_active(cls):
+        """True when the optional weewx-skymap-almanac extension (which
+        builds on weewx-skyfield-almanac) is installed and ready: it
+        registers a SkymapSubalmanacType in the Skyfield extension's
+        `subalmanacs` list. Enables $almanac.skymap / .moon_symbol."""
+        if not cls._skyfield_active():
+            return False
+        mod = sys.modules.get("user.skyfieldalmanac")
+        return any(type(s).__name__ == "SkymapSubalmanacType"
+                   for s in getattr(mod, "subalmanacs", []))
+
+    def _skyfield_extras(self, timespan):
+        """Extra almanac content that only the Skyfield almanac provides
+        (PyEphem has none of it): Moon perigee/apogee incl. supermoon,
+        Earth perihelion/aphelion, constellations, Venus/Mercury phases,
+        planet rise/set, solar time. None when Skyfield isn't active.
+        Cached per generator run — get_extension_list() runs per file."""
+        if not self._skyfield_active():
+            return None
+        stamp = int(timespan.stop // 60)
+        cached = getattr(self, "_skyfield_cache", None)
+        if cached and cached[0] == stamp:
+            return cached[1]
+
+        alm = self._almanac_at(timespan.stop)
+        out = {"events": [], "planets": [], "skymap": self._skymap_active()}
+
+        def safe(fn):
+            try:
+                return fn()
+            except Exception as e:
+                log.debug("Vane: skyfield value unavailable: %s", e)
+                return None
+
+        out["moon_constellation"] = safe(lambda: str(alm.moon.constellation))
+        out["sun_constellation"] = safe(lambda: str(alm.sun.constellation))
+        dist = safe(lambda: float(alm.moon.dist))  # km
+        out["moon_distance_km"] = ("{:,}".format(int(round(dist))).replace(",", ".")
+                                   if dist else None)
+
+        full = safe(lambda: float(alm.next_full_moon.raw))
+        perigee = safe(lambda: float(alm.next_perigee_moon.raw))
+        # "Supermoon": a full moon within ~1.5 days of perigee.
+        out["supermoon"] = bool(full and perigee and abs(full - perigee) < 1.5 * 86400)
+        out["supermoon_ts"] = full if out["supermoon"] else None
+        for key, attr in (("Moon closest (perigee)", "next_perigee_moon"),
+                          ("Moon farthest (apogee)", "next_apogee_moon"),
+                          ("Earth closest to the Sun (perihelion)", "next_perihelion"),
+                          ("Earth farthest from the Sun (aphelion)", "next_aphelion")):
+            ts = safe(lambda a=attr: float(getattr(alm, a).raw))
+            if ts:
+                out["events"].append({"label": key, "ts": ts})
+        out["events"].sort(key=lambda e: e["ts"])
+
+        for body, label in self.PLANETS:
+            p = {"label": label,
+                 "rise": safe(lambda b=body: getattr(alm, b).rise.raw),
+                 "set": safe(lambda b=body: getattr(alm, b).set.raw),
+                 "up": safe(lambda b=body: float(getattr(alm, b).alt) > 0),
+                 "phase": None, "fullness": None}
+            if body in ("venus", "mercury"):
+                idx = safe(lambda b=body: int(getattr(alm, b + "_index")))
+                if idx is not None:
+                    p["phase"] = self.PHASE_KEYS[idx & 7]
+                full_pct = safe(lambda b=body: float(getattr(getattr(alm, b), b + "_fullness")))
+                if full_pct is not None:
+                    p["fullness"] = int(round(full_pct))
+            out["planets"].append(p)
+
+        # solar_time = hour angle of the Sun counted from midnight, degrees.
+        sol = safe(lambda: float(alm.solar_time))
+        if sol is not None:
+            minutes = int(round(sol / 15.0 * 60)) % (24 * 60)
+            out["solar_time"] = "%02d:%02d" % (minutes // 60, minutes % 60)
+        else:
+            out["solar_time"] = None
+        eot = safe(lambda: float(alm.equation_of_time.raw))  # seconds
+        if eot is not None:
+            sign = "+" if eot >= 0 else "-"
+            eot = abs(int(round(eot)))
+            out["equation_of_time"] = "%s%dm %02ds" % (sign, eot // 60, eot % 60)
+        else:
+            out["equation_of_time"] = None
+
+        self._skyfield_cache = (stamp, out)
+        return out
+
     def _sun_arc_data(self, timespan):
         """Real sun-elevation arc for today, sampled between sunrise and
         sunset (not a stylized generic dome — the whole point of this
@@ -968,15 +1209,30 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         calendar year — the actual informative content of the
         day-length-through-the-year chart, so (unlike the sun-arc's
         decorative dome) this one needs the real per-day computation,
-        not a stylized shape. Benchmarked at ~30ms for 365 days
-        (weewx.almanac is a thin, fast pyephem wrapper), so no need to
-        thin the sampling for performance."""
+        not a stylized shape.
+
+        Cost: ~0.1 s for 365 days with PyEphem, but ~2 s with the Skyfield
+        almanac — and get_extension_list() runs for EVERY generated file
+        (~30 s per report). The result only depends on the date, so it's
+        cached at module level: computed once per day per language."""
         now = timespan.stop
         lat = self.generator.stn_info.latitude_f
         lon = self.generator.stn_info.longitude_f
         altitude_m = weewx.units.convert(self.generator.stn_info.altitude_vt, "meter")[0]
 
         now_local = time.localtime(now)
+        date_format = self.generator.skin_dict.get("Vane", {}).get(
+            "DateFormats", {}).get("archive_day", "%m-%d")
+        cache_key = (now_local.tm_year, now_local.tm_yday, lat, lon, altitude_m, date_format)
+        cached = _DAY_LENGTH_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
+        result = self._compute_day_length_year(now_local, lat, lon, altitude_m, date_format)
+        _DAY_LENGTH_CACHE.clear()  # keep only today's entries
+        _DAY_LENGTH_CACHE[cache_key] = result
+        return result
+
+    def _compute_day_length_year(self, now_local, lat, lon, altitude_m, date_format):
         year = now_local.tm_year
         is_leap = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
         n_days = 366 if is_leap else 365
@@ -1032,9 +1288,6 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         min_h, min_m = hm(min_hours)
         delta_sign = "-" if delta_seconds < 0 else "+"
         delta_m, delta_s = divmod(int(round(abs(delta_seconds))), 60)
-
-        date_format = self.generator.skin_dict.get("Vane", {}).get(
-            "DateFormats", {}).get("archive_day", "%m-%d")
 
         return {
             "path_d": path_d,
@@ -1201,3 +1454,138 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
             return row[0] if row else None
         except Exception:
             return None
+
+    def _archive_history(self, db_manager):
+        """Extracts monthly and yearly summaries across all recorded history.
+        Returns a list of year dicts in descending order."""
+        if not db_manager:
+            return []
+
+        try:
+            t_unit, t_group = weewx.units.getStandardUnitType(db_manager.std_unit_system, "outTemp")
+            r_unit, r_group = weewx.units.getStandardUnitType(db_manager.std_unit_system, "rain")
+            w_unit, w_group = weewx.units.getStandardUnitType(db_manager.std_unit_system, "windSpeed")
+        except Exception:
+            t_unit = t_group = r_unit = r_group = w_unit = w_group = None
+
+        def conv(val, u, g):
+            if val is None or u is None or g is None:
+                return val
+            try:
+                return self.generator.converter.convert((val, u, g))[0]
+            except Exception:
+                return val
+
+        # Cached per generator run: get_extension_list() runs once per
+        # generated FILE (every template, every archive-YYYY-MM page), and
+        # this result only changes when new data arrives.
+        try:
+            stamp = db_manager.lastGoodStamp()
+        except Exception:
+            pass
+        cached = getattr(self, "_archive_history_cache", None)
+        if cached and cached[0] == stamp:
+            return cached[1]
+
+        try:
+            db_type = db_manager.connection.dbtype.lower()
+        except Exception:
+            db_type = "sqlite"
+        if "mysql" in db_type:
+            yr_expr = "YEAR(FROM_UNIXTIME(dateTime))"
+            mo_expr = "MONTH(FROM_UNIXTIME(dateTime))"
+        else:
+            yr_expr = "strftime('%Y', dateTime, 'unixepoch', 'localtime')"
+            mo_expr = "strftime('%m', dateTime, 'unixepoch', 'localtime')"
+
+        month_names = {
+            1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+            7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"
+        }
+
+        # Read from the daily summaries (one row per day per type) instead of
+        # the raw archive (one row per archive interval) — ~288x fewer rows
+        # at a 5-minute interval. Each type has its own archive_day_<obs>
+        # table, so they're queried separately; a missing one is skipped.
+        daykeys = getattr(db_manager, "daykeys", None) or set()
+        gust_key = "windGust" if "windGust" in daykeys else "wind"
+
+        def monthly(obs, columns):
+            if obs not in daykeys:
+                return {}
+            query = (
+                "SELECT " + yr_expr + " AS yr, " + mo_expr + " AS mo, " + columns +
+                " FROM " + db_manager.table_name + "_day_" + obs +
+                " GROUP BY yr, mo"
+            )
+            out = {}
+            try:
+                for row in db_manager.genSql(query):
+                    try:
+                        out[(int(row[0]), int(row[1]))] = row[2:]
+                    except (ValueError, TypeError):
+                        continue
+            except Exception as e:
+                log.info("Vane: archive history query error (%s): %s", obs, e)
+            return out
+
+        # wsum/sumtime is the time-weighted average WeeWX itself uses for
+        # $month.outTemp.avg; kept as raw sums so the YEAR average can be
+        # weighted the same way (not an average of monthly averages).
+        temp = monthly("outTemp", "MIN(min), MAX(max), SUM(wsum), SUM(sumtime)")
+        rain = monthly("rain", "SUM(sum)")
+        gust = monthly(gust_key, "MAX(max)")
+
+        years_dict = {}
+        for (yr, mo_int) in sorted(set(temp) | set(rain) | set(gust)):
+            t_min, t_max, t_wsum, t_time = temp.get((yr, mo_int), (None,) * 4)
+            r_sum = rain.get((yr, mo_int), (None,))[0]
+            w_max = gust.get((yr, mo_int), (None,))[0]
+            t_avg = (t_wsum / t_time) if t_wsum is not None and t_time else None
+
+            mo_data = {
+                "month": mo_int,
+                "month_str": "%02d" % mo_int,
+                "name": month_names.get(mo_int, str(mo_int)),
+                "full_name": MONTH_FULL_NAMES.get(mo_int, str(mo_int)),
+                "temp_avg": conv(t_avg, t_unit, t_group),
+                "temp_min": conv(t_min, t_unit, t_group),
+                "temp_max": conv(t_max, t_unit, t_group),
+                "rain_sum": conv(r_sum, r_unit, r_group),
+                "wind_max": conv(w_max, w_unit, w_group),
+                "noaa_url": "NOAA/NOAA-%d-%02d.txt" % (yr, mo_int),
+                "archive_url": "archive-%d-%02d.html" % (yr, mo_int),
+                "_wsum": t_wsum,
+                "_sumtime": t_time,
+            }
+
+            if yr not in years_dict:
+                years_dict[yr] = {
+                    "year": str(yr),
+                    "months": [],
+                    "noaa_url": "NOAA/NOAA-%d.txt" % yr,
+                }
+            years_dict[yr]["months"].append(mo_data)
+
+        result = []
+        for yr in sorted(years_dict.keys(), reverse=True):
+            y_info = years_dict[yr]
+            months = y_info["months"]
+
+            t_mins = [m["temp_min"] for m in months if m["temp_min"] is not None]
+            t_maxs = [m["temp_max"] for m in months if m["temp_max"] is not None]
+            r_sums = [m["rain_sum"] for m in months if m["rain_sum"] is not None]
+            w_maxs = [m["wind_max"] for m in months if m["wind_max"] is not None]
+            y_wsum = sum(m.pop("_wsum") or 0.0 for m in months)
+            y_time = sum(m.pop("_sumtime") or 0 for m in months)
+
+            y_info["temp_avg"] = conv(y_wsum / y_time, t_unit, t_group) if y_time else None
+            y_info["temp_min"] = min(t_mins) if t_mins else None
+            y_info["temp_max"] = max(t_maxs) if t_maxs else None
+            y_info["rain_sum"] = sum(r_sums) if r_sums else None
+            y_info["wind_max"] = max(w_maxs) if w_maxs else None
+
+            result.append(y_info)
+
+        self._archive_history_cache = (stamp, result)
+        return result
