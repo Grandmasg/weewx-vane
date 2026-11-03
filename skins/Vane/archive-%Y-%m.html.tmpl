@@ -21,6 +21,8 @@
 <meta name="theme-color" content="#020617">
 </head>
 <body>
+#set $rain_unit = $unit.unit_type_dict.group_rain
+#set $rain_fmt = $vane_rain_format($rain_unit)
 <div class="vane-shell">
 
   <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
@@ -131,7 +133,7 @@
           #if $month.rain.has_data
           <div class="tile">
             <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext('Rain')</span>
-            <div class="tile-value"><span class="num">$month.rain.sum.format(add_label=False, format_string="%.0f")</span><span class="unit"> mm</span></div>
+            <div class="tile-value"><span class="num">$month.rain.sum.format(add_label=False, format_string=$rain_fmt)</span><span class="unit">$unit.label.rain</span></div>
             <span class="tile-sub">$gettext('this month')</span>
           </div>
           #end if
@@ -153,9 +155,9 @@
               <span class="cal-head">$gettext('Su')</span>
               #for $i, $d in enumerate($month.days)
               #set $mm = $d.rain.sum.raw
-              #set $mm_display = $round($mm, 1) if $mm is not None else 0
+              #set $mm_display = $vane_rain_display($mm, $rain_unit)
               #set $day_num = $d.dateTime.format("%d")
-              #set $cell_style = "background:" + $vane_rain_color($mm)
+              #set $cell_style = "background:" + $vane_rain_color($mm, $rain_unit)
               #if $mm is not None and $mm > 0
               #set $cell_style = "color:#fff;" + $cell_style
               #end if
@@ -215,7 +217,7 @@
                   </td>
                   <td data-value="$d_min" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.outTemp.min.format(add_label=False, format_string="%.1f", None_string="&mdash;")&deg;</td>
                   <td data-value="$d_max" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.outTemp.max.format(add_label=False, format_string="%.1f", None_string="&mdash;")&deg;</td>
-                  <td data-value="$d.rain.sum.raw" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.rain.sum.format(add_label=False, format_string="%.1f", None_string="0.0") mm</td>
+                  <td data-value="$d.rain.sum.raw" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.rain.sum.format(add_label=False, format_string=$rain_fmt, None_string="0.0")$unit.label.rain</td>
                   <td data-value="$d.windSpeed.avg.raw" style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right">$d.windSpeed.avg.format(add_label=False, format_string="%.1f", None_string="&mdash;") $unit.label.windSpeed</td>
                   <td style="padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text-muted)">
                     #if $d.wind.vecdir.raw is not None

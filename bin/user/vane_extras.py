@@ -240,6 +240,8 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_windrose": self._windrose_data(timespan, db_manager),
                  "vane_wind_vector": self._wind_vector_data(timespan, db_manager),
                  "vane_rain_color": self._rain_color,
+                 "vane_rain_format": self._rain_format,
+                 "vane_rain_display": self._rain_display,
                  "vane_weekday": self._weekday_iso,
                  "vane_month_name": self._month_name,
                  "vane_lightning_mode": self._lightning_mode(timespan, db_manager),
@@ -758,14 +760,34 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         return MONTH_FULL_NAMES[time.localtime(dt_raw).tm_mon]
 
     @classmethod
-    def _rain_color(cls, mm):
-        if mm is None or mm <= 0:
+    def _rain_color(cls, value, unit_name="mm"):
+        """Map a rain amount to one of the fixed mm/day colour bands.
+
+        Templates pass the value in the report's configured rain unit
+        (e.g. inch for an imperial report), while RAIN_COLOR_STOPS is
+        expressed in mm, so convert before comparing.
+        """
+        if value is None or value <= 0:
             return "transparent"
+        try:
+            mm = weewx.units.convert((value, unit_name, "group_rain"), "mm")[0]
+        except Exception:
+            mm = value
         color = cls.RAIN_COLOR_STOPS[1][1]
         for threshold, hex_color in cls.RAIN_COLOR_STOPS:
             if mm >= threshold:
                 color = hex_color
         return color
+
+    @staticmethod
+    def _rain_format(unit_name):
+        """Decimal places for rain amounts: inches need 0.01 resolution."""
+        return "%.2f" if unit_name == "inch" else "%.1f"
+
+    @classmethod
+    def _rain_display(cls, value, unit_name):
+        """Format a rain amount for display in the report's rain unit."""
+        return cls._rain_format(unit_name) % (value if value is not None else 0)
 
     def _lightning_mode(self, timespan, db_manager):
         """Decides where the dashboard's lightning tile gets its data from
