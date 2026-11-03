@@ -71,6 +71,16 @@
     return [xy, opts];
   }
 
+  // Series labels are translated server-side by the template (see the
+  // data-label-* attributes on each chart host in graphs.html.tmpl), so a
+  // new language only needs its lang/*.conf entries — never a JS change.
+  // The English fallbacks here only matter if a template is missing one.
+  function chartLabel(hostId, key, fallback) {
+    var host = document.getElementById(hostId);
+    if (!host) return fallback;
+    return host.dataset["label" + key.charAt(0).toUpperCase() + key.slice(1)] || fallback;
+  }
+
   function renderAll(json) {
     var accent = cssVar("--accent-primary", "#2f8bff");
     var wind = cssVar("--accent-wind", "#fb923c");
@@ -78,25 +88,25 @@
     var muted = cssVar("--text-muted", "#94a3b8");
 
     renderLineChart("temp", "vane-temp-chart", [
-      seriesDef(json.temp, { label: "Buiten", stroke: accent, width: 2, fill: accent + "26" }),
-      seriesDef(json.dewpoint, { label: "Dauwpunt", stroke: muted, width: 1.5, dash: [4, 4], points: { show: false } })
+      seriesDef(json.temp, { label: chartLabel("vane-temp-chart", "temp", "Outdoor"), stroke: accent, width: 2, fill: accent + "26" }),
+      seriesDef(json.dewpoint, { label: chartLabel("vane-temp-chart", "dewpoint", "Dew point"), stroke: muted, width: 1.5, dash: [4, 4], points: { show: false } })
     ]);
 
     renderLineChart("pressure", "vane-pressure-chart", [
-      seriesDef(json.barometer, { label: "Luchtdruk", stroke: accent, width: 2, fill: accent + "1a", points: { show: false } })
+      seriesDef(json.barometer, { label: chartLabel("vane-pressure-chart", "barometer", "Pressure"), stroke: accent, width: 2, fill: accent + "1a", points: { show: false } })
     ]);
 
     renderLineChart("wind", "vane-wind-chart", [
-      seriesDef(json.windSpeed, { label: "Gemiddeld", stroke: wind, width: 2, points: { show: false } }),
-      seriesDef(json.windGust, { label: "Stoten", stroke: wind, width: 1.5, dash: [4, 4], points: { show: false } })
+      seriesDef(json.windSpeed, { label: chartLabel("vane-wind-chart", "windSpeed", "Average"), stroke: wind, width: 2, points: { show: false } }),
+      seriesDef(json.windGust, { label: chartLabel("vane-wind-chart", "windGust", "Gusts"), stroke: wind, width: 1.5, dash: [4, 4], points: { show: false } })
     ]);
 
     renderLineChart("rain", "vane-rain-chart", [
-      seriesDef(json.rain, { label: "Neerslag (30 min)", stroke: storm, width: 2, fill: storm + "33", points: { show: false } })
+      seriesDef(json.rain, { label: chartLabel("vane-rain-chart", "rain", "Rain (30 min)"), stroke: storm, width: 2, fill: storm + "33", points: { show: false } })
     ]);
 
     renderLineChart("humidity", "vane-humidity-chart", [
-      seriesDef(json.humidity, { label: "Vocht", stroke: accent, width: 2, fill: accent + "1a", points: { show: false } })
+      seriesDef(json.humidity, { label: chartLabel("vane-humidity-chart", "humidity", "Humidity"), stroke: accent, width: 2, fill: accent + "1a", points: { show: false } })
     ]);
 
     // Not combined with radiation here on purpose: UV (0-11ish) and
@@ -105,19 +115,19 @@
     // bottom. Radiation is still in the JSON (data/*.json.tmpl) for a
     // future dedicated chart, just not paired with UV on this one.
     renderLineChart("uv", "vane-uv-chart", [
-      seriesDef(json.uv, { label: "UV-index", stroke: wind, width: 2, points: { show: false } })
+      seriesDef(json.uv, { label: chartLabel("vane-uv-chart", "uv", "UV index"), stroke: wind, width: 2, points: { show: false } })
     ]);
 
     renderLineChart("radiation", "vane-radiation-chart", [
-      seriesDef(json.radiation, { label: "Straling", stroke: wind, width: 2, fill: wind + "1a", points: { show: false } })
+      seriesDef(json.radiation, { label: chartLabel("vane-radiation-chart", "radiation", "Radiation"), stroke: wind, width: 2, fill: wind + "1a", points: { show: false } })
     ]);
 
     renderLineChart("cloudbase", "vane-cloudbase-chart", [
-      seriesDef(json.cloudbase, { label: "Wolkenbasis", stroke: muted, width: 2, points: { show: false } })
+      seriesDef(json.cloudbase, { label: chartLabel("vane-cloudbase-chart", "cloudbase", "Cloud base"), stroke: muted, width: 2, points: { show: false } })
     ]);
 
     renderLineChart("et", "vane-et-chart", [
-      seriesDef(json.et, { label: "ET", stroke: storm, width: 2, fill: storm + "33", points: { show: false } })
+      seriesDef(json.et, { label: chartLabel("vane-et-chart", "et", "Evapotranspiration"), stroke: storm, width: 2, fill: storm + "33", points: { show: false } })
     ]);
   }
 
