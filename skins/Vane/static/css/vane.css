@@ -463,6 +463,87 @@ a:hover {
   gap: 18px;
 }
 
+/* ---------------------------------------------------------------------------
+   Mobile navigation: below 640px the fixed-width left rail is re-laid out
+   as a full-width bottom tab bar. Five top-level destinations fit the
+   standard mobile bottom-navigation pattern, and this reclaims the ~22%
+   of a phone viewport the 84px rail would otherwise occupy.
+   --------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .vane-shell {
+    display: block;
+  }
+
+  .vane-main {
+    min-height: 100vh;
+  }
+
+  .vane-content {
+    /* Let the document scroll instead of a fixed-height pane, so the
+       bottom bar can sit above the page normally. */
+    overflow: visible;
+  }
+
+  .vane-sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    width: 100%;
+    min-height: 56px;
+    min-height: calc(56px + env(safe-area-inset-bottom));
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 0;
+    padding: 4px;
+    padding: 4px max(4px, env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+    border-right: 0;
+    border-top: 1px solid var(--border);
+    /* --surface is translucent; layer it over --bg so scrolling content
+       does not show through the dock. */
+    background: linear-gradient(var(--surface), var(--surface)), var(--bg);
+    box-shadow: 0 -8px 24px rgba(2, 6, 23, .18);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .vane-sidebar .logo-link {
+    display: none;
+  }
+
+  .nav-btn {
+    flex: 1 1 0;
+    width: auto;
+    min-height: 48px;
+    padding: 6px 2px 5px;
+    gap: 3px;
+    border-radius: 10px;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .nav-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .nav-btn span {
+    font-size: 10px;
+    line-height: 1.1;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+  }
+
+  /* Existing 40px bottom padding + room for the fixed dock and its
+     safe-area inset, so the footer/last card is never covered. */
+  .vane-container {
+    padding-bottom: 96px;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Pushes the shared footer (footer.inc) to the bottom of the viewport on
    short-content pages (e.g. Almanac) instead of it floating right under
    the last card — but on a page with enough content to fill/overflow the
