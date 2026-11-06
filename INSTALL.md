@@ -154,6 +154,20 @@ sudo systemctl restart weewx
 cd /tmp && sudo -u weewx weectl report run
 ```
 
+Always restart after an update: a report run from the command line uses the new
+code, but the running WeeWX service keeps using the old code until it restarts,
+and overwrites your pages with it at the next archive interval.
+
+**Pages of past months** (`archive-YYYY-MM.html`) keep their old look and
+language links, because WeeWX only generates a past month when its file is
+missing. To refresh them, delete them first (adjust the path to your
+`HTML_ROOT`):
+
+```bash
+sudo rm -f /var/www/html/weewx/archive-20*.html /var/www/html/weewx/*/archive-20*.html
+cd /tmp && sudo -u weewx weectl report run
+```
+
 > [!NOTE]
 > If you ever perform a full `weectl extension uninstall Vane`, WeeWX will remove the `[[Vane]]` stanzas from `weewx.conf`. Reinstalling afterwards resets those stanzas to defaults (`HTML_ROOT = vane`), requiring you to reconfigure your custom `HTML_ROOT = /var/www/html/weewx` and `lang = nl`. Installing directly with `weectl extension install ... --yes` preserves your existing `weewx.conf` stanzas.
 
