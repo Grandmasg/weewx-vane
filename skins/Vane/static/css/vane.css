@@ -343,6 +343,12 @@ a:hover {
   -webkit-overflow-scrolling: touch;
 }
 
+@media (max-width: 360px) {
+  #vane-period-selector .period-btn {
+    padding: 6px 10px;
+  }
+}
+
 .vane-tab-btn,
 .period-btn {
   all: unset;
@@ -463,6 +469,27 @@ a:hover {
   gap: 18px;
 }
 
+/* The rail stays in view while the page scrolls; it scrolls itself when the
+   screen is too low for all items (a phone in landscape). */
+@media (min-width: 641px) {
+  .vane-sidebar {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+  }
+}
+
+/* A header block may never be wider than the screen: .vane-tabs scrolls
+   inside it, but only if its parent is allowed to shrink. */
+.vane-header > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* ---------------------------------------------------------------------------
    Mobile navigation: below 640px the fixed-width left rail is re-laid out
    as a full-width bottom tab bar. Five top-level destinations fit the
@@ -534,6 +561,17 @@ a:hover {
     line-height: 1.1;
     letter-spacing: -.01em;
     white-space: nowrap;
+  }
+
+  /* Long one-word labels ("Evapotranspiration", with a soft hyphen in
+     lang/*.conf) must fit a half-width tile instead of widening the page. */
+  .tile {
+    min-width: 0;
+  }
+
+  .tile-label {
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
   }
 
   /* Existing 40px bottom padding + room for the fixed dock and its

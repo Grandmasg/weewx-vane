@@ -267,7 +267,26 @@
     });
   }
 
+  // Charts get a fixed pixel width when drawn, so they must follow the
+  // card when the window changes or a phone is rotated: otherwise a chart
+  // drawn in landscape sticks out of its card in portrait.
+  function initResize() {
+    var timer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        Object.keys(charts).forEach(function (key) {
+          var host = charts[key].root.parentNode;
+          if (host && host.clientWidth) {
+            charts[key].setSize({ width: host.clientWidth, height: charts[key].height });
+          }
+        });
+      }, 150);
+    });
+  }
+
   function init() {
+    initResize();
     initPeriodSelector();
     initMonthPicker();
     initCsvExport();

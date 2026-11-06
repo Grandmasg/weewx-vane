@@ -24,6 +24,14 @@
     var listbox = combo.querySelector(".lang-listbox");
     listbox.hidden = false;
     button.setAttribute("aria-expanded", "true");
+    // Opens to the left of the button by default (it normally sits at the
+    // right of the header), but a wrapped header on a narrow phone can put
+    // the button at the left: then open to the right so it stays on screen.
+    listbox.style.left = listbox.style.right = "";
+    if (listbox.getBoundingClientRect().left < 0) {
+      listbox.style.left = "0";
+      listbox.style.right = "auto";
+    }
     var options = listbox.querySelectorAll(".lang-option");
     var target = listbox.querySelector('.lang-option[aria-selected="true"]') || options[0];
     if (target) focusOption(listbox, target);
