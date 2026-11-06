@@ -21,6 +21,8 @@
 <meta name="theme-color" content="#020617">
 </head>
 <body>
+#set $rain_unit = $unit.unit_type_dict.group_rain
+#set $rain_fmt = $vane_rain_format($rain_unit)
 <div class="vane-shell">
 
   <nav class="vane-sidebar" aria-label="$gettext('Navigation')">
@@ -340,16 +342,16 @@
             #if $day.rain.has_data
             <div class="tile" data-sensor="rain">
               <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/rain.svg" alt="">$gettext("Rain")</span>
-              <div class="tile-value"><span class="num" style="color:var(--accent-storm)">$day.rain.sum.format(add_label=False, format_string="%.1f")</span><span class="unit">$unit.label.rain</span></div>
+              <div class="tile-value"><span class="num" style="color:var(--accent-storm)">$day.rain.sum.format(add_label=False, format_string=$rain_fmt)</span><span class="unit">$unit.label.rain</span></div>
               <span class="tile-sub">$gettext("Today")</span>
               <div class="tile-stats-stacked">
                 <div class="stat-row">
                   <span>$gettext("This month")</span>
-                  <span class="stat-val">$month.rain.sum.format(add_label=True, format_string="%.1f")</span>
+                  <span class="stat-val">$month.rain.sum.format(add_label=True, format_string=$rain_fmt)</span>
                 </div>
                 <div class="stat-row">
                   <span>$gettext("This year")</span>
-                  <span class="stat-val">$year.rain.sum.format(add_label=True, format_string="%.0f")</span>
+                  <span class="stat-val">$year.rain.sum.format(add_label=True, format_string=$rain_fmt)</span>
                 </div>
               </div>
             </div>
@@ -569,12 +571,12 @@
                   #set $mm_val = $mm if $mm is not None else 0
                   #set $bar_pct = min(100, $mm_val / $week_max * 100) if $week_max > 0 else 0
                   #set $bar_day_num = $d.dateTime.format('%d')
-                  #set $bar_mm_display = $round($mm_val, 1)
+                  #set $bar_mm_display = $vane_rain_display($mm_val, $rain_unit)
                   #set $is_today = $d.dateTime.format("%Y-%m-%d") == $current.dateTime.format("%Y-%m-%d")
                   <div class="rain-week-col" title="$bar_day_num: $bar_mm_display $unit.label.rain">
                     <span class="rain-week-val#if $mm_val == 0# is-zero#end if#">$bar_mm_display</span>
                     <div class="rain-week-bar-wrap">
-                      <div class="rain-week-bar" style="height:${bar_pct}%;background:$vane_rain_color($mm)"></div>
+                      <div class="rain-week-bar" style="height:${bar_pct}%;background:$vane_rain_color($mm, $rain_unit)"></div>
                     </div>
                     <span class="tile-sub#if $is_today# is-today#end if#">$bar_day_num</span>
                   </div>
