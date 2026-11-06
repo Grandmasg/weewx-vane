@@ -121,6 +121,13 @@ trade-off and chosen direction.
 - No build step for the frontend (vanilla JS, no framework) — keeps it light
   and easy to maintain.
 
+## Credits
+
+Thanks to [@zerog2k](https://github.com/zerog2k) for the translated graph
+legends and configurable rain units
+([#3](https://github.com/Grandmasg/weewx-vane/pull/3)) and the mobile bottom
+navigation ([#4](https://github.com/Grandmasg/weewx-vane/pull/4)).
+
 ## License
 
 [MIT](LICENSE) — same as most reference skins above. Vane also uses a small
