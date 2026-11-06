@@ -31,10 +31,10 @@ look for a `weewx-venv`/`weewx-data` folder in your home directory
 
 ```bash
 # pip/venv install:
-~/weewx-venv/bin/weectl extension install vane-0.4.3.zip --config=/path/to/weewx.conf
+~/weewx-venv/bin/weectl extension install vane-0.4.4.zip --config=/path/to/weewx.conf
 
 # package install:
-weectl extension install vane-0.4.3.zip
+weectl extension install vane-0.4.4.zip
 ```
 
 `weectl` automatically adds the `[[Vane]]`, `[[VaneEN]]` and `[[VaneDE]]` stanzas to your

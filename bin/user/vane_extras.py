@@ -37,11 +37,12 @@ log = logging.getLogger(__name__)
 # the generated HTML already has new markup, which can visibly break the
 # layout until the user hard-refreshes. Bump this alongside install.py's
 # version whenever static/css or static/js changes.
-VANE_VERSION = "0.4.3"
+VANE_VERSION = "0.4.4"
 
 # Module-level so it survives between report runs inside weewxd; see
 # VaneExtras._day_length_year_data.
 _DAY_LENGTH_CACHE = {}
+_DAY_RECORDS_CACHE = {}
 
 # Untranslated on purpose: templates pass these through $gettext(), and
 # lang/*.conf [Texts] holds the per-language names.
@@ -223,7 +224,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         lat = getattr(self.generator.stn_info, "latitude_f", 52.0)
         now_stamp = self._latest_stamp(db_manager, timespan)
         season = self._current_season(now_stamp, lat)
-        astro = self._astro_data(now_stamp)
+        astro = self._astro_data(now_stamp, db_manager)
         season_title = season.capitalize()
         accent_style = self._accent_style(season)
 
@@ -261,6 +262,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_season_events": astro["season_events"],
                  "vane_day_length_year": astro["day_length_year"],
                  "vane_skyfield": astro["skyfield"],
+                 "vane_day_records": astro["day_records"],
                  "vane_fmt_ts": self._fmt_ts,
                  "vane_telemetry_services": self._telemetry_services(),
                  "vane_power_voltage": self._power_voltage(),
@@ -268,7 +270,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_record_count": self._record_count(db_manager),
                  "vane_archive_history": self._archive_history(db_manager)}]
 
-    def _astro_data(self, now_stamp):
+    def _astro_data(self, now_stamp, db_manager):
         """Sun arc, season events, day length and Skyfield extras — all
         about NOW (the newest record), not about the period of the page
         being generated: an archive page for September must not compute a
@@ -284,6 +286,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
             "season_events": self._season_events(span),
             "day_length_year": self._day_length_year_data(span),
             "skyfield": self._skyfield_extras(span),
+            "day_records": self._day_records(now_stamp, db_manager),
         }
         self._astro_cache = (now_stamp, data)
         return data
@@ -479,6 +482,74 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                 return None
             return self._from_report_unit(value, "group_temperature", "degree_C")
         return self._temp_gradient(c(t_min), c(t_max), c(lo), c(hi), steps)
+
+    def _day_records(self, now_stamp, db_manager):
+        """This station's warmest and coldest earlier occurrence of today's
+        calendar date, and the same date last year. None when switched off
+        ([Vane][[Features]] day_records) or without enough data: last year
+        needs one earlier year, records need two.
+
+        Reads the daily summaries; the date is matched in Python rather than
+        in SQL so it works on SQLite and MySQL alike. Past days don't change,
+        so those rows are cached per date; only today is read every run."""
+        features = self.generator.skin_dict.get("Vane", {}).get("Features", {})
+        if not weeutil.weeutil.to_bool(features.get("day_records", True)):
+            return None
+        if "outTemp" not in (getattr(db_manager, "daykeys", None) or ()):
+            return None
+
+        now = time.localtime(now_stamp)
+        day_start = time.mktime((now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1))
+        table = db_manager.table_name + "_day_outTemp"
+        key = (now.tm_year, now.tm_yday, table)
+        rows = _DAY_RECORDS_CACHE.get(key)
+        try:
+            if rows is None:
+                rows = []
+                for ts, lo, hi, sumtime in db_manager.genSql(
+                        "SELECT dateTime, min, max, sumtime FROM %s WHERE dateTime < ?" % table,
+                        (day_start,)):
+                    t = time.localtime(ts)
+                    # Under 12 hours measured isn't a full day (a station's
+                    # first day, an outage), so it can't set a record.
+                    if (t.tm_mon, t.tm_mday) == (now.tm_mon, now.tm_mday) \
+                            and lo is not None and hi is not None \
+                            and (sumtime is None or sumtime >= 43200):
+                        rows.append((t.tm_year, lo, hi))
+                _DAY_RECORDS_CACHE.clear()
+                _DAY_RECORDS_CACHE[key] = rows
+            today = db_manager.getSql(
+                "SELECT min, max FROM %s WHERE dateTime = ?" % table, (day_start,))
+        except Exception as e:
+            log.info("Vane: day records query error: %s", e)
+            return None
+        if not rows:
+            return None
+
+        unit, group = weewx.units.getStandardUnitType(db_manager.std_unit_system, "outTemp")
+
+        def fmt(value):
+            return weewx.units.ValueHelper(
+                weewx.units.ValueTuple(value, unit, group), context="current",
+                formatter=self.generator.formatter, converter=self.generator.converter,
+            ).format(add_label=False, format_string="%.1f")
+
+        out = {"since": min(r[0] for r in rows), "high": None, "low": None,
+               "last_year": None, "new_high": False, "new_low": False}
+        for year, lo, hi in rows:
+            if year == now.tm_year - 1:
+                out["last_year"] = {"high": fmt(hi), "low": fmt(lo)}
+        if len({r[0] for r in rows}) >= 2:
+            warmest = max(rows, key=lambda r: r[2])
+            coldest = min(rows, key=lambda r: r[1])
+            out["high"] = {"value": fmt(warmest[2]), "year": warmest[0]}
+            out["low"] = {"value": fmt(coldest[1]), "year": coldest[0]}
+            if today:
+                out["new_high"] = today[1] is not None and today[1] > warmest[2]
+                out["new_low"] = today[0] is not None and today[0] < coldest[1]
+        if not out["high"] and not out["last_year"]:
+            return None
+        return out
 
     def _pressure_format(self):
         """inHg needs two decimals where hPa/mbar need one."""

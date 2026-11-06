@@ -1295,6 +1295,29 @@ a:hover {
   font-variant-numeric: tabular-nums;
 }
 
+.day-records {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.day-records-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.day-record-new {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--accent-primary) 16%, transparent);
+  color: var(--accent-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .records-list {
   display: flex;
   flex-direction: column;
@@ -1312,7 +1335,8 @@ a:hover {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
-.records-row .r-date {
+.records-row .r-date,
+.day-records-head .r-date {
   font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;

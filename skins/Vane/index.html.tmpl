@@ -609,6 +609,39 @@
                   </div>
                   #end if
                 </div>
+                #if $vane_day_records
+                #set $dr = $vane_day_records
+                <div class="day-records">
+                  <div class="day-records-head">
+                    <span class="uppercase-label">$gettext("Day record") &middot; $current.dateTime.format($Vane.DateFormats.archive_day)</span>
+                    <span class="r-date">$gettext("since") $dr.since</span>
+                  </div>
+                  #if $dr.new_high or $dr.new_low
+                  <span class="day-record-new">$gettext("New day record!")</span>
+                  #end if
+                  <div class="records-list">
+                    #if $dr.high
+                    <div class="records-row">
+                      <span class="tile-sub">$gettext("Warmest")</span>
+                      <span class="r-val">$dr.high.value&deg;</span>
+                      <span class="r-date">$dr.high.year</span>
+                    </div>
+                    <div class="records-row">
+                      <span class="tile-sub">$gettext("Coldest")</span>
+                      <span class="r-val">$dr.low.value&deg;</span>
+                      <span class="r-date">$dr.low.year</span>
+                    </div>
+                    #end if
+                    #if $dr.last_year
+                    <div class="records-row">
+                      <span class="tile-sub">$gettext("Last year")</span>
+                      <span class="r-val">$dr.last_year.high&deg; / $dr.last_year.low&deg;</span>
+                      <span class="r-date"></span>
+                    </div>
+                    #end if
+                  </div>
+                </div>
+                #end if
               </div>
               #end if
             </div>
