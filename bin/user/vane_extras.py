@@ -483,73 +483,115 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
             return self._from_report_unit(value, "group_temperature", "degree_C")
         return self._temp_gradient(c(t_min), c(t_max), c(lo), c(hi), steps)
 
-    def _day_records(self, now_stamp, db_manager):
-        """This station's warmest and coldest earlier occurrence of today's
-        calendar date, and the same date last year. None when switched off
-        ([Vane][[Features]] day_records) or without enough data: last year
-        needs one earlier year, records need two.
+    # (label, observation table, day-summary column, unit type, higher wins?)
+    DAY_RECORD_ITEMS = [
+        ("Warmest", "outTemp", "max", "outTemp", True),
+        ("Coldest", "outTemp", "min", "outTemp", False),
+        ("Wettest", "rain", "sum", "rain", True),
+        ("Strongest gust", "windGust", "max", "windGust", True),
+        ("Highest pressure", "barometer", "max", "barometer", True),
+        ("Lowest pressure", "barometer", "min", "barometer", False),
+    ]
 
-        Reads the daily summaries; the date is matched in Python rather than
-        in SQL so it works on SQLite and MySQL alike. Past days don't change,
-        so those rows are cached per date; only today is read every run."""
+    def _day_record_rows(self, db_manager, day_start, now):
+        """{table: [(year, {column: value})]} of complete earlier days on
+        today's calendar date. Cached per date: past days don't change.
+        The date is matched in Python so this works on SQLite and MySQL."""
+        key = (now.tm_year, now.tm_yday, db_manager.table_name)
+        cached = _DAY_RECORDS_CACHE.get(key)
+        if cached is not None:
+            return cached
+        result = {}
+        daykeys = getattr(db_manager, "daykeys", None) or ()
+        for obs in {item[1] for item in self.DAY_RECORD_ITEMS}:
+            if obs not in daykeys:
+                continue
+            rows = []
+            sql = "SELECT dateTime, min, max, sum, sumtime FROM %s_day_%s WHERE dateTime < ?" % (
+                db_manager.table_name, obs)
+            for ts, lo, hi, total, sumtime in db_manager.genSql(sql, (day_start,)):
+                t = time.localtime(ts)
+                # Under 12 hours measured isn't a full day (a station's first
+                # day, an outage), so it can't set a record.
+                if (t.tm_mon, t.tm_mday) == (now.tm_mon, now.tm_mday) \
+                        and (sumtime is None or sumtime >= 43200):
+                    rows.append((t.tm_year, {"min": lo, "max": hi, "sum": total}))
+            result[obs] = rows
+        _DAY_RECORDS_CACHE.clear()
+        _DAY_RECORDS_CACHE[key] = result
+        return result
+
+    def _day_records(self, now_stamp, db_manager):
+        """This station's records for today's calendar date, compared with
+        today and the same date last year. None when switched off
+        ([Vane][[Features]] day_records) or without an earlier year; with
+        one earlier year it shows that year only, because one value isn't a
+        record yet (is_record False). Only today is read on every run."""
         features = self.generator.skin_dict.get("Vane", {}).get("Features", {})
         if not weeutil.weeutil.to_bool(features.get("day_records", True)):
-            return None
-        if "outTemp" not in (getattr(db_manager, "daykeys", None) or ()):
             return None
 
         now = time.localtime(now_stamp)
         day_start = time.mktime((now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1))
-        table = db_manager.table_name + "_day_outTemp"
-        key = (now.tm_year, now.tm_yday, table)
-        rows = _DAY_RECORDS_CACHE.get(key)
         try:
-            if rows is None:
-                rows = []
-                for ts, lo, hi, sumtime in db_manager.genSql(
-                        "SELECT dateTime, min, max, sumtime FROM %s WHERE dateTime < ?" % table,
-                        (day_start,)):
-                    t = time.localtime(ts)
-                    # Under 12 hours measured isn't a full day (a station's
-                    # first day, an outage), so it can't set a record.
-                    if (t.tm_mon, t.tm_mday) == (now.tm_mon, now.tm_mday) \
-                            and lo is not None and hi is not None \
-                            and (sumtime is None or sumtime >= 43200):
-                        rows.append((t.tm_year, lo, hi))
-                _DAY_RECORDS_CACHE.clear()
-                _DAY_RECORDS_CACHE[key] = rows
-            today = db_manager.getSql(
-                "SELECT min, max FROM %s WHERE dateTime = ?" % table, (day_start,))
+            tables = self._day_record_rows(db_manager, day_start, now)
+            today_rows = {}
+            for obs in tables:
+                today_rows[obs] = db_manager.getSql(
+                    "SELECT min, max, sum FROM %s_day_%s WHERE dateTime = ?" % (db_manager.table_name, obs),
+                    (day_start,))
         except Exception as e:
             log.info("Vane: day records query error: %s", e)
             return None
-        if not rows:
-            return None
 
-        unit, group = weewx.units.getStandardUnitType(db_manager.std_unit_system, "outTemp")
-
-        def fmt(value):
+        def fmt(value, unit_type):
+            unit, group = weewx.units.getStandardUnitType(db_manager.std_unit_system, unit_type)
+            if unit_type == "rain":
+                format_string = self._rain_format(self._report_unit("group_rain"))
+            elif unit_type == "barometer":
+                format_string = self._pressure_format()
+            elif unit_type == "windGust":
+                format_string = "%.0f"
+            else:
+                format_string = "%.1f"
             return weewx.units.ValueHelper(
                 weewx.units.ValueTuple(value, unit, group), context="current",
                 formatter=self.generator.formatter, converter=self.generator.converter,
-            ).format(add_label=False, format_string="%.1f")
+            ).format(format_string=format_string)
 
-        out = {"since": min(r[0] for r in rows), "high": None, "low": None,
-               "last_year": None, "new_high": False, "new_low": False}
-        for year, lo, hi in rows:
-            if year == now.tm_year - 1:
-                out["last_year"] = {"high": fmt(hi), "low": fmt(lo)}
-        if len({r[0] for r in rows}) >= 2:
-            warmest = max(rows, key=lambda r: r[2])
-            coldest = min(rows, key=lambda r: r[1])
-            out["high"] = {"value": fmt(warmest[2]), "year": warmest[0]}
-            out["low"] = {"value": fmt(coldest[1]), "year": coldest[0]}
-            if today:
-                out["new_high"] = today[1] is not None and today[1] > warmest[2]
-                out["new_low"] = today[0] is not None and today[0] < coldest[1]
-        if not out["high"] and not out["last_year"]:
+        items, since, is_record = [], None, False
+        for label, obs, column, unit_type, higher_wins in self.DAY_RECORD_ITEMS:
+            rows = [(year, vals[column]) for year, vals in tables.get(obs, ())
+                    if vals[column] is not None]
+            if not rows:
+                continue
+            years = {year for year, _ in rows}
+            since = min(years) if since is None else min(since, min(years))
+            best = (max if higher_wins else min)(rows, key=lambda r: r[1])
+            # A dry date has no "wettest" worth showing.
+            if obs == "rain" and best[1] <= 0:
+                continue
+            record = len(years) >= 2
+            is_record = is_record or record
+
+            today = None
+            row = today_rows.get(obs)
+            if row:
+                today = row[{"min": 0, "max": 1, "sum": 2}[column]]
+            is_new = record and today is not None and (
+                today > best[1] if higher_wins else today < best[1])
+            last = [v for year, v in rows if year == now.tm_year - 1]
+            items.append({
+                "label": label,
+                "value": fmt(best[1], unit_type),
+                "year": best[0],
+                "today": fmt(today, unit_type) if today is not None else None,
+                "last_year": fmt(last[0], unit_type) if last and record else None,
+                "is_new": is_new,
+            })
+        if not items:
             return None
-        return out
+        return {"since": since, "items": items, "is_record": is_record}
 
     def _pressure_format(self):
         """inHg needs two decimals where hPa/mbar need one."""

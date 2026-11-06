@@ -609,45 +609,40 @@
                   </div>
                   #end if
                 </div>
-                #if $vane_day_records
-                #set $dr = $vane_day_records
-                <div class="day-records">
-                  <div class="day-records-head">
-                    <span class="uppercase-label">$gettext("Day record") &middot; $current.dateTime.format($Vane.DateFormats.archive_day)</span>
-                    <span class="r-date">$gettext("since") $dr.since</span>
-                  </div>
-                  #if $dr.new_high or $dr.new_low
-                  <span class="day-record-new">$gettext("New day record!")</span>
-                  #end if
-                  <div class="records-list">
-                    #if $dr.high
-                    <div class="records-row">
-                      <span class="tile-sub">$gettext("Warmest")</span>
-                      <span class="r-val">$dr.high.value&deg;</span>
-                      <span class="r-date">$dr.high.year</span>
-                    </div>
-                    <div class="records-row">
-                      <span class="tile-sub">$gettext("Coldest")</span>
-                      <span class="r-val">$dr.low.value&deg;</span>
-                      <span class="r-date">$dr.low.year</span>
-                    </div>
-                    #end if
-                    #if $dr.last_year
-                    <div class="records-row">
-                      <span class="tile-sub">$gettext("Last year")</span>
-                      <span class="r-val">$dr.last_year.high&deg; / $dr.last_year.low&deg;</span>
-                      <span class="r-date"></span>
-                    </div>
-                    #end if
-                  </div>
-                </div>
-                #end if
               </div>
               #end if
             </div>
           </section>
           #end if
         </div>
+        #end if
+
+        #if $vane_day_records
+        #set $dr = $vane_day_records
+        <section class="card day-records">
+          <div class="day-records-head">
+            <span class="uppercase-label">#if $dr.is_record#$gettext("Day record")#else#$gettext("Last year")#end if# &middot; $current.dateTime.format($Vane.DateFormats.archive_day)</span>
+            #if $dr.is_record
+            <span class="r-date">$gettext("since") $dr.since</span>
+            #end if
+          </div>
+          <div class="day-records-grid">
+            #for $item in $dr["items"]
+            <div class="day-record#if $item.is_new# is-new#end if#">
+              <span class="tile-sub">$gettext($item.label)</span>
+              <div class="day-record-value">$item.value <span class="r-date">$item.year</span></div>
+              #if $item.is_new
+              <span class="day-record-new">$gettext("New record"): $item.today</span>
+              #else if $item.today
+              <span class="r-date">$gettext("Today") $item.today</span>
+              #end if
+              #if $item.last_year
+              <span class="r-date">$gettext("Last year") $item.last_year</span>
+              #end if
+            </div>
+            #end for
+          </div>
+        </section>
         #end if
 
         #*

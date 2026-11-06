@@ -21,8 +21,9 @@ status per component.
 ## Features
 
 - **Dashboard** with sensor-agnostic tiles, gauges, wind rose, wind-vector
-  radar, rain bars, records, day records (warmest and coldest on this date in
-  your station's history) and live updates (polling, or MQTT — see below).
+  radar, rain bars, records, day records (temperature, rain, gust and pressure
+  on this date in your station's history) and live updates (polling, or MQTT —
+  see below).
 - **Graphs** (uPlot) per day/week/month/year/all time with CSV export.
 - **Archive** with the current month, every month of the recorded history
   (its own page per month, with rain calendar and day table), years &

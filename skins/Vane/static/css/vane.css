@@ -1295,11 +1295,6 @@ a:hover {
   font-variant-numeric: tabular-nums;
 }
 
-.day-records {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
 .day-records-head {
   display: flex;
   justify-content: space-between;
@@ -1307,10 +1302,36 @@ a:hover {
   gap: 8px;
   flex-wrap: wrap;
 }
+.day-records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px 20px;
+  margin-top: 6px;
+}
+@media (max-width: 640px) {
+  .day-records-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.day-record {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.day-record-value {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.day-record .r-date {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
 .day-record-new {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 3px 10px;
+  align-self: flex-start;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: color-mix(in oklch, var(--accent-primary) 16%, transparent);
   color: var(--accent-primary);
