@@ -508,16 +508,16 @@
               <circle class="windrose-ring" cx="150" cy="150" r="41.6"></circle>
               #for $sector in $vane_windrose.sectors
               #if $sector.freq_pct > 0
-              #set $tt = "%s — %s%% · %s %s" % ($sector.label, $round($sector.freq_pct, 1), $round($sector.avg_speed, 1), $unit.label.windSpeed)
+              #set $tt = "%s — %s%% · %s %s" % ($sector.label, $vane_num($sector.freq_pct, 1), $vane_num($sector.avg_speed, 1), $unit.label.windSpeed)
               <path d="$sector.path_d" fill="var(--accent-primary)" opacity="0.88" data-tooltip="$tt"></path>
               #end if
               #end for
               #for $lp in $vane_windrose.label_points
               <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
-              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.freq_pct%</text>
+              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$vane_num($lp.freq_pct, 0)%</text>
               #end for
             </svg>
-            <span class="tile-sub">$gettext("Calm"): $round($vane_windrose.calm_pct, 1)%</span>
+            <span class="tile-sub">$gettext("Calm"): $vane_num($vane_windrose.calm_pct, 1)%</span>
           </section>
           #end if
           #if $vane_wind_vector.has_data
@@ -529,12 +529,12 @@
               <circle class="windrose-ring" cx="150" cy="150" r="41.6"></circle>
               #for $lp in $vane_wind_vector.label_points
               <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
-              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.speed/$lp.gust</text>
+              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$vane_num($lp.speed)/$vane_num($lp.gust)</text>
               #end for
               <polygon class="windvector-polygon" points="$vane_wind_vector.gust_points" fill="var(--accent-wind)" stroke="var(--accent-wind)"></polygon>
               <polygon class="windvector-polygon" points="$vane_wind_vector.speed_points" fill="var(--accent-primary)" stroke="var(--accent-primary)"></polygon>
               #for $m in $vane_wind_vector.markers
-              #set $mtt = "%s — %s: %s %s · %s: %s %s" % ($m.label, $gettext("Wind speed"), $m.speed, $unit.label.windSpeed, $gettext("Gusts"), $m.gust, $unit.label.windSpeed)
+              #set $mtt = "%s — %s: %s %s · %s: %s %s" % ($m.label, $gettext("Wind speed"), $vane_num($m.speed), $unit.label.windSpeed, $gettext("Gusts"), $vane_num($m.gust), $unit.label.windSpeed)
               <circle class="windvector-marker" cx="$m.speed_x" cy="$m.speed_y" r="4" fill="var(--accent-primary)" data-tooltip="$mtt"></circle>
               <circle class="windvector-marker" cx="$m.gust_x" cy="$m.gust_y" r="4" fill="var(--accent-wind)" data-tooltip="$mtt"></circle>
               #end for

@@ -30,7 +30,7 @@
     var grid = cssVar("--grid", "rgba(148,163,184,.12)");
     return [
       { stroke: muted, grid: { stroke: grid }, values: fmtAxisTime },
-      { stroke: muted, grid: { stroke: grid } }
+      { stroke: muted, grid: { stroke: grid }, values: fmtAxisValue }
     ];
   }
 
@@ -73,11 +73,26 @@
     return d.toLocaleDateString(LOCALE) + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
   }
 
+  // In the page's language; no grouping, since "1.020" for a pressure of
+  // 1020 reads as a decimal number.
+  function fmtNumber(v, decimals) {
+    return v.toLocaleString(LOCALE, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+      useGrouping: false
+    });
+  }
+
+  function fmtAxisValue(u, splits, axisIdx, foundSpace, foundIncr) {
+    var decimals = foundIncr >= 1 ? 0 : (foundIncr >= 0.1 ? 1 : 2);
+    return splits.map(function (v) { return v == null ? "" : fmtNumber(v, decimals); });
+  }
+
   // data-decimals on the chart host: inch and inHg need two decimals,
   // otherwise 0.03 in of rain shows as "0.0".
   function legendValueFormatter(decimals) {
     return function (u, v) {
-      return v == null ? "--" : v.toFixed(decimals);
+      return v == null ? "--" : fmtNumber(v, decimals);
     };
   }
 

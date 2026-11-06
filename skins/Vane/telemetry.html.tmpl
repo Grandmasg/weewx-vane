@@ -125,16 +125,16 @@
           #if $vane_power_voltage is not None
           <div class="tile">
             <span class="tile-label"><span class="tile-dot" style="background:var(--status-live)"></span>$gettext('Power')</span>
-            <div class="tile-value"><span class="num">$round($vane_power_voltage, 2)</span><span class="unit">V</span></div>
+            <div class="tile-value"><span class="num">$vane_num($vane_power_voltage, 2)</span><span class="unit">V</span></div>
           </div>
           #end if
 
           #if $vane_storage is not None
           <div class="tile">
             <span class="tile-label"><span class="tile-dot" style="background:var(--accent-storm)"></span>$gettext('Storage')</span>
-            <div class="tile-value"><span class="num">$round($vane_storage.db_size_mb, 0)</span><span class="unit">MB</span></div>
+            <div class="tile-value"><span class="num">$vane_num($vane_storage.db_size_mb, 0)</span><span class="unit">MB</span></div>
             #if $vane_storage.disk_used_pct is not None
-            <span class="tile-sub">weewx.sdb &middot; $round($vane_storage.disk_used_pct, 0)% $gettext('of') ${round($vane_storage.disk_total_gb, 0)}GB</span>
+            <span class="tile-sub">weewx.sdb &middot; $vane_num($vane_storage.disk_used_pct, 0)% $gettext('of') ${vane_num($vane_storage.disk_total_gb, 0)}GB</span>
             #end if
           </div>
           #end if
@@ -150,7 +150,7 @@
           <section class="card" style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;justify-content:space-between;align-items:baseline">
               <span class="uppercase-label">$gettext('Reception') &middot; $gettext('24 hours ago')</span>
-              <span style="font-size:11px;color:var(--text-muted)">$gettext('Min') $round($min($rx_vals),0) &middot; $gettext('Max') $round($max($rx_vals),0)</span>
+              <span style="font-size:11px;color:var(--text-muted)">$gettext('Min') $vane_num($min($rx_vals), 0) &middot; $gettext('Max') $vane_num($max($rx_vals), 0)</span>
             </div>
             <svg viewBox="0 0 300 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block">
               <path d="$rx_spark[1]" fill="var(--accent-primary)" opacity="0.18"></path>
@@ -171,7 +171,7 @@
           <section class="card" style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;justify-content:space-between;align-items:baseline">
               <span class="uppercase-label">$gettext('Console battery') &middot; 7 $gettext('days')</span>
-              <span style="font-size:11px;color:var(--text-muted)">$gettext('Min') $round($min($batt_vals),2) &middot; $gettext('Max') $round($max($batt_vals),2)</span>
+              <span style="font-size:11px;color:var(--text-muted)">$gettext('Min') $vane_num($min($batt_vals), 2) &middot; $gettext('Max') $vane_num($max($batt_vals), 2)</span>
             </div>
             <svg viewBox="0 0 300 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block">
               <path d="$batt_spark[1]" fill="var(--accent-storm)" opacity="0.18"></path>

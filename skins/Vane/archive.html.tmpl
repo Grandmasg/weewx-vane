@@ -195,16 +195,16 @@
               <circle class="windrose-ring" cx="150" cy="150" r="41.6"></circle>
               #for $sector in $vane_windrose.sectors
               #if $sector.freq_pct > 0
-              #set $tt = "%s — %s%% · %s %s" % ($sector.label, $round($sector.freq_pct, 1), $round($sector.avg_speed, 1), $unit.label.windSpeed)
+              #set $tt = "%s — %s%% · %s %s" % ($sector.label, $vane_num($sector.freq_pct, 1), $vane_num($sector.avg_speed, 1), $unit.label.windSpeed)
               <path d="$sector.path_d" fill="var(--accent-primary)" opacity="0.88" data-tooltip="$tt"></path>
               #end if
               #end for
               #for $lp in $vane_windrose.label_points
               <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
-              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.freq_pct%</text>
+              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$vane_num($lp.freq_pct, 0)%</text>
               #end for
             </svg>
-            <span class="tile-sub">$gettext('Calm'): $round($vane_windrose.calm_pct, 1)%</span>
+            <span class="tile-sub">$gettext('Calm'): $vane_num($vane_windrose.calm_pct, 1)%</span>
           </section>
           #end if
           #if $vane_wind_vector.has_data
@@ -216,12 +216,12 @@
               <circle class="windrose-ring" cx="150" cy="150" r="41.6"></circle>
               #for $lp in $vane_wind_vector.label_points
               <text class="windrose-label" x="$lp.x" y="$lp.y">$lp.label</text>
-              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$lp.speed/$lp.gust</text>
+              <text class="windrose-label-value" x="$lp.x" y="$lp.value_y">$vane_num($lp.speed)/$vane_num($lp.gust)</text>
               #end for
               <polygon class="windvector-polygon" points="$vane_wind_vector.gust_points" fill="var(--accent-wind)" stroke="var(--accent-wind)"></polygon>
               <polygon class="windvector-polygon" points="$vane_wind_vector.speed_points" fill="var(--accent-primary)" stroke="var(--accent-primary)"></polygon>
               #for $m in $vane_wind_vector.markers
-              #set $mtt = "%s — %s: %s %s · %s: %s %s" % ($m.label, $gettext('Wind speed'), $m.speed, $unit.label.windSpeed, $gettext('Gusts'), $m.gust, $unit.label.windSpeed)
+              #set $mtt = "%s — %s: %s %s · %s: %s %s" % ($m.label, $gettext('Wind speed'), $vane_num($m.speed), $unit.label.windSpeed, $gettext('Gusts'), $vane_num($m.gust), $unit.label.windSpeed)
               <circle class="windvector-marker" cx="$m.speed_x" cy="$m.speed_y" r="4" fill="var(--accent-primary)" data-tooltip="$mtt"></circle>
               <circle class="windvector-marker" cx="$m.gust_x" cy="$m.gust_y" r="4" fill="var(--accent-wind)" data-tooltip="$mtt"></circle>
               #end for
@@ -391,16 +391,16 @@
                   <span style="font-size:18px;font-weight:700;color:var(--text)">$yr.year</span>
                   <span class="subtitle" style="margin-left:14px">
                     #if $yr.temp_avg is not None
-                    $gettext('Avg'): <strong>$round($yr.temp_avg, 1)&deg;</strong> &middot;
+                    $gettext('Avg'): <strong>$vane_num($yr.temp_avg, 1)&deg;</strong> &middot;
                     #end if
                     #if $yr.temp_min is not None and $yr.temp_max is not None
-                    $round($yr.temp_min, 1)&deg; / $round($yr.temp_max, 1)&deg; &middot;
+                    $vane_num($yr.temp_min, 1)&deg; / $vane_num($yr.temp_max, 1)&deg; &middot;
                     #end if
                     #if $yr.rain_sum is not None
                     $gettext('Rain'): <strong>$vane_rain_display($yr.rain_sum, $rain_unit)$unit.label.rain</strong> &middot;
                     #end if
                     #if $yr.wind_max is not None
-                    $gettext('Gusts'): <strong>$round($yr.wind_max, 1) $unit.label.windSpeed</strong>
+                    $gettext('Gusts'): <strong>$vane_num($yr.wind_max, 1) $unit.label.windSpeed</strong>
                     #end if
                   </span>
                 </div>
@@ -426,21 +426,21 @@
                       </td>
                       <td data-value="$m.temp_avg" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
                         #if $m.temp_avg is not None
-                        $round($m.temp_avg, 1)&deg;
+                        $vane_num($m.temp_avg, 1)&deg;
                         #else
                         &mdash;
                         #end if
                       </td>
                       <td data-value="$m.temp_min" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
                         #if $m.temp_min is not None
-                        $round($m.temp_min, 1)&deg;
+                        $vane_num($m.temp_min, 1)&deg;
                         #else
                         &mdash;
                         #end if
                       </td>
                       <td data-value="$m.temp_max" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
                         #if $m.temp_max is not None
-                        $round($m.temp_max, 1)&deg;
+                        $vane_num($m.temp_max, 1)&deg;
                         #else
                         &mdash;
                         #end if
@@ -450,7 +450,7 @@
                       </td>
                       <td data-value="$m.wind_max" style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right">
                         #if $m.wind_max is not None
-                        $round($m.wind_max, 1) $unit.label.windSpeed
+                        $vane_num($m.wind_max, 1) $unit.label.windSpeed
                         #else
                         &mdash;
                         #end if

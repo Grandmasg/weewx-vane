@@ -220,6 +220,12 @@ full explanation, in short:
    translate the `[Texts]` section (plus any locale-specific overrides,
    see `lang/nl.conf` / `lang/de.conf` for the pattern).
 
+> [!NOTE]
+> **Decimal comma or point:** English always uses a decimal point. Dutch,
+> German and other languages use their own separator when that language is
+> installed on the system (`locale -a` lists them; on Debian-based systems add
+> them with `sudo dpkg-reconfigure locales`), otherwise the system's separator.
+
 ## 6. Optional: extra astronomy (Skyfield + Skymap almanac)
 
 Vane works with WeeWX's standard almanac (PyEphem). Two optional

@@ -97,7 +97,7 @@
                 <li role="option" class="lang-option" aria-selected="true" tabindex="0">
                 #else
                 #set $lseg = $lsubdir + '/' if $lsubdir else ''
-                <li role="option" class="lang-option" aria-selected="false" tabindex="-1" data-href="${Vane.root_href}${lseg}archive.html">
+                <li role="option" class="lang-option" aria-selected="false" tabindex="-1" data-href="${Vane.root_href}${lseg}${cur_url}">
                 #end if
                   #if $lflag
                   <img class="lang-flag" src="static/img/flags/${lflag}.svg" alt="" width="18" height="14">

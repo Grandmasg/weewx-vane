@@ -14,6 +14,7 @@ Two responsibilities, both motivated in docs/THEME_PLAN.md:
 """
 
 import json
+import locale
 import logging
 import math
 import os
@@ -142,6 +143,25 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
 
     def __init__(self, generator):
         weewx.cheetahgenerator.SearchList.__init__(self, generator)
+        self._set_number_locale()
+
+    def _set_number_locale(self):
+        """Decimal separator per report language. WeeWX asks the system for
+        the bare code ("en"), which usually fails and falls back to the
+        system language, so a Dutch system gave English pages decimal commas.
+        WeeWX restores the locale after each report. A language that isn't
+        installed keeps the system's separator ("C" always exists)."""
+        lang = str(self.generator.skin_dict.get("lang", "")).split("_")[0].lower()
+        if not lang:
+            return
+        names = ["C"] if lang == "en" else [
+            "%s_%s.%s" % (lang, lang.upper(), enc) for enc in ("UTF-8", "utf8")]
+        for name in names:
+            try:
+                locale.setlocale(locale.LC_NUMERIC, name)
+                return
+            except locale.Error:
+                continue
 
     def get_extension_list(self, timespan, db_lookup):
         db_manager = db_lookup()
@@ -199,15 +219,13 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                 if isinstance(raw_val, (int, float)):
                     k_lower = key.lower()
                     if "battery" in k_lower or "volt" in k_lower:
-                        val_str = "%.2f V" % raw_val
+                        val_str = locale.format_string("%.2f V", raw_val)
                     elif "rad" in k_lower:
-                        val_str = "%.0f W/m²" % raw_val
+                        val_str = locale.format_string("%.0f W/m²", raw_val)
                     elif "index" in k_lower or "humidex" in k_lower:
-                        val_str = "%.1f°" % raw_val
+                        val_str = locale.format_string("%.1f°", raw_val)
                     elif isinstance(raw_val, float):
-                        unit_match = re.search(r'[^\d\.\s]+.*$', val_str)
-                        unit_suffix = (" " + unit_match.group(0).strip()) if unit_match else ""
-                        val_str = ("%.2f" % raw_val) + unit_suffix
+                        val_str = helper.format(format_string="%.2f")
                 group_items.append({"key": key, "label": label, "value": val_str})
             if group_items:
                 extra_sensors.append({"group": group, "items": group_items})
@@ -264,6 +282,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_skyfield": astro["skyfield"],
                  "vane_day_records": astro["day_records"],
                  "vane_fmt_ts": self._fmt_ts,
+                 "vane_num": self._num,
                  "vane_telemetry_services": self._telemetry_services(),
                  "vane_power_voltage": self._power_voltage(),
                  "vane_storage": self._storage_info(),
@@ -934,7 +953,7 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
     @classmethod
     def _rain_display(cls, value, unit_name):
         """Format a rain amount for display in the report's rain unit."""
-        return cls._rain_format(unit_name) % (value if value is not None else 0)
+        return locale.format_string(cls._rain_format(unit_name), value if value is not None else 0)
 
     def _lightning_mode(self, timespan, db_manager):
         """Decides where the dashboard's lightning tile gets its data from
@@ -1154,6 +1173,12 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                   "Full", "Waning gibbous", "Last quarter", "Waning crescent"]
     PLANETS = [("mercury", "Mercury"), ("venus", "Venus"), ("mars", "Mars"),
                ("jupiter", "Jupiter"), ("saturn", "Saturn")]
+
+    @staticmethod
+    def _num(value, decimals=1):
+        """A number for display, with the same decimal separator as the
+        values WeeWX formats itself. Never use this for SVG coordinates."""
+        return locale.format_string("%.*f", (decimals, value))
 
     @staticmethod
     def _fmt_ts(ts, fmt="%H:%M"):
