@@ -569,8 +569,10 @@ a:hover {
     min-width: 0;
   }
 
-  .tile-label {
-    letter-spacing: 0;
+  /* ".tile" prefix: the base .tile-label rule comes later in this file. */
+  .tile .tile-label {
+    font-size: 10px;
+    letter-spacing: .04em;
     overflow-wrap: anywhere;
   }
 

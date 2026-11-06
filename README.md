@@ -13,7 +13,10 @@ Tempest data (not just the Simulator): Dashboard, Graphs, Archive, Telemetry
 and Almanac are all there. See `docs/DASHBOARD_EXPANSION_PLAN.md` for the
 status per component.
 
-![Vane dashboard, dark theme](docs/images/dashboard.png)
+<p>
+  <img src="docs/images/dashboard.png" alt="Vane dashboard on a desktop, dark theme" height="520">
+  <img src="docs/images/dashboard-mobile.png" alt="Vane dashboard on a phone, with the navigation as a bottom bar" height="520">
+</p>
 
 ## Features
 
@@ -27,6 +30,8 @@ status per component.
   arc, twilight, moon phases, day length through the year, seasons).
 - **Three languages** out of the box — Dutch, English, German — each a
   fully generated report with a language switcher; more can be added.
+- **Works on phones**: below 640 px the menu becomes a bottom bar, and charts
+  follow the screen when you rotate it.
 - **Light/dark theme** and a **seasonal accent colour** (spring green,
   summer amber, autumn copper, winter ice blue) that follows the current
   season site-wide, or a fixed colour of your choice.
