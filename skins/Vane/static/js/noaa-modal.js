@@ -28,7 +28,7 @@
             return r.text();
           })
           .then(function (text) { bodyEl.textContent = text; })
-          .catch(function (err) { bodyEl.textContent = "Error: " + err.message; });
+          .catch(function (err) { bodyEl.textContent = (bodyEl.dataset.error || "Error") + ": " + err.message; });
       });
     });
 

@@ -102,7 +102,25 @@ theme. When you're ready to make Vane your main site:
    > Leave the `[[[Units]]]` blocks the installer added to each report as
    > they are (omitted above for brevity).
 
-3. *(WeatherFlow Tempest users)* Check your `[[sensor_map]]` under `[WeatherFlowUDP]`:
+3. *(Optional)* **Imperial or other units**: Vane follows WeeWX's own unit
+   settings, per report. Change the `[[[Units]]]` block of a report, for
+   example for US units:
+   ```ini
+   [[VaneEN]]
+       ...
+       [[[Units]]]
+           [[[[Groups]]]]
+               group_altitude = foot
+               group_distance = mile
+               group_pressure = inHg
+               group_rain = inch
+               group_rainrate = inch_per_hour
+               group_speed = mile_per_hour
+               group_temperature = degree_F
+   ```
+   Each language can have its own units. Your database doesn't change.
+
+4. *(WeatherFlow Tempest users)* Check your `[[sensor_map]]` under `[WeatherFlowUDP]`:
    - Map `windGust`: `windGust = wind_gust.ST-XXXXX.obs_st`
    - Map `luminosity` (not `luxXXX`): `luminosity = illuminance.ST-XXXXX.obs_st`
 

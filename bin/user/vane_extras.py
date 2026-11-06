@@ -236,7 +236,10 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                  "vane_condition_icon": self._condition_icon,
                  "vane_moon_icon": self._moon_icon,
                  "vane_temp_color": self._temp_color,
-                 "vane_temp_gradient": self._temp_gradient,
+                 "vane_temp_gradient": self._temp_gradient_report,
+                 "vane_to_report_unit": self._to_report_unit,
+                 "vane_pressure_format": self._pressure_format(),
+                 "vane_decimals": self._decimals,
                  "vane_windrose": self._windrose_data(timespan, db_manager),
                  "vane_wind_vector": self._wind_vector_data(timespan, db_manager),
                  "vane_rain_color": self._rain_color,
@@ -456,6 +459,36 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
             colors.append(cls._temp_color(t, lo, hi))
         return ",".join(colors)
 
+    def _report_unit(self, group):
+        return self.generator.converter.group_unit_dict.get(group)
+
+    def _to_report_unit(self, value, from_unit, group):
+        """A fixed value (e.g. the 950 hPa end of a gauge scale) in the
+        unit this report displays that group in."""
+        return self.generator.converter.convert((value, from_unit, group))[0]
+
+    def _from_report_unit(self, value, group, to_unit):
+        return weewx.units.convert((value, self._report_unit(group), group), to_unit)[0]
+
+    def _temp_gradient_report(self, t_min, t_max, lo=None, hi=None, steps=5):
+        """_temp_gradient for values in the report's unit. The scale itself
+        (fallback bounds, minimum span) is defined in degrees C, so a
+        degree_F report would otherwise read 50 F as 50 C."""
+        def c(value):
+            if value is None:
+                return None
+            return self._from_report_unit(value, "group_temperature", "degree_C")
+        return self._temp_gradient(c(t_min), c(t_max), c(lo), c(hi), steps)
+
+    def _pressure_format(self):
+        """inHg needs two decimals where hPa/mbar need one."""
+        return "%.2f" if self._report_unit("group_pressure") == "inHg" else "%.1f"
+
+    @staticmethod
+    def _decimals(format_string):
+        """Number of decimals in a "%.Nf" format, for graphs.js."""
+        return int(format_string[2])
+
     # Universal (not climate-relative) wind-speed color scale in km/h —
     # wind-force conventions (Beaufort and its equivalents) are the same
     # everywhere, unlike temperature comfort, so this scale has no
@@ -536,7 +569,8 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                 "label": directions[i] if i < len(directions) else "",
                 "freq_pct": 100.0 * counts[i] / total,
                 "avg_speed": avg_speed,
-                "color": self._wind_color(avg_speed) if counts[i] else "transparent",
+                "color": (self._wind_color(self._from_report_unit(avg_speed, "group_speed", "km_per_hour"))
+                          if counts[i] else "transparent"),
                 "path_d": self._wedge_path(i, n, radius_frac),
             })
 
@@ -972,6 +1006,8 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
                 formatter=self.generator.formatter,
                 converter=self.generator.converter,
             )
+            if key == "barometer":
+                format_string = self._pressure_format()
             out[key] = helper.format(add_label=False, format_string=format_string)
 
         wind_dir = record.get("windDir")
@@ -1069,8 +1105,15 @@ class VaneExtras(weewx.cheetahgenerator.SearchList):
         out["moon_constellation"] = safe(lambda: str(alm.moon.constellation))
         out["sun_constellation"] = safe(lambda: str(alm.sun.constellation))
         dist = safe(lambda: float(alm.moon.dist))  # km
-        out["moon_distance_km"] = ("{:,}".format(int(round(dist))).replace(",", ".")
-                                   if dist else None)
+        if dist:
+            unit = self._report_unit("group_distance")
+            shown = self._to_report_unit(dist, "km", "group_distance")
+            # No-break space as thousands separator: "." or "," would read
+            # as a decimal point in some of the languages.
+            out["moon_distance"] = "{:,}".format(int(round(shown))).replace(",", "\u00a0") + \
+                self.generator.formatter.get_label_string(unit)
+        else:
+            out["moon_distance"] = None
 
         full = safe(lambda: float(alm.next_full_moon.raw))
         perigee = safe(lambda: float(alm.next_perigee_moon.raw))

@@ -16,18 +16,51 @@
     if (el) el.textContent = msg;
   }
 
+  // Same idea as chartLabel() below, for the texts not tied to one chart:
+  // translated by the template, on the status element.
+  function statusText(key, fallback) {
+    var el = document.getElementById("vane-graph-status");
+    return (el && el.dataset[key]) || fallback;
+  }
+
   var charts = {};
 
   function baseAxes() {
     var muted = cssVar("--text-muted", "#94a3b8");
     var grid = cssVar("--grid", "rgba(148,163,184,.12)");
     return [
-      { stroke: muted, grid: { stroke: grid } },
+      { stroke: muted, grid: { stroke: grid }, values: fmtAxisTime },
       { stroke: muted, grid: { stroke: grid } }
     ];
   }
 
   function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  // The page's own language (<html lang>), so the browser formats dates
+  // and month names correctly for any language without a table here.
+  var LOCALE = document.documentElement.lang || undefined;
+
+  // uPlot's default time axis is always English/US ("3pm", "11/6/26").
+  function fmtAxisTime(u, splits, axisIdx, foundSpace, foundIncr) {
+    var prevDay = null;
+    return splits.map(function (s) {
+      var d = new Date(s * 1000);
+      if (foundIncr >= 28 * 86400) {
+        return d.toLocaleDateString(LOCALE, { month: "short", year: "numeric" });
+      }
+      if (foundIncr >= 86400) {
+        return d.toLocaleDateString(LOCALE, { day: "numeric", month: "short" });
+      }
+      var day = d.toDateString();
+      var text = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      // Below the time, at the first tick and wherever a new day starts.
+      if (day !== prevDay) {
+        text += "\n" + d.toLocaleDateString(LOCALE, { day: "numeric", month: "short" });
+        prevDay = day;
+      }
+      return text;
+    });
+  }
 
   // uPlot's own default legend formatting is locale-agnostic raw
   // numbers (e.g. "20.294...") and a 12-hour AM/PM time — neither
@@ -37,27 +70,32 @@
   function fmtLegendTime(u, v) {
     if (v == null) return "--";
     var d = new Date(v * 1000);
-    return pad2(d.getDate()) + "-" + pad2(d.getMonth() + 1) + "-" + d.getFullYear() +
-      " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+    return d.toLocaleDateString(LOCALE) + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
   }
 
-  function fmtLegendValue(u, v) {
-    return v == null ? "--" : v.toFixed(1);
+  // data-decimals on the chart host: inch and inHg need two decimals,
+  // otherwise 0.03 in of rain shows as "0.0".
+  function legendValueFormatter(decimals) {
+    return function (u, v) {
+      return v == null ? "--" : v.toFixed(decimals);
+    };
   }
 
   function renderLineChart(key, hostId, series) {
     var host = document.getElementById(hostId);
     if (!host || typeof uPlot !== "function") return;
     if (!series.length || !series[0][0] || !series[0][0].length) return;
+    var decimals = parseInt(host.dataset.decimals, 10);
+    if (isNaN(decimals)) decimals = 1;
 
     var opts = {
       width: host.clientWidth || 560,
       height: 220,
       scales: { x: { time: true } },
       axes: baseAxes(),
-      series: [{ value: fmtLegendTime }].concat(series.map(function (s) {
+      series: [{ label: statusText("time", "Time"), value: fmtLegendTime }].concat(series.map(function (s) {
         var o = s[1];
-        if (o.value === undefined) o.value = fmtLegendValue;
+        if (o.value === undefined) o.value = legendValueFormatter(decimals);
         return o;
       }))
     };
@@ -81,6 +119,13 @@
     return host.dataset["label" + key.charAt(0).toUpperCase() + key.slice(1)] || fallback;
   }
 
+  // Must match the aggregate_interval of "rain" in data/*.json.tmpl.
+  function rainLabel() {
+    if (currentPeriod === "day") return chartLabel("vane-rain-chart", "rain30m", "Rain per 30 min");
+    if (currentPeriod === "year" || currentPeriod === "all") return chartLabel("vane-rain-chart", "rainDay", "Rain per day");
+    return chartLabel("vane-rain-chart", "rainHour", "Rain per hour");
+  }
+
   function renderAll(json) {
     var accent = cssVar("--accent-primary", "#2f8bff");
     var wind = cssVar("--accent-wind", "#fb923c");
@@ -102,7 +147,7 @@
     ]);
 
     renderLineChart("rain", "vane-rain-chart", [
-      seriesDef(json.rain, { label: chartLabel("vane-rain-chart", "rain", "Rain (30 min)"), stroke: storm, width: 2, fill: storm + "33", points: { show: false } })
+      seriesDef(json.rain, { label: rainLabel(), stroke: storm, width: 2, fill: storm + "33", points: { show: false } })
     ]);
 
     renderLineChart("humidity", "vane-humidity-chart", [
@@ -136,21 +181,9 @@
   var pollTimer = null;
   var lastJson = null;
 
-  // Client-side JS never goes through WeeWX's $gettext() (that's a
-  // server-side Cheetah tag) — so the handful of status strings this
-  // script shows get their own tiny lookup table instead. The active
-  // language code is injected by the template as window.VANE_LANG (see
-  // $Vane.lang_code); defaults to English if that's ever missing.
-  var LANG = (window.VANE_LANG || "en");
-  var LOCALE = LANG === "nl" ? "nl-NL" : "en-US";
-  var STRINGS = {
-    en: { loading: "Loading…", updated: "Updated ", loadError: "Could not load " },
-    nl: { loading: "Laden…", updated: "Bijgewerkt ", loadError: "Kon " }
-  }[LANG] || { loading: "Loading…", updated: "Updated ", loadError: "Could not load " };
-
   function load() {
     var file = currentFile;
-    setStatus(STRINGS.loading);
+    setStatus(statusText("loading", "Loading…"));
     fetch(file, { cache: "no-store" })
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -159,10 +192,13 @@
       .then(function (json) {
         lastJson = json;
         renderAll(json);
-        setStatus(STRINGS.updated + new Date().toLocaleTimeString(LOCALE));
+        var now = new Date();
+        setStatus(statusText("updated", "Updated") + " " + pad2(now.getHours()) + ":" +
+          pad2(now.getMinutes()) + ":" + pad2(now.getSeconds()));
       })
       .catch(function (err) {
-        setStatus(STRINGS.loadError + file + " (" + err.message + ")");
+        setStatus(statusText("loadError", "Could not load {file}").replace("{file}", file) +
+          " (" + err.message + ")");
       });
   }
 

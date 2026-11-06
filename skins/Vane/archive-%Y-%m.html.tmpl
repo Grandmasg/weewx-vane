@@ -123,12 +123,12 @@
           <div class="tile">
             <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-high.svg" alt="">$gettext('Highest')</span>
             <div class="tile-value"><span class="num">$month.outTemp.max.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
-            <span class="tile-sub">$month.outTemp.maxtime.format("%d-%m")</span>
+            <span class="tile-sub">$month.outTemp.maxtime.format($Vane.DateFormats.archive_day)</span>
           </div>
           <div class="tile">
             <span class="tile-label"><img class="tile-icon" width="28" height="28" src="static/img/icons/thermometer-low.svg" alt="">$gettext('Lowest')</span>
             <div class="tile-value"><span class="num">$month.outTemp.min.format(add_label=False, format_string="%.1f")</span><span class="unit">&deg;</span></div>
-            <span class="tile-sub">$month.outTemp.mintime.format("%d-%m")</span>
+            <span class="tile-sub">$month.outTemp.mintime.format($Vane.DateFormats.archive_day)</span>
           </div>
           #if $month.rain.has_data
           <div class="tile">
@@ -182,8 +182,8 @@
         #set $cfg_cold = $Vane.TempColorScale.get('cold_c', '')
         #set $cfg_hot = $Vane.TempColorScale.get('hot_c', '')
         #if $cfg_cold and $cfg_hot
-        #set $scale_lo = float($cfg_cold)
-        #set $scale_hi = float($cfg_hot)
+        #set $scale_lo = $vane_to_report_unit(float($cfg_cold), "degree_C", "group_temperature")
+        #set $scale_hi = $vane_to_report_unit(float($cfg_hot), "degree_C", "group_temperature")
         #else
         #set $scale_lo = $alltime.outTemp.min.raw
         #set $scale_hi = $alltime.outTemp.max.raw
@@ -249,7 +249,7 @@
     <span id="vane-noaa-title">NOAA</span>
     <button id="vane-noaa-close" aria-label="$gettext('Close')">&times;</button>
   </header>
-  <pre id="vane-noaa-body">&hellip;</pre>
+  <pre id="vane-noaa-body" data-error="$gettext('Error')">&hellip;</pre>
 </dialog>
 
 <script src="static/js/theme-toggle.js?v=$vane_version"></script>
